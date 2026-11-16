@@ -1847,7 +1847,11 @@
                            <i class="fas fa-calendar-alt"></i> Schedule
                         </a>
                         {% if faculty.is_chairman %}
-                            <a href="#" class="action-btn delete" title="Delete room"><i class="fas fa-trash"></i>Delete</a>
+                            <a href="#" class="action-btn delete"
+                            title="Delete room"
+                            onclick="deleteRoom({{ room.id }}, '{{ room.room_code|escapejs }}', '{{ room.room_name|escapejs }}'); return false;">
+                            <i class="fas fa-trash"></i>Delete
+                            </a>
                         {% endif %}
                     </div>
                 </div>
@@ -2573,6 +2577,59 @@
         .finally(() => { delete btnEl.dataset.busy; });
     }
 
+    /* ============================================================
+   DELETE ROOM
+   ============================================================ */
+function deleteRoom(roomId, roomCode, roomName) {
+    if (!IS_CHAIRMAN) return;
+
+    const confirmed = confirm(
+        `Delete room "${roomName}" (${roomCode})?\n\n` +
+        `This will also remove any schedules assigned to this room. ` +
+        `This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrf = csrfInput ? csrfInput.value : '';
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', csrf);
+
+    fetch(`/room/${roomId}/delete/`, {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRFToken': csrf }
+    })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+        if (d.success) {
+            // Remove the card from the DOM
+            const card = document.getElementById(`room-card-${roomId}`);
+            if (card) card.remove();
+
+            // If the schedule panel is open for this room, close it
+            if (currentRoomId === roomId) {
+                closeSchedulePanel();
+            }
+
+            // Update the room count badge
+            const badge = document.querySelector('.count-badge strong');
+            if (badge) {
+                const n = parseInt(badge.textContent, 10) || 1;
+                badge.textContent = Math.max(0, n - 1);
+            }
+
+            // Re-run filter so the empty-state message appears if needed
+            filterRooms();
+
+            // Show a toast (simple alert fallback)
+            alert(d.message || 'Room deleted successfully.');
+        } else {
+            alert(d.error || 'Failed to delete room.');
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
     /* ============================================================
        ADD ROOM MODAL
        ============================================================ */

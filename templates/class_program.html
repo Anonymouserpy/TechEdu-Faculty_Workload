@@ -1508,7 +1508,7 @@
                         <td>
                             <!-- TOTAL HOURS (Top) -->
                             <span class="total-hours" style="display:block; font-size:11px; font-weight:700; color:#1e40af;">
-                                {{ row.weighted_hours|floatformat:"-2" }}
+                                {{ row.weighted_hours|floatformat:"-1" }}
                             </span>
                         </td>
                     </tr>
@@ -1525,7 +1525,7 @@
                         <td>{{ total_lab|floatformat:"-1" }} ({{ total_lab|floatformat:"-1" }})</td>
                         <td>
                             <span style="display:block; font-size:11px; font-weight:700; color:#1e40af;">
-                                {{ total_weighted|floatformat:"-2" }}
+                                {{ total_weighted|floatformat:"-1" }}
                             </span>
                         </td>
                     </tr>

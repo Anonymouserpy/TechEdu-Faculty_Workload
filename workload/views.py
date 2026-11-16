@@ -91,6 +91,7 @@ def _active_subjects():
     )
 
 
+
 def _annotate_subject_progress(subjects):
     """
     Attach scheduling progress attributes used by templates/JSON:
@@ -123,6 +124,81 @@ def _annotate_subject_progress(subjects):
         s.schedule_count = models.ClassSchedule.objects.filter(subject=s).count()
     return subjects
 
+# ============================================================
+# CLASS LIST — EDITABLE SIGNATURES
+# ============================================================
+
+DEFAULT_CLASS_LIST_SIGNATURES = {
+    'prepared_by': {
+        'name': 'HAIDE D. SELAPA, PhD',
+        'position': 'Chairman',
+    },
+    'reviewed_by': {
+        'name': 'RONALD B. LACABA, REE, MSME',
+        'position': 'Dean',
+    },
+    'approved_by': {
+        'name': 'NELSON E. ENAGE, PhD, EdD',
+        'position': 'VP-Academic Affairs',
+    },
+}
+
+
+def _get_class_list_signatures(section=None):
+    """
+    GLOBAL signatures — same name/position for every section.
+    `section` is accepted for backwards-compatibility but ignored.
+    """
+    merged = {k: dict(v) for k, v in DEFAULT_CLASS_LIST_SIGNATURES.items()}
+
+    saved = models.ClassListSignature.objects.all()
+    for s in saved:
+        if s.action_key in merged:
+            if s.name:
+                merged[s.action_key]['name'] = s.name
+            if s.position:
+                merged[s.action_key]['position'] = s.position
+    return merged
+
+@require_POST
+def update_class_list_signature(request):
+    """
+    Save a GLOBAL signature slot (applies to every section).
+    Chairman only.
+    """
+    if not request.session.get('faculty_id'):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    try:
+        current = models.FacultyProfile.objects.get(
+            employee_id=request.session['faculty_id']
+        )
+        if not current.is_chairman:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+
+        action_key = (request.POST.get('action_key') or '').strip()
+        name       = (request.POST.get('name') or '').strip()
+        position   = (request.POST.get('position') or '').strip()
+
+        if action_key not in dict(models.ClassListSignature.ACTION_KEYS):
+            return JsonResponse({'error': 'Invalid action key'}, status=400)
+
+        obj, _ = models.ClassListSignature.objects.update_or_create(
+            action_key=action_key,
+            defaults={'name': name, 'position': position},
+        )
+
+        return JsonResponse({
+            'success': True,
+            'action_key': obj.action_key,
+            'name': obj.name,
+            'position': obj.position,
+        })
+
+    except models.FacultyProfile.DoesNotExist:
+        return JsonResponse({'error': 'Faculty not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 # ============================================================
 # TERM / EFFECTIVE DATE / REMARKS / ACTIONS
@@ -1288,7 +1364,12 @@ def room_schedule_data(request, room_id):
 
         room = get_object_or_404(models.Room, id=room_id)
 
-        matrix = models.RoomUtilizationCalculator.get_room_schedule_matrix(room)
+        # Try to get the matrix (this might be where the error is happening)
+        try:
+            matrix = models.RoomUtilizationCalculator.get_room_schedule_matrix(room)
+        except Exception as e:
+            return JsonResponse({'error': f'Matrix generation failed: {str(e)}'}, status=500)
+
         days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
 
         schedules = []
@@ -1317,10 +1398,7 @@ def room_schedule_data(request, room_id):
                 unique[key] = s
         schedule_list = list(unique.values())
 
-        # ─────────────────────────────────────────────────────
-        # Append Other Functions / Designation entries assigned
-        # to this room so they show up on the room schedule grid
-        # ─────────────────────────────────────────────────────
+        # Append Other Functions / Designation entries
         other_qs = models.FacultyOtherAssignment.objects.filter(
             room=room,
             is_active=True,
@@ -1353,7 +1431,6 @@ def room_schedule_data(request, room_id):
         while current < end:
             time_str = current.strftime('%H:%M')
 
-            # 🍽️ LUNCH BREAK (12:00 PM – 1:00 PM)
             if time_str == '12:00':
                 time_rows.append({
                     'key': '12:00',
@@ -1428,6 +1505,9 @@ def room_schedule_data(request, room_id):
                     'is_fully_scheduled': is_fully_scheduled,
                 })
 
+        # Fetch signatures for the footer
+        signatures = _get_room_signatures(room) if '_get_room_signatures' in globals() else {}
+
         return JsonResponse({
             'room': {
                 'id': room.id,
@@ -1449,13 +1529,16 @@ def room_schedule_data(request, room_id):
             'term': '1st Sem., S.Y. 2026-2027',
             'college':    room.department_name,
             'department': room.get_program_display().upper(),
+            'signatures': signatures,
         })
 
     except models.FacultyProfile.DoesNotExist:
         return JsonResponse({'error': 'Faculty not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
+        import traceback
+        traceback.print_exc() # This will print the exact error in your terminal
+        return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
+    
 def room_list(request):
     if not request.session.get('faculty_id'):
         messages.error(request, 'Please login to access this page.')
@@ -3362,6 +3445,35 @@ def room_toggle_availability(request, room_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+def room_delete(request, room_id):
+    if not request.session.get('faculty_id'):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    try:
+        current_faculty = models.FacultyProfile.objects.get(
+            employee_id=request.session['faculty_id']
+        )
+        if not current_faculty.is_chairman:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+
+        room = get_object_or_404(models.Room, id=room_id)
+        
+        room_code = room.room_code
+        room.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Room {room_code} deleted successfully.'
+        })
+
+    except models.FacultyProfile.DoesNotExist:
+        return JsonResponse({'error': 'Faculty not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 def room_update_ajax(request, room_id):
     if not request.session.get('faculty_id'):
@@ -3724,6 +3836,7 @@ def class_list(request):
             'days': days,
             'term': "First Semester 2026-2027",
         }
+        context['signatures'] = _get_class_list_signatures(section) 
         return render(request, 'class_list.html', context)
 
     except models.FacultyProfile.DoesNotExist:
@@ -4228,3 +4341,4 @@ def update_total_students(request, employee_id):
         return JsonResponse(
             {'success': False, 'error': str(e)}, status=500
         )
+

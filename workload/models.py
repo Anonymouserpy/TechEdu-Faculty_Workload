@@ -890,3 +890,33 @@ class ActionTaken(models.Model):
     def __str__(self):
         return f"{self.faculty.full_name} — {self.get_action_key_display()}: {self.name}"
 
+class ClassListSignature(models.Model):
+    """
+    Editable signature blocks for the Student's Class Program form.
+    GLOBAL — one row per action_key, shared across ALL sections/majors.
+    """
+    ACTION_KEYS = [
+        ('prepared_by', 'Prepared by'),
+        ('reviewed_by', 'Reviewed by'),
+        ('approved_by', 'Approved by'),
+    ]
+
+    # Kept for backwards compatibility with existing rows; new rows leave it NULL.
+    year_section = models.ForeignKey(
+        'YearSection',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='signatures',
+        help_text="Legacy field — signatures are now global. Ignored by the app.",
+    )
+    action_key = models.CharField(max_length=32, choices=ACTION_KEYS, unique=True)
+    name       = models.CharField(max_length=120, blank=True, default='')
+    position   = models.CharField(max_length=120, blank=True, default='')
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['action_key']
+
+    def __str__(self):
+        return f"{self.action_key}: {self.name}"

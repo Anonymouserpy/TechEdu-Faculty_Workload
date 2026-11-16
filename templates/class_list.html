@@ -14,9 +14,7 @@
         color: #1f2937;
     }
 
-    /* =========================================
-       PROFESSIONAL TOP CONTROLS
-       ========================================= */
+    /* TOP CONTROLS */
     .top-controls {
         max-width: 1200px;
         margin: 0 auto 24px auto;
@@ -31,136 +29,69 @@
         border: 1px solid #e5e7eb;
         gap: 20px;
     }
-
-    /* Control Groups (Dropdowns) */
-    .control-group {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+    .control-group { display: flex; align-items: center; gap: 12px; }
     .control-group label {
-        font-size: 11px;
-        font-weight: 700;
-        color: #6b7280;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        white-space: nowrap;
+        font-size: 11px; font-weight: 700; color: #6b7280;
+        letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
     }
-
-    /* Modern Custom Select */
-    .custom-select-wrapper {
-        position: relative;
-        display: inline-block;
-    }
+    .custom-select-wrapper { position: relative; display: inline-block; }
     .control-group select {
-        appearance: none;
-        -webkit-appearance: none;
-        background-color: #f9fafb;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        padding: 10px 36px 10px 16px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #111827;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        outline: none;
-        min-width: 160px;
+        appearance: none; -webkit-appearance: none;
+        background-color: #f9fafb; border: 1px solid #d1d5db;
+        border-radius: 8px; padding: 10px 36px 10px 16px;
+        font-size: 14px; font-weight: 600; color: #111827;
+        cursor: pointer; transition: all 0.2s ease; outline: none; min-width: 160px;
     }
-    .control-group select:hover {
-        border-color: #9ca3af;
-        background-color: #f3f4f6;
-    }
+    .control-group select:hover { border-color: #9ca3af; background-color: #f3f4f6; }
     .control-group select:focus {
-        border-color: #2563eb;
-        background-color: #ffffff;
+        border-color: #2563eb; background-color: #ffffff;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
-    
-    /* Custom Dropdown Arrow */
     .custom-select-wrapper::after {
-        content: "";
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 10px;
-        height: 6px;
+        content: ""; position: absolute; right: 14px; top: 50%;
+        transform: translateY(-50%); width: 10px; height: 6px;
         background-color: #6b7280;
         clip-path: polygon(100% 0, 0 0, 50% 100%);
         pointer-events: none;
-        transition: background-color 0.2s;
-    }
-    .control-group select:focus + .custom-select-wrapper::after,
-    .custom-select-wrapper:hover::after {
-        background-color: #2563eb;
     }
 
-    /* Right Side: Year & Section Segmented Control */
     .section-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-left: auto;
+        display: flex; align-items: center; gap: 12px; margin-left: auto;
     }
     .section-buttons {
-        display: flex;
-        background-color: #f3f4f6;
-        padding: 4px;
-        border-radius: 10px;
-        border: 1px solid #e5e7eb;
-        flex-wrap: wrap;
-        gap: 4px;
+        display: flex; background-color: #f3f4f6; padding: 4px;
+        border-radius: 10px; border: 1px solid #e5e7eb;
+        flex-wrap: wrap; gap: 4px;
     }
     .section-btn {
-        padding: 8px 16px;
-        border: none;
-        background: transparent;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #4b5563;
-        cursor: pointer;
+        padding: 8px 16px; border: none; background: transparent;
+        border-radius: 6px; font-size: 13px; font-weight: 600;
+        color: #4b5563; cursor: pointer; text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center;
         transition: all 0.15s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
     }
-    .section-btn:hover {
-        background-color: #e5e7eb;
-        color: #111827;
-    }
+    .section-btn:hover { background-color: #e5e7eb; color: #111827; }
     .section-btn.active {
         background: linear-gradient(135deg, #3b82f6, #2563eb);
         color: #ffffff;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    /* =========================================
-       OFFICIAL DOCUMENT
-       ========================================= */
+    /* OFFICIAL DOCUMENT */
     .print-container {
         background: white; max-width: 1200px; margin: 0 auto;
         padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    
-    /* HEADER DESIGN */
     .header-wrapper {
         display: grid;
         grid-template-columns: 160px 1fr 240px;
         grid-template-rows: auto auto;
         border: 2px solid #000;
-        margin-bottom: 0;
     }
     .header-logos-container {
-        grid-column: 1;
-        grid-row: 1 / 3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px;
-        border-right: 1px solid #000;
+        grid-column: 1; grid-row: 1 / 3;
+        display: flex; align-items: center; justify-content: center;
+        padding: 10px; border-right: 1px solid #000;
     }
     .header-logos { display: flex; gap: 10px; }
     .logo-box {
@@ -176,12 +107,17 @@
         border-right: 1px solid #000; border-bottom: 1px solid #000;
         font-size: 11px; line-height: 1.3;
     }
-    .header-center-top strong { font-size: 14px; font-weight: bold; margin: 2px 0; text-transform: uppercase; }
-    .header-center-top .college-name { font-size: 11.5px; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
+    .header-center-top strong {
+        font-size: 14px; font-weight: bold; margin: 2px 0; text-transform: uppercase;
+    }
+    .header-center-top .college-name {
+        font-size: 11.5px; font-weight: bold; text-transform: uppercase; margin-top: 5px;
+    }
     .header-center-bottom {
         grid-column: 2; grid-row: 2;
         text-align: center; padding: 6px; font-size: 14px; font-weight: bold;
-        text-transform: uppercase; display: flex; align-items: center; justify-content: center;
+        text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center;
         border-right: 1px solid #000;
     }
     .header-center-bottom .highlight { background-color: #d1d5db; padding: 0 4px; }
@@ -189,17 +125,23 @@
         grid-column: 3; grid-row: 1 / 3;
         display: flex; flex-direction: column;
     }
-    .right-codes-container { display: flex; flex-direction: column; border-bottom: 1px solid #000; }
-    .right-codes-container > div { padding: 4px 8px; font-size: 9.5px; border-bottom: 1px solid #000; }
+    .right-codes-container {
+        display: flex; flex-direction: column; border-bottom: 1px solid #000;
+    }
+    .right-codes-container > div {
+        padding: 4px 8px; font-size: 9.5px; border-bottom: 1px solid #000;
+    }
     .right-codes-container > div:last-child { border-bottom: none; }
     .right-tuv-container {
         flex: 1; display: flex; flex-direction: column;
         justify-content: center; align-items: center; padding: 10px 5px; text-align: center;
     }
-    .tuv-logo { font-size: 16px; font-weight: bold; color: #3b82f6; margin-bottom: 2px; letter-spacing: 0.5px; }
+    .tuv-logo {
+        font-size: 16px; font-weight: bold; color: #3b82f6;
+        margin-bottom: 2px; letter-spacing: 0.5px;
+    }
     .tuv-text { font-size: 9px; line-height: 1.2; }
 
-    /* INFO SECTION */
     .info-section {
         border: 2px solid #000; border-top: none;
         display: flex; flex-wrap: wrap; font-size: 12px; font-weight: bold;
@@ -211,7 +153,9 @@
         display: flex; align-items: center; gap: 8px;
     }
     .info-item:last-child { border-right: none; }
-    .info-item label { font-weight: bold; font-size: 11px; color: #333; margin-right: 4px; }
+    .info-item label {
+        font-weight: bold; font-size: 11px; color: #333; margin-right: 4px;
+    }
 
     table.schedule-table {
         width: 100%; border-collapse: collapse; font-size: 11px;
@@ -224,7 +168,9 @@
         background-color: #a0d468; font-weight: bold;
         text-transform: uppercase; color: #000; height: 30px;
     }
-    .time-col { width: 85px; font-weight: bold; background-color: #f9f9f9; font-size: 10px; }
+    .time-col {
+        width: 85px; font-weight: bold; background-color: #f9f9f9; font-size: 10px;
+    }
 
     .class-block {
         font-weight: bold; font-size: 11px; padding: 4px;
@@ -244,84 +190,260 @@
     .bg-orange { background-color: #ffcc99; }
     .bg-teal { background-color: #99e6e6; }
 
+    /* FOOTER (editable) */
     .footer {
         border: 2px solid #000; border-top: none;
-        display: flex; font-size: 11px; margin-top: 0;
+        display: flex; font-size: 11px;
     }
-    .footer > div {
+    .footer > .sig-block {
         flex: 1; padding: 10px; border-right: 1px solid #000; text-align: center;
     }
-    .footer > div:last-child { border-right: none; }
-    .footer .name { font-weight: bold; margin-top: 15px; }
-    .footer .title { font-size: 10px; }
+    .footer > .sig-block:last-child { border-right: none; }
+    .footer .sig-label { font-size: 11px; color: #333; margin-bottom: 15px; }
+    .footer .sig-name {
+        font-weight: bold; font-size: 11px;
+        letter-spacing: 0.3px; text-transform: uppercase;
+    }
+    .footer .sig-title { font-size: 10px; color: #333; margin-top: 2px; }
 
+    .sig-name.sig-editable,
+    .sig-title.sig-editable {
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: 0 -4px;
+    }
+    .sig-name.sig-editable:hover,
+    .sig-title.sig-editable:hover {
+        background: #eff6ff;
+        box-shadow: inset 0 0 0 1px rgba(30, 64, 175, 0.25);
+    }
+    .sig-name.sig-editable::after {
+        content: ' ✏️';
+        font-size: 9px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+    .sig-name.sig-editable:hover::after { opacity: 0.7; }
+
+    /* SIGNATURE EDIT MODAL */
+    .sig-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1150;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; opacity: 0; visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .sig-modal-overlay.open { opacity: 1; visibility: visible; }
+    .sig-modal {
+        background: #fff; border-radius: 14px;
+        width: 100%; max-width: 460px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.20);
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .sig-modal-overlay.open .sig-modal { transform: translateY(0) scale(1); }
+    .sig-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .sig-modal-header .sig-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: #1e40af; text-transform: uppercase;
+    }
+    .sig-modal-header h2 {
+        font-size: 16px; color: #0f172a; margin: 2px 0 0;
+        font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .sig-modal-body { padding: 16px 22px 6px; }
+    .sig-modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 12px 22px;
+        border-top: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+    .sig-modal-close {
+        background: transparent; border: 1px solid #e5e7eb;
+        width: 32px; height: 32px; border-radius: 8px;
+        cursor: pointer; font-size: 14px; color: #64748b;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .sig-modal-close:hover { background: #f1f5f9; color: #0f172a; }
+
+    .sig-form-group { margin-bottom: 14px; }
+    .sig-form-group label {
+        display: block; font-size: 12px; font-weight: 600;
+        color: #334155; margin-bottom: 6px;
+    }
+    .sig-form-group input {
+        width: 100%; padding: 10px 13px;
+        border: 1px solid #e2e8f0; border-radius: 8px;
+        font-size: 13.5px; font-family: inherit;
+        box-sizing: border-box; outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .sig-form-group input:focus {
+        border-color: #1e40af;
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+    }
+
+    .sig-msg {
+        padding: 10px 14px; border-radius: 8px;
+        font-size: 13px; margin-bottom: 14px; display: none;
+        border-left: 3px solid transparent;
+        white-space: pre-line; line-height: 1.5;
+    }
+    .sig-msg.error {
+        background: #fef2f2; color: #b42318;
+        border: 1px solid #fecaca; border-left: 3px solid #dc2626;
+        display: block;
+    }
+    .sig-msg.success {
+        background: #ecfdf5; color: #065f46;
+        border: 1px solid #a7f3d0; border-left: 3px solid #10b981;
+        display: block;
+    }
+
+    .sig-btn {
+        padding: 8px 16px; border-radius: 6px;
+        font-size: 13px; font-weight: 600;
+        cursor: pointer; display: inline-flex;
+        align-items: center; gap: 6px;
+        transition: all 0.15s ease;
+    }
+    .sig-btn.secondary {
+        background: #fff; border: 1px solid #e5e7eb; color: #334155;
+    }
+    .sig-btn.secondary:hover { background: #f1f5f9; }
+    .sig-btn.primary {
+        background: #1e40af; border: none; color: #fff;
+    }
+    .sig-btn.primary:hover { background: #1e3a8a; }
+    .sig-btn.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PRINT STYLES — Removes top controls & isolates the document
+       ══════════════════════════════════════════════════════════════ */
     @media print {
-        body { background: white; padding: 0; margin: 0; }
-        .top-controls { display: none !important; }
-        .print-container { box-shadow: none; padding: 0; max-width: 100%; }
-        .no-print { display: none; }
-        table.schedule-table th { background-color: #a0d468 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .bg-blue, .bg-pink, .bg-green, .bg-yellow, .bg-purple, .bg-orange, .bg-teal { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .header-center-bottom .highlight { background-color: #d1d5db !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        /* Hide everything by default */
+        body * {
+            visibility: hidden;
+        }
+
+        /* Reveal ONLY the official document */
+        .print-container,
+        .print-container * {
+            visibility: visible;
+        }
+
+        /* Pull the document to the very top of the page */
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+        }
+
+        /* Hide page background and margins */
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Explicitly hide the top bar and print button */
+        .top-controls,
+        .no-print {
+            display: none !important;
+        }
+
+        /* Preserve background colors */
+        table.schedule-table th {
+            background-color: #a0d468 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .bg-blue, .bg-pink, .bg-green, .bg-yellow,
+        .bg-purple, .bg-orange, .bg-teal {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .header-center-bottom .highlight {
+            background-color: #d1d5db !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Hide edit affordances */
+        .sig-name.sig-editable::after { display: none !important; }
+        .sig-name.sig-editable,
+        .sig-title.sig-editable {
+            box-shadow: none !important;
+            background: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            cursor: default !important;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<form id="csrfHolder" style="display:none;">{% csrf_token %}</form>
 
-<!-- PROFESSIONAL TOP CONTROL BAR -->
+<!-- TOP CONTROL BAR -->
 <div class="top-controls no-print">
-    
-    <!-- Left Side: Dropdowns -->
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <div class="control-group">
             <label>Course</label>
             <div class="custom-select-wrapper">
                 <select id="courseDropdown">
                     {% for code in course_list %}
-                        <option value="{{ code }}" {% if section and code == section.course_code %}selected{% endif %}>
-                            {{ code }}
-                        </option>
+                        <option value="{{ code }}" {% if section and code == section.course_code %}selected{% endif %}>{{ code }}</option>
                     {% endfor %}
                 </select>
             </div>
         </div>
-
         <div class="control-group">
             <label>Major</label>
             <div class="custom-select-wrapper">
                 <select id="majorDropdown">
                     <option value="">None</option>
                     {% for m in major_list %}
-                        <option value="{{ m }}" {% if section and m == section.major %}selected{% endif %}>
-                            {{ m }}
-                        </option>
+                        <option value="{{ m }}" {% if section and m == section.major %}selected{% endif %}>{{ m }}</option>
                     {% endfor %}
                 </select>
             </div>
         </div>
     </div>
 
-    <!-- Right Side: Year & Section -->
     <div class="section-controls">
-        <label style="font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.5px; text-transform: uppercase;">Year & Section</label>
+        <label style="font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.5px; text-transform: uppercase;">Year &amp; Section</label>
         <div class="section-buttons">
             {% for s in year_section_list %}
-                <a href="#" 
-                   onclick="navigateToSection('{{ s.year_level }}', '{{ s.section }}'); return false;"
+                <a href="#" onclick="navigateToSection('{{ s.year_level }}', '{{ s.section }}'); return false;"
                    class="section-btn {% if section and s.year_level == section.year_level and s.section == section.section %}active{% endif %}">
                     {{ s.year_level }}-{{ s.section }}
                 </a>
             {% endfor %}
         </div>
     </div>
-
 </div>
 
 <!-- OFFICIAL DOCUMENT -->
 <div class="print-container">
-    
-    <!-- HEADER -->
     <div class="header-wrapper">
         <div class="header-logos-container">
             <div class="header-logos">
@@ -345,10 +467,7 @@
             </div>
             <div class="right-tuv-container">
                 <div class="tuv-logo">TUV NORD</div>
-                <div class="tuv-text">
-                    PIT is ISO 9001:2015 certified by<br>
-                    TUV NORD Philippines, Inc.
-                </div>
+                <div class="tuv-text">PIT is ISO 9001:2015 certified by<br>TUV NORD Philippines, Inc.</div>
             </div>
         </div>
     </div>
@@ -377,12 +496,8 @@
         <thead>
             <tr>
                 <th class="time-col">TIME</th>
-                <th>MONDAY</th>
-                <th>TUESDAY</th>
-                <th>WEDNESDAY</th>
-                <th>THURSDAY</th>
-                <th>FRIDAY</th>
-                <th>SATURDAY</th>
+                <th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th>
+                <th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th>
             </tr>
         </thead>
         <tbody>
@@ -396,7 +511,6 @@
                     <tr>
                         <td class="time-col">{{ slot.display }}</td>
 
-                        {# MONDAY #}
                         {% if slot.monday and slot.monday.is_start %}
                             <td rowspan="{{ slot.monday.rowspan }}" class="{{ slot.monday.info.color }}">
                                 <div class="class-block">
@@ -406,11 +520,8 @@
                                 </div>
                             </td>
                         {% elif slot.monday and not slot.monday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
 
-                        {# TUESDAY #}
                         {% if slot.tuesday and slot.tuesday.is_start %}
                             <td rowspan="{{ slot.tuesday.rowspan }}" class="{{ slot.tuesday.info.color }}">
                                 <div class="class-block">
@@ -420,11 +531,8 @@
                                 </div>
                             </td>
                         {% elif slot.tuesday and not slot.tuesday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
 
-                        {# WEDNESDAY #}
                         {% if slot.wednesday and slot.wednesday.is_start %}
                             <td rowspan="{{ slot.wednesday.rowspan }}" class="{{ slot.wednesday.info.color }}">
                                 <div class="class-block">
@@ -434,11 +542,8 @@
                                 </div>
                             </td>
                         {% elif slot.wednesday and not slot.wednesday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
 
-                        {# THURSDAY #}
                         {% if slot.thursday and slot.thursday.is_start %}
                             <td rowspan="{{ slot.thursday.rowspan }}" class="{{ slot.thursday.info.color }}">
                                 <div class="class-block">
@@ -448,11 +553,8 @@
                                 </div>
                             </td>
                         {% elif slot.thursday and not slot.thursday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
 
-                        {# FRIDAY #}
                         {% if slot.friday and slot.friday.is_start %}
                             <td rowspan="{{ slot.friday.rowspan }}" class="{{ slot.friday.info.color }}">
                                 <div class="class-block">
@@ -462,11 +564,8 @@
                                 </div>
                             </td>
                         {% elif slot.friday and not slot.friday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
 
-                        {# SATURDAY #}
                         {% if slot.saturday and slot.saturday.is_start %}
                             <td rowspan="{{ slot.saturday.rowspan }}" class="{{ slot.saturday.info.color }}">
                                 <div class="class-block">
@@ -476,9 +575,7 @@
                                 </div>
                             </td>
                         {% elif slot.saturday and not slot.saturday.is_start %}
-                        {% else %}
-                            <td></td>
-                        {% endif %}
+                        {% else %}<td></td>{% endif %}
                     </tr>
                 {% endif %}
             {% empty %}
@@ -492,23 +589,46 @@
         </tbody>
     </table>
 
+    <!-- EDITABLE FOOTER -->
+    {% with p=signatures.prepared_by r=signatures.reviewed_by a=signatures.approved_by %}
     <div class="footer">
-        <div>
-            <div>Prepared by:</div>
-            <div class="name">HAIDE D. SELAPA, PhD</div>
-            <div class="title">Chairman</div>
+        <div class="sig-block" data-sig-key="prepared_by">
+            <div class="sig-label">Prepared by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('prepared_by', 'Prepared by')" title="Click to edit"{% endif %}>
+                {{ p.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('prepared_by', 'Prepared by')" title="Click to edit"{% endif %}>
+                {{ p.position|default:'—' }}
+            </div>
         </div>
-        <div>
-            <div>Reviewed by:</div>
-            <div class="name">RONALD B. LACABA, REE, MSME</div>
-            <div class="title">Dean</div>
+
+        <div class="sig-block" data-sig-key="reviewed_by">
+            <div class="sig-label">Reviewed by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('reviewed_by', 'Reviewed by')" title="Click to edit"{% endif %}>
+                {{ r.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('reviewed_by', 'Reviewed by')" title="Click to edit"{% endif %}>
+                {{ r.position|default:'—' }}
+            </div>
         </div>
-        <div>
-            <div>Approved by:</div>
-            <div class="name">NELSON E. ENAGE, PhD, EdD</div>
-            <div class="title">VP-Academic Affairs</div>
+
+        <div class="sig-block" data-sig-key="approved_by">
+            <div class="sig-label">Approved by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('approved_by', 'Approved by')" title="Click to edit"{% endif %}>
+                {{ a.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('approved_by', 'Approved by')" title="Click to edit"{% endif %}>
+                {{ a.position|default:'—' }}
+            </div>
         </div>
     </div>
+    {% endwith %}
 </div>
 
 <div class="no-print" style="text-align: center; margin-top: 24px;">
@@ -520,6 +640,37 @@
     </button>
 </div>
 
+<!-- SIGNATURE EDIT MODAL -->
+{% if faculty.is_chairman %}
+<div class="sig-modal-overlay" id="sigEditModal" onclick="handleSigOverlay(event)">
+    <div class="sig-modal" role="dialog" aria-modal="true" aria-labelledby="sigEditTitle">
+        <div class="sig-modal-header">
+            <div>
+                <span class="sig-eyebrow">Student's Class Program</span>
+                <h2 id="sigEditTitle"><i class="fas fa-pen"></i> Edit Signature</h2>
+            </div>
+            <button type="button" class="sig-modal-close" onclick="closeSigEditModal()">✕</button>
+        </div>
+        <div class="sig-modal-body">
+            <div class="sig-msg" id="sigEditMsg"></div>
+            <div class="sig-form-group">
+                <label>Name <span style="color:#b91c1c;">*</span></label>
+                <input type="text" id="sigEditName" placeholder="e.g., HAIDE D. SELAPA, PhD">
+            </div>
+            <div class="sig-form-group">
+                <label>Position / Title</label>
+                <input type="text" id="sigEditPosition" placeholder="e.g., Chairman">
+            </div>
+        </div>
+        <div class="sig-modal-footer">
+            <button type="button" class="sig-btn secondary" onclick="closeSigEditModal()">Cancel</button>
+            <button type="button" class="sig-btn primary" id="sigEditSaveBtn" onclick="saveSigEdit()">
+                <i class="fas fa-check"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -528,7 +679,6 @@
         const courseDropdown = document.getElementById('courseDropdown');
         const majorDropdown  = document.getElementById('majorDropdown');
 
-        // All sections (used for navigation)
         const SECTIONS = [
             {% for s in sections %}
             {
@@ -541,98 +691,64 @@
             {% endfor %}
         ];
 
-        // Define which majors are allowed for which courses
         const COURSE_MAJORS = {
-            'BTLED': [
-                'HOME ECONOMICS'
-            ],
-            'BTVTED': [
-                'Food and Service Management', 
-                'Garments Fashion and Design'
-            ]
+            'BTLED': ['HOME ECONOMICS'],
+            'BTVTED': ['Food and Service Management', 'Garments Fashion and Design']
         };
 
         function filterMajors() {
             const selectedCourse = courseDropdown.value;
             const allowedMajors = COURSE_MAJORS[selectedCourse] || [];
-            
-            // Get all options in the major dropdown
             const options = majorDropdown.options;
             let validOptionSelected = false;
-            
+
             for (let i = 0; i < options.length; i++) {
                 const opt = options[i];
-                
-                // Keep the "None" option visible and enabled always
-                if (opt.value === "") continue; 
-                
-                // If the major is allowed for this course, show/enable it
+                if (opt.value === "") continue;
                 if (allowedMajors.includes(opt.value)) {
                     opt.hidden = false;
                     opt.disabled = false;
                     if (opt.selected) validOptionSelected = true;
                 } else {
-                    // Otherwise hide and disable it
                     opt.hidden = true;
                     opt.disabled = true;
                 }
             }
 
-            // If the currently selected major is not valid for the new course, auto-select the first valid one
             if (!validOptionSelected && allowedMajors.length > 0) {
                 majorDropdown.value = allowedMajors[0];
             }
         }
 
-        // Run the filter immediately on page load to hide the invalid ones
         filterMajors();
 
-        // When Course changes, filter the majors and find the first matching section
         courseDropdown.addEventListener('change', function () {
-            filterMajors(); // Update the options immediately
-
+            filterMajors();
             const selectedMajor = majorDropdown.value;
-            
-            // Try to find a section that matches BOTH the new course and the selected major
             let match = SECTIONS.find(s => s.course === this.value && s.major === selectedMajor);
-            
-            // If none found, just find the first section for this new course
-            if (!match) {
-                match = SECTIONS.find(s => s.course === this.value);
-            }
-
+            if (!match) match = SECTIONS.find(s => s.course === this.value);
             if (match) {
-                setTimeout(() => {
-                    window.location.href = '?section=' + match.id;
-                }, 150);
+                setTimeout(() => { window.location.href = '?section=' + match.id; }, 150);
             }
         });
 
-        // When Major changes, find the section that matches the course and major
         majorDropdown.addEventListener('change', function () {
             if (!this.value) return;
-            
             const match = SECTIONS.find(s =>
-                s.course === courseDropdown.value &&
-                s.major === this.value
+                s.course === courseDropdown.value && s.major === this.value
             );
-            
             if (match) window.location.href = '?section=' + match.id;
         });
 
-        // Function to handle Year & Section button clicks while keeping the selected Course and Major
         window.navigateToSection = function(yearLevel, sectionName) {
             const selectedCourse = courseDropdown.value;
             const selectedMajor = majorDropdown.value;
-            
-            // Find the exact section ID that matches the chosen course, major, year, and section
-            const match = SECTIONS.find(s => 
-                s.course === selectedCourse && 
-                s.major === selectedMajor && 
-                s.year === yearLevel && 
+            const match = SECTIONS.find(s =>
+                s.course === selectedCourse &&
+                s.major === selectedMajor &&
+                s.year === yearLevel &&
                 s.section === sectionName
             );
-            
             if (match) {
                 window.location.href = '?section=' + match.id;
             } else {
@@ -640,5 +756,106 @@
             }
         };
     });
+
+    /* ══════════════════════════════════════════════════════════
+       EDITABLE SIGNATURE BLOCKS (GLOBAL)
+       ══════════════════════════════════════════════════════════ */
+    let currentSigKey = null;
+
+    function openSigEditModal(actionKey, label) {
+        currentSigKey = actionKey;
+
+        const block = document.querySelector('.sig-block[data-sig-key="' + actionKey + '"]');
+        if (!block) return;
+
+        const nameEl  = block.querySelector('.sig-name');
+        const titleEl = block.querySelector('.sig-title');
+
+        document.getElementById('sigEditTitle').innerHTML =
+            '<i class="fas fa-pen"></i> Edit — ' + escapeHtml(label);
+        document.getElementById('sigEditName').value     = (nameEl?.textContent  || '').trim();
+        document.getElementById('sigEditPosition').value = (titleEl?.textContent || '').trim();
+
+        const msgEl = document.getElementById('sigEditMsg');
+        msgEl.className = 'sig-msg';
+        msgEl.textContent = '';
+
+        document.getElementById('sigEditModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('sigEditName').focus(), 150);
+    }
+
+    function closeSigEditModal() {
+        document.getElementById('sigEditModal').classList.remove('open');
+        document.body.style.overflow = '';
+        currentSigKey = null;
+    }
+
+    function handleSigOverlay(event) {
+        if (event.target.id === 'sigEditModal') closeSigEditModal();
+    }
+
+    function saveSigEdit() {
+        if (!currentSigKey) return;
+
+        const name     = document.getElementById('sigEditName').value.trim();
+        const position = document.getElementById('sigEditPosition').value.trim();
+        const msgEl    = document.getElementById('sigEditMsg');
+        const saveBtn  = document.getElementById('sigEditSaveBtn');
+
+        if (!name) {
+            msgEl.className = 'sig-msg error';
+            msgEl.textContent = 'Name is required.';
+            return;
+        }
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('action_key', currentSigKey);
+        fd.append('name', name);
+        fd.append('position', position);
+
+        saveBtn.disabled = true;
+
+        fetch('/class-list/update-signature/', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': csrf },
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                const block = document.querySelector('.sig-block[data-sig-key="' + currentSigKey + '"]');
+                if (block) {
+                    block.querySelector('.sig-name').textContent  = d.name     || '—';
+                    block.querySelector('.sig-title').textContent = d.position || '—';
+                }
+                msgEl.className = 'sig-msg success';
+                msgEl.textContent = 'Signature updated!';
+                setTimeout(closeSigEditModal, 600);
+            } else {
+                msgEl.className = 'sig-msg error';
+                msgEl.textContent = d.error || 'Failed to update signature.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'sig-msg error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { saveBtn.disabled = false; });
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 </script>
 {% endblock %}

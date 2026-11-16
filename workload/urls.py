@@ -73,4 +73,6 @@ urlpatterns = [
     path('update-action-taken/<str:employee_id>/',    views.update_action_taken,    name='update_action_taken'),
 
     path('profile/change-password/', views.change_password, name='change_password'),
+    path('class-list/update-signature/', views.update_class_list_signature, name='class_list_update_signature',),
+    path('room/<int:room_id>/delete/', views.room_delete, name='room_delete'),
 ]
