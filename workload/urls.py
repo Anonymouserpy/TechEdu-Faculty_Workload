@@ -66,8 +66,7 @@ urlpatterns = [
     path('faculty/<str:employee_id>/update-action-taken/', views.update_action_taken, name='update_action_taken'),
     path('faculty/<str:employee_id>/subject/<int:subject_id>/students/', views.update_subject_students, name='update_subject_students', ),
     path('faculty/<str:employee_id>/total-students/', views.update_total_students, name='update_total_students',),
-    path('faculty/<str:employee_id>/update-remarks/', views.update_remarks, name='update_remarks',),
-
+    path('update-remarks/<str:employee_id>/', views.update_remarks, name='update_remarks'),
     path('update-effective-date/<str:employee_id>/', views.update_effective_date, name='update_effective_date'),
     path('update-term/<str:employee_id>/',            views.update_term,            name='update_term'),
     path('update-action-taken/<str:employee_id>/',    views.update_action_taken,    name='update_action_taken'),
@@ -75,4 +74,6 @@ urlpatterns = [
     path('profile/change-password/', views.change_password, name='change_password'),
     path('class-list/update-signature/', views.update_class_list_signature, name='class_list_update_signature',),
     path('room/<int:room_id>/delete/', views.room_delete, name='room_delete'),
+    # urls.py
+    path('room/create-ajax/', views.room_create_ajax, name='room_create_ajax'),
 ]

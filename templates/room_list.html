@@ -71,6 +71,67 @@
     .btn-warning { background: #f59e0b; color: #fff; border-color: #f59e0b; }
     .btn-warning:hover { background: #d97706; }
 
+    /* ══════════════════════════════════════════════════════════════
+   SILENT AUTO-REFRESH INDICATOR
+   ══════════════════════════════════════════════════════════════ */
+    .sync-indicator {
+        position: fixed;
+        bottom: 90px;
+        right: 28px;
+        z-index: 1180;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        background: rgba(15, 23, 42, 0.88);
+        color: #e2e8f0;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        pointer-events: none;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+    }
+    .sync-indicator.visible { opacity: 1; transform: translateY(0); }
+    .sync-indicator .sync-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #38bdf8;
+        animation: syncPulse 1.4s ease-in-out infinite;
+    }
+    .sync-indicator.synced .sync-dot { background: #22c55e; animation: none; }
+    .sync-indicator.error  .sync-dot { background: #ef4444; animation: none; }
+    .sync-indicator.error  { background: rgba(127, 29, 29, 0.92); }
+
+    @keyframes syncPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%      { opacity: 0.45; transform: scale(0.82); }
+    }
+
+    /* Subtle refresh shimmer on the schedule table while syncing */
+    #schedulePanelBody.syncing .schedule-table-wrap {
+        position: relative;
+    }
+    #schedulePanelBody.syncing .schedule-table-wrap::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+        animation: syncShimmer 1.2s ease-in-out infinite;
+        pointer-events: none;
+    }
+    @keyframes syncShimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    @media print {
+        .sync-indicator { display: none !important; }
+    }
+
     .count-badge {
         background: var(--surface); color: var(--ink-700);
         padding: 7px 14px; border-radius: var(--radius-sm);
@@ -1590,6 +1651,33 @@
         .selection-toolbar .st-count { font-size: 11px; padding-right: 8px; }
     }
 
+    .rw-toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: #0f172a;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+        z-index: 1400;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        max-width: min(520px, calc(100vw - 40px));
+        text-align: center;
+    }
+
+    .rw-toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    .rw-toast.warning { background: #b45309; }
+    .rw-toast.success { background: #047857; }
+
     /* ══════════════════════════════════════════════════════════════
        PRINT STYLES — Absolute One Page Fit (No 2nd Page, Fills Space)
        ══════════════════════════════════════════════════════════════ */
@@ -1916,24 +2004,26 @@
                 <button type="button" class="close-modal" onclick="closeAddRoomModal()" title="Close">✕</button>
             </div>
 
-            <form method="post" action="{% url 'room_create' %}" id="addRoomForm">
+            <form id="addRoomForm" onsubmit="return submitAddRoom(event);">
                 {% csrf_token %}
                 <div class="modal-body">
+                    <div class="modal-message" id="addRoomMsg"></div>
+
                     <div class="form-section">
                         <h5><span class="section-num">1</span> Room Identity</h5>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="room_name" class="form-label">Room Name <span class="required-star">*</span></label>
                                 <input type="text" id="room_name" name="room_name" class="form-control"
-                                       placeholder="e.g., Room 101, Computer Lab"
-                                       value="{{ form_data.room_name|default:'' }}" required>
+                                    placeholder="e.g., Room 101, Computer Lab"
+                                    value="{{ form_data.room_name|default:'' }}" required>
                                 <span class="form-hint">A short, descriptive name shown on cards.</span>
                             </div>
                             <div class="form-group">
                                 <label for="room_code" class="form-label">Room Code <span class="required-star">*</span></label>
                                 <input type="text" id="room_code" name="room_code" class="form-control"
-                                       placeholder="e.g., R101, CLAB-01"
-                                       value="{{ form_data.room_code|default:'' }}" required>
+                                    placeholder="e.g., R101, CLAB-01"
+                                    value="{{ form_data.room_code|default:'' }}" required>
                                 <span class="form-hint">Unique identifier for the room.</span>
                             </div>
                         </div>
@@ -1962,14 +2052,14 @@
                             <div class="form-group">
                                 <label for="building_name" class="form-label">Building <span class="required-star">*</span></label>
                                 <input type="text" id="building_name" name="building_name" class="form-control"
-                                       placeholder="e.g., Main Building"
-                                       value="{{ form_data.building_name|default:'' }}" required>
+                                    placeholder="e.g., Main Building"
+                                    value="{{ form_data.building_name|default:'' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="floor_number" class="form-label">Floor Number <span class="required-star">*</span></label>
                                 <input type="number" id="floor_number" name="floor_number" class="form-control"
-                                       placeholder="e.g., 1, 2, 3" min="0"
-                                       value="{{ form_data.floor_number|default:'' }}" required>
+                                    placeholder="e.g., 1, 2, 3" min="0"
+                                    value="{{ form_data.floor_number|default:'' }}" required>
                                 <span class="form-hint">Use 0 for ground floor.</span>
                             </div>
                         </div>
@@ -1979,7 +2069,7 @@
                         <h5><span class="section-num">4</span> Availability</h5>
                         <div class="status-card">
                             <input type="checkbox" id="is_available" name="is_available"
-                                   {% if form_data.is_available or not form_data %}checked{% endif %}>
+                                {% if form_data.is_available or not form_data %}checked{% endif %}>
                             <label for="is_available">Room is available for scheduling</label>
                         </div>
                     </div>
@@ -1992,7 +2082,9 @@
                     </div>
                     <div class="footer-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeAddRoomModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save Room</button>
+                        <button type="submit" class="btn btn-primary" id="addRoomSaveBtn">
+                            <i class="fas fa-check"></i> Save Room
+                        </button>
                     </div>
                 </div>
             </form>
@@ -2336,8 +2428,13 @@
         <span class="acp-bubble-icon">📅</span> 
         <span class="acp-bubble-label">Class Programs & Subjects</span>
     </button>
+    <div id="syncIndicator" class="sync-indicator" role="status" aria-live="polite">
+        <span class="sync-dot"></span>
+        <span id="syncLabel">Syncing…</span>
+    </div>
     {% endif %}
-{% endblock %}
+        <div id="rwToast" class="rw-toast" role="status" aria-live="polite"></div>
+    {% endblock %}
 
 {% block extra_js %}
 <script>
@@ -2368,6 +2465,20 @@
 
     let currentSigKey = null;
 
+        /* ============================================================
+       ✅ NEW: TOAST HELPER
+       ============================================================ */
+    let _rwToastTimer = null;
+    function showToast(message, kind) {
+        const el = document.getElementById('rwToast');
+        if (!el) { alert(message); return; }
+        el.textContent = message;
+        el.className = 'rw-toast visible' + (kind ? ' ' + kind : '');
+        clearTimeout(_rwToastTimer);
+        _rwToastTimer = setTimeout(() => {
+            el.classList.remove('visible');
+        }, 4500);
+    }
     /* ============================================================
        GLOBAL MODAL OPEN/CLOSE HELPERS
        ============================================================ */
@@ -2382,6 +2493,210 @@
             document.body.classList.remove('modal-open');
         }
     }
+
+    /* ══════════════════════════════════════════════════════════════
+   PROFESSIONAL AUTO-REFRESH
+   Silent background sync with diff-based re-render.
+   ══════════════════════════════════════════════════════════════ */
+    const AutoSync = (() => {
+        const POLL_INTERVAL_MS = 20000;      // 20s between polls
+        const HIDDEN_BACKOFF_MS = 60000;     // 60s when tab hidden
+        const FEEDBACK_MIN_MS = 1200;        // show "Synced" for at least this long
+
+        let timer = null;
+        let inFlight = false;
+        let lastDataHash = null;
+        let lastSyncAt = 0;
+        let indicatorTimer = null;
+
+        // ── DOM helpers ───────────────────────────────────────────
+        function el() { return document.getElementById('syncIndicator'); }
+        function labelEl() { return document.getElementById('syncLabel'); }
+
+        function setIndicator(state, text) {
+            const i = el();
+            if (!i) return;
+            i.classList.remove('visible', 'synced', 'error');
+            if (state === 'syncing') {
+                i.classList.add('visible');
+                labelEl().textContent = text || 'Syncing…';
+            } else if (state === 'synced') {
+                i.classList.add('visible', 'synced');
+                labelEl().textContent = text || 'Up to date';
+                clearTimeout(indicatorTimer);
+                indicatorTimer = setTimeout(() => i.classList.remove('visible'), FEEDBACK_MIN_MS);
+            } else if (state === 'error') {
+                i.classList.add('visible', 'error');
+                labelEl().textContent = text || 'Sync failed';
+                clearTimeout(indicatorTimer);
+                indicatorTimer = setTimeout(() => i.classList.remove('visible'), 4000);
+            } else {
+                i.classList.remove('visible');
+            }
+        }
+
+        // ── Should we sync right now? ─────────────────────────────
+        function isBusy() {
+            // Don't fight the user: skip while modals/editing are open
+            if (document.body.classList.contains('modal-open')) return true;
+            if (document.querySelector('.modal-overlay.open, .sched-modal-overlay.open, .acp-modal-overlay.open, .sig-modal-overlay.open')) return true;
+            if (selectedRoomCells.size > 0) return true; // user is mid-selection
+            // Skip while any form field has focus inside a modal
+            const ae = document.activeElement;
+            if (ae && ae.closest('.modal, .sched-modal, .acp-modal, .sig-modal')) return true;
+            return false;
+        }
+
+        function hasTarget() {
+            return !!currentRoomId && document.getElementById('schedulePanel')?.classList.contains('open');
+        }
+
+        // ── Cheap structural hash (no JSON stringify of whole data) ─
+        function hashData(data) {
+            if (!data || !data.schedules) return '';
+            const parts = [
+                data.room?.code || '',
+                data.college || '',
+                data.department || '',
+                ...(data.schedules || []).map(s =>
+                    `${s.schedule_id}|${s.subject}|${s.section}|${s.faculty}|${s.start_time}|${s.end_time}|${s.day}|${s.schedule_type || s.type || ''}`
+                )
+            ];
+            // simple 32-bit FNV-1a
+            let h = 0x811c9dc5;
+            const str = parts.join('~');
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = (h * 0x01000193) >>> 0;
+            }
+            return h.toString(36);
+        }
+
+        // ── Core sync ─────────────────────────────────────────────
+        function syncOnce(opts = {}) {
+            const silent = opts.silent !== false;
+            if (inFlight || !hasTarget() || isBusy()) return Promise.resolve();
+
+            inFlight = true;
+            if (!silent) setIndicator('syncing', 'Syncing…');
+
+            return fetch(`/rooms/${currentRoomId}/schedule-data/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                cache: 'no-store'
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+
+                const newHash = hashData(data);
+                const changed = newHash !== lastDataHash;
+
+                if (changed) {
+                    // Preserve scroll & selection state across re-render
+                    const panelBody = document.getElementById('schedulePanelBody');
+                    const wrap = panelBody?.querySelector('.schedule-table-wrap');
+                    const scrollTop = wrap ? wrap.scrollTop : 0;
+                    const scrollLeft = wrap ? wrap.scrollLeft : 0;
+
+                    const prevSel = new Set(selectedRoomCells);
+
+                    renderRoomSchedule(data);
+
+                    // Re-apply selection that still maps to empty cells
+                    if (prevSel.size) {
+                        document.querySelectorAll('.room-empty-cell').forEach(td => {
+                            const k = `${td.dataset.day}|${td.dataset.time}`;
+                            if (prevSel.has(k)) td.classList.add('selected');
+                        });
+                        refreshSelectionToolbar();
+                    }
+
+                    const newWrap = document.getElementById('schedulePanelBody')?.querySelector('.schedule-table-wrap');
+                    if (newWrap) { newWrap.scrollTop = scrollTop; newWrap.scrollLeft = scrollLeft; }
+
+                    lastDataHash = newHash;
+                    lastSyncAt = Date.now();
+                    setIndicator('synced', 'Up to date');
+                } else {
+                    // No change — keep it quiet, don't flash the indicator
+                    lastSyncAt = Date.now();
+                }
+            })
+            .catch(err => {
+                console.warn('[AutoSync]', err);
+                setIndicator('error', 'Sync failed — retrying');
+            })
+            .finally(() => {
+                inFlight = false;
+            });
+        }
+
+        // ── Timer control ────────────────────────────────────────
+        function scheduleNext() {
+            clearTimeout(timer);
+            const delay = document.hidden ? HIDDEN_BACKOFF_MS : POLL_INTERVAL_MS;
+            timer = setTimeout(async () => {
+                await syncOnce({ silent: true });
+                scheduleNext();
+            }, delay);
+        }
+
+        function start() {
+            stop();
+            lastDataHash = null;
+            scheduleNext();
+        }
+        function stop() {
+            clearTimeout(timer);
+            timer = null;
+            setIndicator('hidden');
+        }
+
+        // ── Public hooks ─────────────────────────────────────────
+        function invalidate() {
+            // Called after user mutates data — force next poll to re-render
+            lastDataHash = null;
+            if (hasTarget() && !isBusy()) syncOnce({ silent: true });
+        }
+
+        function refreshNow() {
+            lastDataHash = null;
+            return syncOnce({ silent: false });
+        }
+
+        // ── Visibility & focus handling ──────────────────────────
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && hasTarget() && !isBusy()) {
+                // Coming back to the tab — do an immediate catch-up
+                syncOnce({ silent: true });
+            }
+            if (hasTarget()) scheduleNext();
+        });
+
+        window.addEventListener('focus', () => {
+            if (hasTarget() && !isBusy()) syncOnce({ silent: true });
+        });
+
+        // ── Wire into lifecycle ──────────────────────────────────
+        // Hook into your existing loadScheduleInline / closeSchedulePanel
+        const _origLoad = window.loadScheduleInline;
+        window.loadScheduleInline = function(roomId, roomCode) {
+            if (typeof _origLoad === 'function') _origLoad(roomId, roomCode);
+            // Give the initial fetch a moment, then start polling
+            setTimeout(() => { start(); syncOnce({ silent: true }); }, 800);
+        };
+
+        const _origClose = window.closeSchedulePanel;
+        window.closeSchedulePanel = function() {
+            stop();
+            if (typeof _origClose === 'function') _origClose();
+        };
+
+        return { start, stop, syncOnce, invalidate, refreshNow };
+    })();
 
     /* ============================================================
        EDIT ROOM MODAL
@@ -2441,7 +2756,7 @@
         } else {
             wrap.className = 'avail-toggle-wrap unavailable';
             title.textContent = 'Room is Unavailable';
-            sub.textContent = 'This room will be hidden from scheduling.';
+            sub.textContent = 'All classes in this room will be descheduled.';
         }
     }
 
@@ -2545,6 +2860,16 @@
     function toggleRoomAvailability(roomId, btnEl) {
         if (!IS_CHAIRMAN) return;
         const wasAvailable = btnEl.classList.contains('available');
+
+        // ✅ NEW: warn before deactivating (destructive)
+        if (wasAvailable) {
+            const confirmed = confirm(
+                'Marking this room UNAVAILABLE will DESCHEDULE all classes currently in it.\n\n' +
+                'Continue?'
+            );
+            if (!confirmed) return;
+        }
+
         if (btnEl.dataset.busy === '1') return;
         btnEl.dataset.busy = '1';
 
@@ -2567,69 +2892,77 @@
                 const card = document.getElementById(`room-card-${roomId}`);
                 if (card) card.dataset.status = d.is_available ? 'available' : 'unavailable';
                 filterRooms();
+
+                // ✅ NEW: report descheduled count + refresh panel
+                if (typeof d.descheduled_count === 'number' && d.descheduled_count > 0) {
+                    showToast(
+                        `Room is now unavailable. ${d.descheduled_count} class(es) were descheduled.`,
+                        'warning'
+                    );
+                    if (currentRoomId === Number(roomId)) {
+                        fetchRoomSchedule();
+                    }
+                } else if (!d.is_available) {
+                    showToast('Room is now unavailable.', 'warning');
+                }
             } else {
                 if (wasAvailable) { btnEl.classList.add('available'); btnEl.classList.remove('unavailable'); }
                 else { btnEl.classList.add('unavailable'); btnEl.classList.remove('available'); }
-                alert(d.error || 'Failed to toggle availability.');
+                showToast(d.error || 'Failed to toggle availability.', 'warning');
             }
         })
-        .catch(err => alert('Network error: ' + err))
+        .catch(err => showToast('Network error: ' + err, 'warning'))
         .finally(() => { delete btnEl.dataset.busy; });
     }
 
     /* ============================================================
    DELETE ROOM
    ============================================================ */
-function deleteRoom(roomId, roomCode, roomName) {
-    if (!IS_CHAIRMAN) return;
+    function deleteRoom(roomId, roomCode, roomName) {
+        if (!IS_CHAIRMAN) return;
 
-    const confirmed = confirm(
-        `Delete room "${roomName}" (${roomCode})?\n\n` +
-        `This will also remove any schedules assigned to this room. ` +
-        `This action cannot be undone.`
-    );
-    if (!confirmed) return;
+        const confirmed = confirm(
+            `Delete room "${roomName}" (${roomCode})?\n\n` +
+            `This will also remove any schedules assigned to this room. ` +
+            `This action cannot be undone.`
+        );
+        if (!confirmed) return;
 
-    const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-    const csrf = csrfInput ? csrfInput.value : '';
-    const fd = new FormData();
-    fd.append('csrfmiddlewaretoken', csrf);
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
 
-    fetch(`/room/${roomId}/delete/`, {
-        method: 'POST',
-        body: fd,
-        headers: { 'X-CSRFToken': csrf }
-    })
-    .then(r => r.json().then(d => ({ ok: r.ok, d })))
-    .then(({ ok, d }) => {
-        if (d.success) {
-            // Remove the card from the DOM
-            const card = document.getElementById(`room-card-${roomId}`);
-            if (card) card.remove();
+        fetch(`/room/${roomId}/delete/`, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                const card = document.getElementById(`room-card-${roomId}`);
+                if (card) card.remove();
 
-            // If the schedule panel is open for this room, close it
-            if (currentRoomId === roomId) {
-                closeSchedulePanel();
+                if (currentRoomId === roomId) {
+                    closeSchedulePanel();
+                }
+
+                const badge = document.querySelector('.count-badge strong');
+                if (badge) {
+                    const n = parseInt(badge.textContent, 10) || 1;
+                    badge.textContent = Math.max(0, n - 1);
+                }
+
+                filterRooms();
+                showToast(d.message || 'Room deleted successfully.', 'success');
+            } else {
+                showToast(d.error || 'Failed to delete room.', 'warning');
             }
+        })
+        .catch(err => showToast('Network error: ' + err, 'warning'));
+    }
 
-            // Update the room count badge
-            const badge = document.querySelector('.count-badge strong');
-            if (badge) {
-                const n = parseInt(badge.textContent, 10) || 1;
-                badge.textContent = Math.max(0, n - 1);
-            }
-
-            // Re-run filter so the empty-state message appears if needed
-            filterRooms();
-
-            // Show a toast (simple alert fallback)
-            alert(d.message || 'Room deleted successfully.');
-        } else {
-            alert(d.error || 'Failed to delete room.');
-        }
-    })
-    .catch(err => alert('Network error: ' + err));
-}
     /* ============================================================
        ADD ROOM MODAL
        ============================================================ */
@@ -3686,6 +4019,204 @@ function deleteRoom(roomId, roomCode, roomName) {
             msgEl.textContent = 'Network error: ' + err;
         })
         .finally(() => { saveBtn.disabled = false; });
+    }
+
+    /* ============================================================
+   ADD ROOM — AJAX SUBMIT + AUTO-REFRESH GRID
+   ============================================================ */
+    function submitAddRoom(e) {
+        e.preventDefault();
+
+        const msgEl   = document.getElementById('addRoomMsg');
+        const saveBtn = document.getElementById('addRoomSaveBtn');
+
+        const room_name     = document.getElementById('room_name').value.trim();
+        const room_code     = document.getElementById('room_code').value.trim().toUpperCase();
+        const building_name = document.getElementById('building_name').value.trim();
+        const floor_number  = document.getElementById('floor_number').value.trim();
+        const program       = document.getElementById('program').value;
+        const is_available  = document.getElementById('is_available').checked;
+
+        if (!room_name || !room_code || !building_name || floor_number === '' || !program) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please fill in all required fields.';
+            return false;
+        }
+
+        const csrfInput = document.querySelector('#addRoomForm input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('room_name', room_name);
+        fd.append('room_code', room_code);
+        fd.append('building_name', building_name);
+        fd.append('floor_number', floor_number);
+        fd.append('program', program);
+        if (is_available) fd.append('is_available', 'on');
+
+        saveBtn.disabled = true;
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        fetch("{% url 'room_create_ajax' %}", {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                // ✅ Auto-refresh: inject the new card immediately
+                injectRoomCard(d.room);
+
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = 'Room created successfully!';
+
+                // Update the count badge
+                const badge = document.querySelector('.count-badge strong');
+                if (badge) badge.textContent = parseInt(badge.textContent, 10) + 1;
+
+                // Refresh the building filter dropdown
+                refreshBuildingFilter();
+
+                // Reset the form
+                document.getElementById('addRoomForm').reset();
+                document.getElementById('is_available').checked = true;
+
+                showToast(`Room "${d.room.room_code}" added successfully.`, 'success');
+
+                // Close modal after short delay
+                setTimeout(() => closeAddRoomModal(), 600);
+                filterRooms(); // re-apply any active filters
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to add room.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalHtml;
+        });
+
+        return false;
+    }
+
+    /* Insert a new room card into the grid (reuses the same markup as template) */
+    function injectRoomCard(room) {
+        const grid = document.getElementById('roomsGrid');
+        if (!grid) return;
+
+        // Remove empty-state placeholder if present
+        const empty = grid.querySelector('.empty-state');
+        if (empty) empty.remove();
+
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `
+            <div class="room-card"
+                id="room-card-${room.id}"
+                data-room-id="${room.id}"
+                data-room-name="${escapeHtml(room.room_name)}"
+                data-room-code="${escapeHtml(room.room_code)}"
+                data-building="${escapeHtml(room.building_name)}"
+                data-floor="${escapeHtml(room.floor_number)}"
+                data-program="${escapeHtml(room.program)}"
+                data-status="${room.is_available ? 'available' : 'unavailable'}">
+                <div class="room-header">
+                    <span class="room-name">${escapeHtml(room.room_name)}</span>
+                    <span class="room-code">${escapeHtml(room.room_code)}</span>
+                </div>
+                <div class="room-details">
+                    <div class="room-detail-item">
+                        <strong>Building</strong>
+                        ${escapeHtml(room.building_name)}
+                    </div>
+                    <div class="room-detail-item">
+                        <strong>Floor</strong>
+                        ${escapeHtml(room.floor_number)}
+                    </div>
+                    <div class="room-detail-item program-item">
+                        <strong>Program</strong>
+                        ${escapeHtml(room.program_display || room.program)}
+                    </div>
+                </div>
+                ${IS_CHAIRMAN ? `
+                    <button type="button"
+                            class="room-status ${room.is_available ? 'available' : 'unavailable'}"
+                            id="room-status-${room.id}"
+                            title="Click to toggle availability"
+                            onclick="toggleRoomAvailability(${room.id}, this)">
+                        ${room.is_available ? 'Available' : 'Unavailable'}
+                    </button>
+                ` : `
+                    <span class="room-status ${room.is_available ? 'available' : 'unavailable'}">
+                        ${room.is_available ? 'Available' : 'Unavailable'}
+                    </span>
+                `}
+                <div class="room-actions">
+                    ${IS_CHAIRMAN ? `
+                        <a href="#" class="action-btn edit"
+                        onclick="openEditRoomModal(
+                            ${room.id},
+                            '${room.room_name.replace(/'/g, "\\'")}',
+                            '${room.room_code.replace(/'/g, "\\'")}',
+                            '${room.building_name.replace(/'/g, "\\'")}',
+                            ${room.floor_number},
+                            ${room.is_available ? 'true' : 'false'},
+                            '${(room.program || '').replace(/'/g, "\\'")}'
+                        ); return false;">
+                            <i class="fas fa-pen"></i> Edit
+                        </a>
+                    ` : ''}
+                    <a href="#" class="action-btn schedule"
+                    onclick="loadScheduleInline(${room.id}, '${room.room_code.replace(/'/g, "\\'")}'); return false;">
+                    <i class="fas fa-calendar-alt"></i> Schedule
+                    </a>
+                    ${IS_CHAIRMAN ? `
+                        <a href="#" class="action-btn delete"
+                        title="Delete room"
+                        onclick="deleteRoom(${room.id}, '${room.room_code.replace(/'/g, "\\'")}', '${room.room_name.replace(/'/g, "\\'")}'); return false;">
+                        <i class="fas fa-trash"></i>Delete
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        grid.appendChild(wrap.firstElementChild);
+    }
+
+    /* Keep the building filter dropdown in sync */
+    function refreshBuildingFilter() {
+        const sel = document.getElementById('filterBuilding');
+        if (!sel) return;
+        const current = sel.value;
+
+        const buildings = new Set();
+        document.querySelectorAll('.room-card').forEach(c => {
+            if (c.dataset.building) buildings.add(c.dataset.building);
+        });
+
+        sel.innerHTML = '<option value="all">All Buildings</option>' +
+            Array.from(buildings).sort().map(b =>
+                `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`
+            ).join('');
+
+        sel.value = current;
+    }
+
+    /* Small helper if you don't already have it */
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function deleteCurrentSchedule() {

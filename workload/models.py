@@ -672,7 +672,11 @@ class RoomUtilizationCalculator:
     @staticmethod
     def calculate_room_utilization(room):
         used_hours = 0
-        schedules = ClassSchedule.objects.filter(room=room)
+        schedules = ClassSchedule.objects.filter(
+            room=room,
+            subject__is_active=True,
+            subject__faculty__is_active=True,
+        )
 
         for schedule in schedules:
             hours = (schedule.end_time.hour + schedule.end_time.minute / 60) - \
@@ -697,7 +701,15 @@ class RoomUtilizationCalculator:
             for minute in [0, 30]:
                 time_slots.append(f"{hour:02d}:{minute:02d}")
 
-        schedules = ClassSchedule.objects.filter(room=room)
+        # ── ROOT FIX ──
+        # Only include schedules whose subject is active AND whose
+        # assigned faculty is active. Deactivating a faculty member
+        # automatically hides all their classes from the room matrix.
+        schedules = ClassSchedule.objects.filter(
+            room=room,
+            subject__is_active=True,
+            subject__faculty__is_active=True,
+        )
         if day:
             schedules = schedules.filter(day=day)
 
@@ -723,8 +735,8 @@ class RoomUtilizationCalculator:
                     info = {
                         'subject': subject.subject_code,
                         'subject_description': subject.subject_description[:30],
-                        'subject_display': f"{subject.course_code} {year_roman}-{subject.section}", # Clean section label
-                        'section': f"{subject.course_code} {year_roman}-{subject.section}",        # Clean section label
+                        'subject_display': f"{subject.course_code} {year_roman}-{subject.section}",
+                        'section': f"{subject.course_code} {year_roman}-{subject.section}",
                         'faculty': assigned_faculty.full_name,
                         'faculty_id': assigned_faculty.employee_id,
                         'subject_id': subject.id,
@@ -734,7 +746,7 @@ class RoomUtilizationCalculator:
                         'schedule_type': schedule.schedule_type,
                         'start_time': schedule.start_time.strftime('%I:%M %p'),
                         'end_time': schedule.end_time.strftime('%I:%M %p'),
-                        'year_level': subject.year_section.get_year_level_display(),               # FIXED CRASH
+                        'year_level': subject.year_section.get_year_level_display(),
                         'course_code': subject.course_code,
                         'major': subject.major,
                         'lecture_hours': subject.lecture_hours_per_week,

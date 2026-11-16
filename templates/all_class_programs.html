@@ -8,12 +8,8 @@
     .main-content { padding: 24px 30px; background: #f0f2f5; }
 
     .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
     }
     .page-header h1 { font-size: 28px; color: #172033; margin-bottom: 4px; }
     .page-header p { color: #667085; font-size: 15px; margin-top: 2px; }
@@ -82,143 +78,56 @@
     .view-btn:hover { background: #1d4ed8; transform: scale(1.05); }
 
     /* SEARCH BOX */
-    .search-box {
-        display: flex; gap: 12px; align-items: center;
-        flex-wrap: wrap; margin-bottom: 16px;
-    }
-    .search-box form {
-        display: flex; gap: 12px; align-items: center;
-        flex: 1; flex-wrap: wrap;
-    }
-    .search-box input {
-        padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px;
-        font-size: 14px; flex: 1; min-width: 200px;
-    }
-    .search-box input:focus {
-        outline: none; border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-    .search-box select {
-        padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px;
-        font-size: 14px; min-width: 150px; background: white; cursor: pointer;
-    }
-    .search-box select:focus {
-        outline: none; border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
+    .search-box { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .search-box form { display: flex; gap: 12px; align-items: center; flex: 1; flex-wrap: wrap; }
+    .search-box input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; flex: 1; min-width: 200px; }
+    .search-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .search-box select { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-width: 150px; background: white; cursor: pointer; }
+    .search-box select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
     .empty-state { text-align: center; padding: 60px 20px; color: #667085; }
     .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
     .empty-state h4 { color: #172033; margin-bottom: 4px; font-size: 16px; }
     .empty-state p { font-size: 14px; }
 
-    .count-badge {
-        background: #e5e7eb; color: #374151; padding: 2px 10px;
-        border-radius: 12px; font-size: 13px; font-weight: 600;
-    }
-    .status-badge {
-        display: inline-block; padding: 2px 10px; border-radius: 12px;
-        font-size: 11px; font-weight: 500;
-    }
+    .count-badge { background: #e5e7eb; color: #374151; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
     .status-badge.active { background: #ecfdf5; color: #065f46; }
     .status-badge.inactive { background: #fef2f2; color: #b42318; }
 
     .messages { margin-bottom: 20px; }
-    .message {
-        padding: 12px 16px; border-radius: 8px;
-        font-size: 14px; margin-bottom: 8px;
-    }
+    .message { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
     .message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
     .message.error { background: #fef2f2; color: #b42318; border: 1px solid #fecaca; }
 
     /* PAGINATION */
-    .pagination {
-        display: flex; justify-content: center; align-items: center;
-        gap: 6px; padding: 20px 0 0; border-top: 1px solid #eef2f6;
-        margin-top: 16px; flex-wrap: wrap;
-    }
-    .pagination a, .pagination span {
-        padding: 7px 14px; border-radius: 6px; text-decoration: none;
-        font-size: 14px; font-weight: 500; color: #667085;
-        background: #fff; border: 1px solid #e5e7eb;
-        transition: all 0.2s; min-width: 38px; text-align: center;
-        display: inline-flex; align-items: center; justify-content: center;
-    }
-    .pagination a:hover {
-        background: #eff6ff; color: #2563eb; border-color: #bfdbfe;
-        transform: translateY(-1px);
-    }
-    .pagination .active {
-        background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700;
-    }
-    .pagination .disabled {
-        color: #cbd5e1; background: #f8fafc;
-        cursor: not-allowed; pointer-events: none;
-    }
-    .pagination .ellipsis {
-        color: #94a3b8; background: transparent; border: none;
-        pointer-events: none; padding: 7px 4px; min-width: unset;
-    }
-    .pagination-info {
-        text-align: center; font-size: 13px; color: #667085; margin-top: 10px;
-    }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 20px 0 0; border-top: 1px solid #eef2f6; margin-top: 16px; flex-wrap: wrap; }
+    .pagination a, .pagination span { padding: 7px 14px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; color: #667085; background: #fff; border: 1px solid #e5e7eb; transition: all 0.2s; min-width: 38px; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+    .pagination a:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; transform: translateY(-1px); }
+    .pagination .active { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700; }
+    .pagination .disabled { color: #cbd5e1; background: #f8fafc; cursor: not-allowed; pointer-events: none; }
+    .pagination .ellipsis { color: #94a3b8; background: transparent; border: none; pointer-events: none; padding: 7px 4px; min-width: unset; }
+    .pagination-info { text-align: center; font-size: 13px; color: #667085; margin-top: 10px; }
 
     /* MODAL */
-    .modal-overlay {
-        display: none; position: fixed; top: 0; left: 0;
-        width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55);
-        z-index: 9999; justify-content: center; align-items: center;
-        padding: 20px; animation: fadeIn 0.3s ease;
-    }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); z-index: 9999; justify-content: center; align-items: center; padding: 20px; animation: fadeIn 0.3s ease; }
     .modal-overlay.active { display: flex; }
-
-    .modal-container {
-        background: #fff; border-radius: 16px;
-        width: 100%; max-width: 1100px; max-height: 92vh; overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-        animation: slideUp 0.3s ease; padding: 0;
-    }
-    .modal-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 16px 22px; border-bottom: 2px solid #2563eb;
-        background: #f8fafc; border-radius: 16px 16px 0 0;
-        position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 10px;
-    }
+    .modal-container { background: #fff; border-radius: 16px; width: 100%; max-width: 1100px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); animation: slideUp 0.3s ease; padding: 0; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; border-bottom: 2px solid #2563eb; background: #f8fafc; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 10px; }
     .modal-header .modal-title { font-size: 18px; font-weight: 700; color: #172033; }
     .modal-header .modal-subtitle { font-size: 13px; color: #667085; margin-top: 2px; }
-    .modal-header .modal-close {
-        background: none; border: none; font-size: 28px;
-        cursor: pointer; color: #667085; padding: 0 8px;
-        transition: color 0.2s; line-height: 1;
-    }
+    .modal-header .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #667085; padding: 0 8px; transition: color 0.2s; line-height: 1; }
     .modal-header .modal-close:hover { color: #dc2626; }
 
-    .modal-print-btn {
-        background: #2563eb; color: #fff; border: none;
-        padding: 8px 16px; border-radius: 8px; font-size: 14px;
-        font-weight: 500; cursor: pointer; transition: all 0.2s;
-        display: inline-flex; align-items: center; gap: 6px; line-height: 1;
-    }
-    .modal-print-btn:hover {
-        background: #1d4ed8; transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
+    .modal-print-btn { background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; line-height: 1; }
+    .modal-print-btn:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
     .modal-body { padding: 20px 22px 24px; overflow-x: auto; }
-
     .modal-loading { text-align: center; padding: 40px; color: #667085; }
-    .modal-loading .spinner {
-        display: inline-block; width: 40px; height: 40px;
-        border: 4px solid #e5e7eb; border-top: 4px solid #2563eb;
-        border-radius: 50%; animation: spin 1s linear infinite;
-        margin-bottom: 12px;
-    }
+    .modal-loading .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp {
-        from { transform: translateY(30px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     .modal-container::-webkit-scrollbar { width: 8px; }
     .modal-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
@@ -226,332 +135,109 @@
     .modal-container::-webkit-scrollbar-thumb:hover { background: #a0a7ae; }
 
     /* OFFICIAL FORM */
-    .official-form {
-        background: #fff; padding: 14px 16px;
-        border: 1px solid #cbd5e1; border-radius: 6px;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        color: #0f172a; font-size: 12px;
-    }
-
-    .official-form .form-header {
-        display: grid;
-        grid-template-columns: 190px 1fr 210px;
-        border: 1.5px solid #0f172a;
-    }
-    .official-form .form-header .logo-box {
-        display: flex; align-items: center; justify-content: center;
-        gap: 10px; padding: 8px;
-        border-right: 1.5px solid #0f172a;
-        background: #fdfdfd;
-    }
-    .official-form .form-header .logo-box .logo-placeholder {
-        width: 52px; height: 52px;
-        border: 1px solid #94a3b8; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 8.5px; color: #64748b; font-weight: 600;
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        text-align: center; line-height: 1.1;
-    }
-    .official-form .form-header .school-block {
-        text-align: center; padding: 8px 12px;
-        line-height: 1.3;
-        display: flex; flex-direction: column; justify-content: center;
-    }
+    .official-form { background: #fff; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; font-size: 12px; }
+    .official-form .form-header { display: grid; grid-template-columns: 190px 1fr 210px; border: 1.5px solid #0f172a; }
+    .official-form .form-header .logo-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px; border-right: 1.5px solid #0f172a; background: #fdfdfd; }
+    .official-form .form-header .logo-box .logo-placeholder { width: 52px; height: 52px; border: 1px solid #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8.5px; color: #64748b; font-weight: 600; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); text-align: center; line-height: 1.1; }
+    .official-form .form-header .school-block { text-align: center; padding: 8px 12px; line-height: 1.3; display: flex; flex-direction: column; justify-content: center; }
     .official-form .form-header .school-block .rep { font-size: 11px; color: #475569; font-weight: 500; }
-    .official-form .form-header .school-block .school-name {
-        font-size: 14px; font-weight: 800; color: #0f172a;
-        letter-spacing: 0.6px; margin-top: 1px;
-    }
-    .official-form .form-header .school-block .school-sub {
-        font-size: 11px; color: #64748b; font-style: italic;
-    }
-    .official-form .form-header .school-block .college {
-        font-size: 11.5px; font-weight: 700; color: #1e40af;
-        letter-spacing: 0.4px; margin-top: 3px;
-    }
-    .official-form .form-header .school-block .doc-title {
-        font-size: 12px; font-weight: 800; color: #0f172a;
-        letter-spacing: 0.8px; margin-top: 4px;
-        padding-top: 4px; border-top: 1px solid #cbd5e1;
-    }
-    .official-form .form-header .ref-box {
-        border-left: 1.5px solid #0f172a;
-        padding: 8px 10px; font-size: 10px; line-height: 1.4;
-        display: flex; flex-direction: column; justify-content: space-between;
-        background: #fdfdfd;
-    }
-    .official-form .form-header .ref-box .row-line {
-        display: flex; justify-content: space-between; gap: 6px; font-weight: 500;
-    }
+    .official-form .form-header .school-block .school-name { font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: 0.6px; margin-top: 1px; }
+    .official-form .form-header .school-block .school-sub { font-size: 11px; color: #64748b; font-style: italic; }
+    .official-form .form-header .school-block .college { font-size: 11.5px; font-weight: 700; color: #1e40af; letter-spacing: 0.4px; margin-top: 3px; }
+    .official-form .form-header .school-block .doc-title { font-size: 12px; font-weight: 800; color: #0f172a; letter-spacing: 0.8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid #cbd5e1; }
+    .official-form .form-header .ref-box { border-left: 1.5px solid #0f172a; padding: 8px 10px; font-size: 10px; line-height: 1.4; display: flex; flex-direction: column; justify-content: space-between; background: #fdfdfd; }
+    .official-form .form-header .ref-box .row-line { display: flex; justify-content: space-between; gap: 6px; font-weight: 500; }
     .official-form .form-header .ref-box .ref-label { color: #475569; }
     .official-form .form-header .ref-box .ref-value { color: #0f172a; font-weight: 700; }
-    .official-form .form-header .ref-box .tuv {
-        text-align: center; padding: 6px 4px 2px;
-        border-top: 1px dashed #cbd5e1; margin-top: 4px;
-    }
-    .official-form .form-header .ref-box .tuv .tuv-label {
-        font-weight: 800; color: #1e40af;
-        font-size: 13px; letter-spacing: 0.8px; margin-bottom: 2px;
-    }
-    .official-form .form-header .ref-box .tuv .tuv-sub {
-        font-size: 8.5px; line-height: 1.3; color: #64748b;
-    }
+    .official-form .form-header .ref-box .tuv { text-align: center; padding: 6px 4px 2px; border-top: 1px dashed #cbd5e1; margin-top: 4px; }
+    .official-form .form-header .ref-box .tuv .tuv-label { font-weight: 800; color: #1e40af; font-size: 13px; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .official-form .form-header .ref-box .tuv .tuv-sub { font-size: 8.5px; line-height: 1.3; color: #64748b; }
 
-    .official-form .faculty-info-table {
-        width: 100%; border-collapse: collapse;
-        font-size: 11.5px; margin-top: 6px; margin-bottom: 6px;
-    }
-    .official-form .faculty-info-table td {
-        border: 1px solid #cbd5e1;
-        padding: 5px 8px; vertical-align: middle;
-    }
-    .official-form .faculty-info-table .label {
-        font-weight: 600; color: #475569;
-        width: 130px; background: #f8fafc;
-    }
-    .official-form .faculty-info-table .value {
-        font-weight: 600; color: #0f172a;
-    }
+    .official-form .faculty-info-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 6px; margin-bottom: 6px; }
+    .official-form .faculty-info-table td { border: 1px solid #cbd5e1; padding: 5px 8px; vertical-align: middle; }
+    .official-form .faculty-info-table .label { font-weight: 600; color: #475569; width: 130px; background: #f8fafc; }
+    .official-form .faculty-info-table .value { font-weight: 600; color: #0f172a; }
 
     /* Inline editable inputs */
-    .official-form .inline-edit {
-        width: 100%;
-        border: none;
-        border-bottom: 1px dashed #94a3b8;
-        background: transparent;
-        font: inherit;
-        font-weight: 600;
-        color: #0f172a;
-        padding: 1px 2px;
-        outline: none;
-    }
-    .official-form .inline-edit:focus {
-        border-bottom-color: #2563eb;
-        background: #eff6ff;
-    }
-    .official-form .inline-edit[readonly] {
-        border-bottom-color: transparent;
-        cursor: default;
-    }
+    .official-form .inline-edit { width: 100%; border: none; border-bottom: 1px dashed #94a3b8; background: transparent; font: inherit; font-weight: 600; color: #0f172a; padding: 1px 2px; outline: none; }
+    .official-form .inline-edit:focus { border-bottom-color: #2563eb; background: #eff6ff; }
+    .official-form .inline-edit[readonly] { border-bottom-color: transparent; cursor: default; }
 
-    .official-form .schedule-table-wrap {
-        border: 1.5px solid #0f172a;
-        overflow-x: auto; border-radius: 2px;
-    }
-    .official-form .schedule-table {
-        width: 100%; border-collapse: collapse;
-        table-layout: fixed; font-size: 10.5px; min-width: 800px;
-    }
-    .official-form .schedule-table th,
-    .official-form .schedule-table td {
-        border: 1px solid #475569; padding: 2px 3px;
-        text-align: center; vertical-align: middle; height: 26px;
-    }
-    .official-form .schedule-table thead th {
-        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-        font-weight: 800; font-size: 10.5px; letter-spacing: 0.6px;
-        padding: 6px 3px; color: #0f172a; text-transform: uppercase;
-    }
-    .official-form .schedule-table th.time-head {
-        width: 82px;
-        background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
-        color: #1e40af;
-    }
-    .official-form .schedule-table td.time-col {
-        font-size: 10px; background: #f8fafc; font-weight: 600;
-        white-space: nowrap; width: 82px; color: #334155;
-    }
-    .official-form .schedule-table tr.lunch-row td {
-        background: #fef3c7; color: #78350f; font-weight: 800;
-        font-size: 10.5px; letter-spacing: 2px; height: 22px;
-        text-transform: uppercase;
-    }
-    .official-form .schedule-table tr.lunch-row td.time-col {
-        background: #fde68a;
-    }
+    .official-form .schedule-table-wrap { border: 1.5px solid #0f172a; overflow-x: auto; border-radius: 2px; }
+    .official-form .schedule-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10.5px; min-width: 800px; }
+    .official-form .schedule-table th, .official-form .schedule-table td { border: 1px solid #475569; padding: 2px 3px; text-align: center; vertical-align: middle; height: 26px; }
+    .official-form .schedule-table thead th { background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%); font-weight: 800; font-size: 10.5px; letter-spacing: 0.6px; padding: 6px 3px; color: #0f172a; text-transform: uppercase; }
+    .official-form .schedule-table th.time-head { width: 82px; background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af; }
+    .official-form .schedule-table td.time-col { font-size: 10px; background: #f8fafc; font-weight: 600; white-space: nowrap; width: 82px; color: #334155; }
+    .official-form .schedule-table tr.lunch-row td { background: #fef3c7; color: #78350f; font-weight: 800; font-size: 10.5px; letter-spacing: 2px; height: 22px; text-transform: uppercase; }
+    .official-form .schedule-table tr.lunch-row td.time-col { background: #fde68a; }
     .official-form .schedule-table td.sched-cell { padding: 0; vertical-align: middle; }
     .official-form .schedule-table td.sched-cell.lecture   { background: #fde047; }
     .official-form .schedule-table td.sched-cell.lab       { background: #fb923c; }
     .official-form .schedule-table td.sched-cell.office    { background: #ec4899; color: #fff; }
-    .official-form .cell-block {
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        gap: 2px; padding: 4px 3px;
-        height: 100%; line-height: 1.15; text-align: center;
-    }
+    .official-form .cell-block { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 3px; height: 100%; line-height: 1.15; text-align: center; }
     .official-form .cell-block .subj { font-weight: 800; font-size: 11px; }
     .official-form .cell-block .section { font-size: 10px; font-weight: 600; }
-    .official-form .cell-block .room-tag {
-        font-size: 9px; font-weight: 700;
-        background: rgba(0, 0, 0, 0.10);
-        padding: 1px 6px; border-radius: 6px; margin-top: 2px;
-    }
+    .official-form .cell-block .room-tag { font-size: 9px; font-weight: 700; background: rgba(0, 0, 0, 0.10); padding: 1px 6px; border-radius: 6px; margin-top: 2px; }
 
     /* WORKLOAD TABLE */
-    .official-form .workload-container {
-        display: flex; width: 100%; margin-top: 6px;
-        align-items: stretch;
-        font-family: 'Segoe UI', 'Arial', sans-serif;
-        font-size: 11px;
-    }
-    .official-form .workload-table-left {
-        border-collapse: collapse; flex: 1;
-        border: 1.5px solid #000; border-right: none;
-    }
-    .official-form .workload-table-right {
-        border-collapse: collapse; width: 38%;
-        border: 1.5px solid #000;
-    }
-    .official-form .workload-container th,
-    .official-form .workload-container td {
-        border: 1px solid #000; padding: 6px 8px;
-        vertical-align: top; height: 22px;
-    }
-    .official-form .workload-container thead th {
-        font-weight: 800; text-align: center;
-        font-size: 11px; color: #000;
-        text-transform: uppercase; background: #fff;
-        vertical-align: middle;
-    }
+    .official-form .workload-container { display: flex; width: 100%; margin-top: 6px; align-items: stretch; font-family: 'Segoe UI', 'Arial', sans-serif; font-size: 11px; }
+    .official-form .workload-table-left { border-collapse: collapse; flex: 1; border: 1.5px solid #000; border-right: none; }
+    .official-form .workload-table-right { border-collapse: collapse; width: 38%; border: 1.5px solid #000; }
+    .official-form .workload-container th, .official-form .workload-container td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; height: 22px; }
+    .official-form .workload-container thead th { font-weight: 800; text-align: center; font-size: 11px; color: #000; text-transform: uppercase; background: #fff; vertical-align: middle; }
     .official-form .workload-container td { text-align: center; font-weight: 600; }
     .official-form .workload-container td.left { text-align: left; }
-    .official-form .workload-container .section-header td {
-        background: #fff; font-weight: 800;
-        text-align: left; color: #000; font-size: 11.5px;
-        padding: 4px 8px; vertical-align: middle;
-    }
-    .official-form .workload-container tr.subtotal td {
-        font-weight: 700; background: #fff; font-style: italic;
-    }
-    .official-form .workload-container tr.grand-total td {
-        font-weight: 800; background: #fff; color: #000;
-        font-size: 12px; border-top: 2px solid #000;
-        vertical-align: middle; padding: 6px 8px;
-    }
+    .official-form .workload-container .section-header td { background: #fff; font-weight: 800; text-align: left; color: #000; font-size: 11.5px; padding: 4px 8px; vertical-align: middle; }
+    .official-form .workload-container tr.subtotal td { font-weight: 700; background: #fff; font-style: italic; }
+    .official-form .workload-container tr.grand-total td { font-weight: 800; background: #fff; color: #000; font-size: 12px; border-top: 2px solid #000; vertical-align: middle; padding: 6px 8px; }
     
     .official-form .workload-table-right td { padding: 0 !important; }
-    .official-form .remarks-grid {
-        display: flex; flex-direction: column;
-        height: 100%; min-height: 100%;
-    }
-    .official-form .remark-section {
-        padding: 6px 8px; border-bottom: 1px solid #000;
-        display: flex; flex-direction: column; text-align: left;
-    }
+    .official-form .remarks-grid { display: flex; flex-direction: column; height: 100%; min-height: 100%; align-self: stretch; }
+    .official-form .remark-section { padding: 6px 8px; border-bottom: 1px solid #000; display: flex; flex-direction: column; text-align: left; }
     .official-form .remark-section.grow { flex-grow: 1; }
-    .official-form .remark-label {
-        font-weight: 800; font-size: 11px; margin-bottom: 2px;
-        color: #000; display: flex; align-items: center;
-        gap: 4px; text-align: left;
+    .official-form .remark-label { font-weight: 800; font-size: 11px; margin-bottom: 2px; color: #000; display: flex; align-items: center; gap: 4px; text-align: left; }
+    .official-form .remark-textarea { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 11px; color: #0f172a; resize: vertical; outline: none; line-height: 1.4; padding: 0; white-space: pre-wrap; min-height: 40px; transition: height 0.15s ease; }
+    .official-form .remark-textarea:focus { background: #eff6ff; }
+    
+    /* HIDE PRINT DIVS ON SCREEN */
+    .official-form .print-remark-text {
+        display: none !important;
     }
-    .official-form .remark-textarea {
-        width: 100%; border: none; background: transparent;
-        font-family: inherit; font-size: 11px; color: #0f172a;
-        resize: none; outline: none; overflow: hidden;
-        line-height: 1.4; padding: 0; white-space: pre-wrap;
-    }
-    .official-form .remark-total-row {
-        display: flex; border-top: 1px solid #000;
-        background: #fff; min-height: 32px;
-    }
-    .official-form .remark-total-label {
-        flex: 1; padding: 6px 8px; font-weight: 800;
-        font-size: 11px; border-right: 1px solid #000;
-        display: flex; align-items: center; text-align: left;
-    }
-    .official-form .remark-total-value {
-        width: 80px; padding: 6px; font-weight: 800;
-        font-size: 13px; display: flex;
-        align-items: center; justify-content: center;
-    }
+
+    .official-form .remark-total-row { display: flex; border-top: 1px solid #000; background: #fff; min-height: 32px; }
+    .official-form .remark-total-label { flex: 1; padding: 6px 8px; font-weight: 800; font-size: 11px; border-right: 1px solid #000; display: flex; align-items: center; text-align: left; }
+    .official-form .remark-total-value { width: 80px; padding: 6px; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
 
     /* STUDENT COUNT TABLE */
-    .official-form .student-table-wrap {
-        display: flex; flex-direction: column;
-        width: 100%; border-top: 1px solid #000;
-    }
-    .official-form .student-table-row {
-        display: flex; width: 100%;
-        border-bottom: 1px solid #000;
-        font-size: 11px;
-    }
-    .official-form .student-table-row.header-row {
-        background: #f8fafc; font-weight: 800;
-    }
-    .official-form .student-col-left {
-        flex: 1; padding: 5px 8px; border-right: 1px solid #000;
-        text-align: left; display: flex; align-items: center;
-        line-height: 1.2;
-    }
-    .official-form .student-col-right {
-        width: 70px; padding: 5px 8px; text-align: center;
-        font-weight: 700; color: #1e40af;
-        display: flex; align-items: center; justify-content: center;
-    }
+    .official-form .student-table-wrap { display: flex; flex-direction: column; width: 100%; border-top: 1px solid #000; }
+    .official-form .student-table-row { display: flex; width: 100%; border-bottom: 1px solid #000; font-size: 11px; }
+    .official-form .student-table-row.header-row { background: #f8fafc; font-weight: 800; }
+    .official-form .student-col-left { flex: 1; padding: 5px 8px; border-right: 1px solid #000; text-align: left; display: flex; align-items: center; line-height: 1.2; }
+    .official-form .student-col-right { width: 70px; padding: 5px 8px; text-align: center; font-weight: 700; color: #1e40af; display: flex; align-items: center; justify-content: center; }
 
     /* ACTION TABLE */
-    .official-form .action-table {
-        width: 100%; border-collapse: collapse;
-        font-size: 11px; margin-top: 6px;
-    }
-    .official-form .action-table th,
-    .official-form .action-table td {
-        border: 1px solid #475569; padding: 5px 8px; vertical-align: middle;
-    }
-    .official-form .action-table thead th {
-        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-        font-weight: 800; text-align: center;
-        font-size: 10.5px; color: #0f172a; text-transform: uppercase;
-    }
-    .official-form .action-table thead tr.title-row th {
-        background: #1e40af; color: #fff;
-        text-align: left; font-size: 11px;
-        letter-spacing: 0.8px; padding: 6px 10px;
-    }
-    .official-form .action-table td.label-cell {
-        text-align: left; font-weight: 700; color: #1e40af;
-        background: #f8fafc; font-size: 11px;
-    }
-    .official-form .action-table td.sig-space {
-        height: 42px;
-        background: linear-gradient(180deg, transparent 60%, #f1f5f9 100%);
-        position: relative;
-    }
-    .official-form .action-table td.sig-space::after {
-        content: ''; position: absolute;
-        left: 15%; right: 15%; bottom: 8px;
-        border-bottom: 1px solid #94a3b8;
-    }
+    .official-form .action-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+    .official-form .action-table th, .official-form .action-table td { border: 1px solid #475569; padding: 5px 8px; vertical-align: middle; }
+    .official-form .action-table thead th { background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%); font-weight: 800; text-align: center; font-size: 10.5px; color: #0f172a; text-transform: uppercase; }
+    .official-form .action-table thead tr.title-row th { background: #1e40af; color: #fff; text-align: left; font-size: 11px; letter-spacing: 0.8px; padding: 6px 10px; }
+    .official-form .action-table td.label-cell { text-align: left; font-weight: 700; color: #1e40af; background: #f8fafc; font-size: 11px; }
+    .official-form .action-table td.sig-space { height: 42px; background: linear-gradient(180deg, transparent 60%, #f1f5f9 100%); position: relative; }
+    .official-form .action-table td.sig-space::after { content: ''; position: absolute; left: 15%; right: 15%; bottom: 8px; border-bottom: 1px solid #94a3b8; }
 
     /* Free-form action inputs */
-    .official-form .action-input {
-        width: 100%; border: none;
-        border-bottom: 1px dashed transparent;
-        background: transparent; font: inherit;
-        font-weight: 700; color: #0f172a;
-        text-align: center; outline: none;
-        padding: 2px; text-transform: uppercase;
-    }
-    .official-form .action-input[data-col="position"] {
-        font-weight: 400; color: #334155; text-transform: none;
-    }
-    .official-form .action-input:focus {
-        border-bottom-color: #2563eb; background: #eff6ff;
-    }
+    .official-form .action-input { width: 100%; border: none; border-bottom: 1px dashed transparent; background: transparent; font: inherit; font-weight: 700; color: #0f172a; text-align: center; outline: none; padding: 2px; text-transform: uppercase; }
+    .official-form .action-input[data-col="position"] { font-weight: 400; color: #334155; text-transform: none; }
+    .official-form .action-input:focus { border-bottom-color: #2563eb; background: #eff6ff; }
     .official-form .action-input[readonly] { cursor: default; }
-    .official-form .action-input[readonly]:focus {
-        background: transparent; border-bottom-color: transparent;
-    }
+    .official-form .action-input[readonly]:focus { background: transparent; border-bottom-color: transparent; }
 
     /* RESPONSIVE */
     @media (max-width: 992px) {
         .modal-container { max-width: 96%; }
         .official-form .schedule-table { min-width: 700px; }
         .official-form .form-header { grid-template-columns: 1fr; }
-        .official-form .form-header .logo-box,
-        .official-form .form-header .ref-box {
-            border: none; border-bottom: 1.5px solid #0f172a;
-        }
+        .official-form .form-header .logo-box, .official-form .form-header .ref-box { border: none; border-bottom: 1.5px solid #0f172a; }
         .official-form .workload-container { flex-direction: column; }
         .official-form .workload-table-left { border-right: 1.5px solid #000; }
         .official-form .workload-table-right { width: 100%; border-top: none; }
@@ -562,9 +248,7 @@
         .page-header { flex-direction: column; align-items: flex-start; }
         .search-box { flex-direction: column; }
         .search-box form { flex-direction: column; width: 100%; }
-        .search-box input,
-        .search-box select,
-        .search-box button { width: 100%; min-width: unset; }
+        .search-box input, .search-box select, .search-box button { width: 100%; min-width: unset; }
         table { font-size: 12px; }
         table thead th, table tbody td { padding: 8px 10px; }
         .faculty-avatar { width: 32px; height: 32px; font-size: 13px; }
@@ -577,45 +261,32 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       PRINT — Folio 8.5in × 13in, single page, one source of truth
+       PRINT — Folio 8.5in × 13in, multiple pages supported
        ══════════════════════════════════════════════════════════════ */
     @page {
         size: 8.5in 13in;
-        margin: 0.25in; /* Set margin to 0 to prevent blank space pushing content to page 2 */
+        margin: 0.25in;
     }
 
     @media print {
-        /* ---- exact colors ---- */
-        *,
-        *::before,
-        *::after {
+        *, *::before, *::after {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
         }
 
-        /* ---- page reset & hide background ---- */
         html, body {
             margin: 0 !important;
             padding: 0 !important;
             background: #fff !important;
             width: 100% !important;
-            height: 100% !important; /* Force height */
-            overflow: hidden !important; /* Prevent overflow causing 2nd page */
+            overflow: visible !important; /* Allows natural pagination */
             font-size: 8pt !important;
         }
 
-        /* ---- hide everything that isn't the form ---- */
-        body * {
-            visibility: hidden;
-        }
+        body * { visibility: hidden; }
+        .official-form, .official-form * { visibility: visible; }
 
-        /* ---- ONLY show the form and its contents ---- */
-        .official-form, .official-form * {
-            visibility: visible;
-        }
-
-        /* ---- neutralize the modal wrappers and snap to top-left ---- */
         .modal-overlay {
             position: absolute !important;
             top: 0 !important;
@@ -626,6 +297,7 @@
             padding: 0 !important;
             margin: 0 !important;
             display: block !important;
+            overflow: visible !important; 
         }
 
         .modal-container {
@@ -650,20 +322,15 @@
             left: 0 !important;
             width: 100% !important;
             height: auto !important;
-            padding: 20px !important; /* Add slight padding so it doesn't touch the edge */
+            padding: 20px !important;
             margin: 0 auto !important;
             overflow: visible !important;
             box-sizing: border-box !important;
         }
 
-        .modal-header, .modal-close, .modal-print-btn {
-            display: none !important;
-        }
+        .modal-header, .modal-close, .modal-print-btn { display: none !important; }
 
-        /* ---- THE form ---- */
-        #classProgram,
-        .form-container,
-        .official-form {
+        #classProgram, .form-container, .official-form {
             display: block !important;
             border: none !important;
             padding: 0 !important;
@@ -673,99 +340,36 @@
             max-width: 100% !important;
             box-shadow: none !important;
             border-radius: 0 !important;
-            /* page-break-inside removed to allow natural fit */
         }
 
-        /* ── 1. HEADER ─────────────────────────────────────── */
-        .official-form .form-header {
-            grid-template-columns: 150px 1fr 170px !important;
-            border: 1.5px solid #000 !important;
-            margin-bottom: 4px !important;
-        }
-        .official-form .form-header .logo-box {
-            border-right: 1.5px solid #000 !important;
-            padding: 4px !important;
-        }
-        .official-form .form-header .logo-box .logo-placeholder {
-            width: 35px !important;
-            height: 35px !important;
-            font-size: 6pt !important;
-        }
+        /* ── 1. HEADER ── */
+        .official-form .form-header { grid-template-columns: 150px 1fr 170px !important; border: 1.5px solid #000 !important; margin-bottom: 4px !important; }
+        .official-form .form-header .logo-box { border-right: 1.5px solid #000 !important; padding: 4px !important; }
+        .official-form .form-header .logo-box .logo-placeholder { width: 35px !important; height: 35px !important; font-size: 6pt !important; }
         .official-form .form-header .school-block { padding: 4px 8px !important; }
         .official-form .form-header .school-block .rep         { font-size: 7.5pt !important; }
         .official-form .form-header .school-block .school-name { font-size: 10pt  !important; }
         .official-form .form-header .school-block .school-sub  { font-size: 7.5pt !important; }
         .official-form .form-header .school-block .college     { font-size: 8pt   !important; }
-        .official-form .form-header .school-block .doc-title {
-            font-size: 9pt !important;
-            margin-top: 2px !important;
-            padding-top: 2px !important;
-            border-top: 1px solid #000 !important;
-        }
-        .official-form .form-header .ref-box {
-            border-left: 1.5px solid #000 !important;
-            padding: 4px 6px !important;
-            font-size: 6.5pt !important;
-        }
-        .official-form .form-header .ref-box .tuv {
-            padding: 2px 0 0 !important;
-            margin-top: 2px !important;
-            border-top: 1px dashed #000 !important;
-        }
+        .official-form .form-header .school-block .doc-title { font-size: 9pt !important; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px solid #000 !important; }
+        .official-form .form-header .ref-box { border-left: 1.5px solid #000 !important; padding: 4px 6px !important; font-size: 6.5pt !important; }
+        .official-form .form-header .ref-box .tuv { padding: 2px 0 0 !important; margin-top: 2px !important; border-top: 1px dashed #000 !important; }
         .official-form .form-header .ref-box .tuv .tuv-label { font-size: 7pt !important; }
         .official-form .form-header .ref-box .tuv .tuv-sub   { font-size: 6pt !important; }
 
-        /* ── 2. FACULTY INFO ───────────────────────────────── */
-        .official-form .faculty-info-table {
-            font-size: 8pt !important;
-            margin: 3px 0 !important;
-        }
-        .official-form .faculty-info-table td {
-            padding: 2px 4px !important;
-            border: 1px solid #000 !important;
-        }
-        .official-form .faculty-info-table .label {
-            width: 85px !important;
-            font-size: 8pt !important;
-            background: #f8fafc !important;
-        }
+        /* ── 2. FACULTY INFO ── */
+        .official-form .faculty-info-table { font-size: 8pt !important; margin: 3px 0 !important; }
+        .official-form .faculty-info-table td { padding: 2px 4px !important; border: 1px solid #000 !important; }
+        .official-form .faculty-info-table .label { width: 85px !important; font-size: 8pt !important; background: #f8fafc !important; }
         .official-form .faculty-info-table .value { font-size: 8pt !important; }
 
-        /* ── 3. SCHEDULE TABLE ─────────────────────────────── */
-        .official-form .schedule-table-wrap {
-            border: 1px solid #000 !important;
-            margin: 3px 0 !important;
-        }
-        .official-form .schedule-table {
-            min-width: 0 !important;
-            width: 100% !important;
-            font-size: 7.5pt !important;
-            table-layout: fixed !important;
-        }
-        .official-form .schedule-table th,
-        .official-form .schedule-table td {
-            padding: 2px !important;
-            height: 16px !important;
-            font-size: 7.5pt !important;
-            border: 1px solid #000 !important;
-            line-height: 1.1 !important;
-        }
-        .official-form .schedule-table thead th {
-            padding: 2px !important;
-            font-size: 8pt !important;
-            height: 20px !important;
-            background: #e2e8f0 !important;
-        }
-        .official-form .schedule-table th.time-head,
-        .official-form .schedule-table td.time-col {
-            width: 50px !important;
-            font-size: 7pt !important;
-        }
-        .official-form .schedule-table tr.lunch-row td {
-            height: 16px !important;
-            font-size: 7.5pt !important;
-            background: #fef3c7 !important;
-        }
+        /* ── 3. SCHEDULE TABLE ── */
+        .official-form .schedule-table-wrap { border: 1px solid #000 !important; margin: 3px 0 !important; }
+        .official-form .schedule-table { min-width: 0 !important; width: 100% !important; font-size: 7.5pt !important; table-layout: fixed !important; }
+        .official-form .schedule-table th, .official-form .schedule-table td { padding: 2px !important; height: 16px !important; font-size: 7.5pt !important; border: 1px solid #000 !important; line-height: 1.1 !important; }
+        .official-form .schedule-table thead th { padding: 2px !important; font-size: 8pt !important; height: 20px !important; background: #e2e8f0 !important; }
+        .official-form .schedule-table th.time-head, .official-form .schedule-table td.time-col { width: 50px !important; font-size: 7pt !important; }
+        .official-form .schedule-table tr.lunch-row td { height: 16px !important; font-size: 7.5pt !important; background: #fef3c7 !important; }
         .official-form .cell-block { padding: 1px !important; gap: 1px !important; }
         .official-form .cell-block .subj      { font-size: 7.5pt !important; }
         .official-form .cell-block .section   { font-size: 7pt   !important; }
@@ -775,170 +379,64 @@
         .official-form .schedule-table td.sched-cell.lecture   { background: #fde047 !important; }
         .official-form .schedule-table td.sched-cell.lab       { background: #fb923c !important; }
         .official-form .schedule-table td.sched-cell.office    { background: #ec4899 !important; color: #fff !important; }
-        .official-form .schedule-table td.sched-cell.adviser   { background: #7dd3fc !important; }
-        .official-form .schedule-table td.sched-cell.research  { background: #86efac !important; }
-        .official-form .schedule-table td.sched-cell.extension { background: #a5b4fc !important; }
-        .official-form .schedule-table td.sched-cell:hover     { box-shadow: none !important; }
 
-        /* ── 4. WORKLOAD TABLE (split) ─────────────────────── */
-        .official-form .workload-container {
-            display: flex !important;
-            flex-direction: row !important;
-            width: 100% !important;
-            margin-top: 4px !important;
-            align-items: stretch !important;
-            box-sizing: border-box !important;
-        }
-        .official-form .workload-table-left {
-            width: 62% !important;
-            border: 1.5px solid #000 !important;
-            border-right: none !important;
-            border-collapse: collapse !important;
-            box-sizing: border-box !important;
-        }
-        .official-form .workload-table-right {
-            width: 38% !important;
-            border: 1.5px solid #000 !important;
-            border-left: 1.5px solid #000 !important;
-            border-collapse: collapse !important;
-            box-sizing: border-box !important;
-        }
-        .official-form .workload-table-right thead tr {
-            height: 50px !important;
-        }
+        /* ── 4. WORKLOAD TABLE ── */
+        .official-form .workload-container { display: flex !important; flex-direction: row !important; width: 100% !important; margin-top: 4px !important; align-items: stretch !important; box-sizing: border-box !important; }
+        .official-form .workload-table-left { width: 62% !important; border: 1.5px solid #000 !important; border-right: none !important; border-collapse: collapse !important; box-sizing: border-box !important; }
+        .official-form .workload-table-right { width: 38% !important; border: 1.5px solid #000 !important; border-left: 1.5px solid #000 !important; border-collapse: collapse !important; box-sizing: border-box !important; }
+        .official-form .workload-table-right thead tr { height: 50px !important; }
+        .official-form .workload-table-right th { text-align: center; vertical-align: middle; letter-spacing: 0.5px; padding: 10px; }
+        .official-form .workload-container th, .official-form .workload-container td { padding: 3px 4px !important; font-size: 7.5pt !important; border: 1px solid #000 !important; height: 18px !important; vertical-align: middle !important; line-height: 1.1 !important; box-sizing: border-box !important; }
+        .official-form .workload-container thead th { font-size: 8pt !important; padding: 3px !important; background: #f1f5f9 !important; text-align: center !important; vertical-align: middle !important; }
+        .official-form .workload-container tr.grand-total td { font-size: 8.5pt !important; border-top: 1.5px solid #000 !important; padding: 3px !important; }
+        .official-form .workload-container .section-header td { background: #fff !important; text-align: left !important; }
 
-        .official-form .workload-table-right th {
-            text-align: center;
-            vertical-align: middle;
-            letter-spacing: 0.5px;
-            padding: 10px;
-        }
-        .official-form .workload-container th,
-        .official-form .workload-container td {
-            padding: 3px 4px !important;
-            font-size: 7.5pt !important;
-            border: 1px solid #000 !important;
-            height: 18px !important;
-            vertical-align: middle !important;
-            line-height: 1.1 !important;
-            box-sizing: border-box !important;
-        }
-        .official-form .workload-container thead th {
-            font-size: 8pt !important;
-            padding: 3px !important;
-            background: #f1f5f9 !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-        }
-        .official-form .workload-container tr.grand-total td {
-            font-size: 8.5pt !important;
-            border-top: 1.5px solid #000 !important;
-            padding: 3px !important;
-        }
-        .official-form .workload-container .section-header td {
-            background: #fff !important;
-            text-align: left !important;
-        }
+        /* Prevent rows from breaking across pages */
+        .official-form .workload-container tr, .official-form .student-table-row { page-break-inside: avoid !important; break-inside: avoid !important; }
 
-        /* right-panel remarks — block layout that survives print */
+        /* right-panel remarks */
         .official-form .workload-table-right td { padding: 0 !important; }
-        .official-form .remarks-grid {
-            display: block !important;
-            height: auto !important;
-        }
-        .official-form .remark-section {
-            padding: 5px 6px !important;
-            border-bottom: 1px solid #000 !important;
-            display: block !important;
-        }
+        .official-form .remarks-grid { display: block !important; height: auto !important; }
+        .official-form .remark-section { padding: 5px 6px !important; border-bottom: 1px solid #000 !important; display: block !important; }
         .official-form .remark-section.grow { flex-grow: 0 !important; }
-        .official-form .remark-label,
-        .official-form .remark-total-label {
-            font-size: 7.5pt !important;
-            font-weight: 800 !important;
-            margin-bottom: 2px !important;
-        }
-        .official-form .remark-total-row {
-            display: flex !important;
-            min-height: 20px !important;
-            border-top: 1px solid #000 !important;
-        }
-        .official-form .remark-total-value {
-            font-size: 8pt !important;
-            width: 60px !important;
-        }
-        .official-form .remark-input {
-            border-bottom: 1px solid #000 !important;
-            font-size: 7.5pt !important;
-        }
+        .official-form .remark-label, .official-form .remark-total-label { font-size: 7.5pt !important; font-weight: 800 !important; margin-bottom: 2px !important; }
+        .official-form .remark-total-row { display: flex !important; min-height: 20px !important; border-top: 1px solid #000 !important; }
+        .official-form .remark-total-value { font-size: 8pt !important; width: 60px !important; }
 
-        /* HIDE TEXTAREAS IN PRINT */
+        /* ── CRITICAL FIX: Hide textareas, show standard text ── */
         .official-form .remark-textarea {
             display: none !important;
-            visibility: hidden !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
         }
-        
-        /* SHOW PRINT DIVS IN PRINT */
-        .official-form .print-only-text {
+
+        .official-form .print-remark-text {
             display: block !important;
-            visibility: visible !important;
+            font-family: inherit !important; /* Fixes the monospace font */
             font-size: 7.5pt !important;
             line-height: 1.2 !important;
             color: #0f172a !important;
-            white-space: pre-wrap !important; 
-            word-break: break-word !important; 
+            white-space: pre-wrap !important; /* Keeps line breaks but wraps text */
+            word-break: break-word !important;
+            margin: 0 !important;
+            padding: 0 !important;
             min-height: 15px;
         }
 
-        /* STUDENT TABLE PRINT STYLES */
-        .official-form .student-table-wrap {
-            border-top: 1px solid #000 !important;
-        }
-        .official-form .student-table-row {
-            border-bottom: 1px solid #000 !important;
-        }
-        .official-form .student-col-left {
-            font-size: 7.5pt !important;
-            padding: 2px 4px !important;
-            border-right: 1px solid #000 !important;
-        }
-        .official-form .student-col-right {
-            font-size: 7.5pt !important;
-            padding: 2px 4px !important;
-            width: 50px !important;
-        }
+        /* STUDENT TABLE */
+        .official-form .student-table-wrap { border-top: 1px solid #000 !important; }
+        .official-form .student-table-row { border-bottom: 1px solid #000 !important; }
+        .official-form .student-col-left { font-size: 7.5pt !important; padding: 2px 4px !important; border-right: 1px solid #000 !important; }
+        .official-form .student-col-right { font-size: 7.5pt !important; padding: 2px 4px !important; width: 50px !important; }
 
-        /* ── 5. ACTION TABLE ───────────────────────────────── */
-        .official-form .action-table {
-            font-size: 7.5pt !important;
-            margin-top: 4px !important;
-        }
-        .official-form .action-table th,
-        .official-form .action-table td {
-            padding: 3px 5px !important;
-            border: 1px solid #000 !important;
-        }
+        /* ── 5. ACTION TABLE ── */
+        .official-form .action-table { font-size: 7.5pt !important; margin-top: 4px !important; }
+        .official-form .action-table th, .official-form .action-table td { padding: 3px 5px !important; border: 1px solid #000 !important; }
         .official-form .action-table thead th { font-size: 8pt !important; background: #f1f5f9 !important; }
-        .official-form .action-table thead tr.title-row th {
-            font-size: 8.5pt !important;
-            background: #1e40af !important;
-            color: #fff !important;
-        }
+        .official-form .action-table thead tr.title-row th { font-size: 8.5pt !important; background: #1e40af !important; color: #fff !important; }
         .official-form .action-table td.sig-name { font-size: 7.5pt !important; }
         .official-form .action-table td.sig-role { font-size: 7.5pt !important; }
         .official-form .action-table td.sig-space { height: 28px !important; }
 
-        /* ---- hide interactive chrome ---- */
-        .official-form .oa-add-btn,
-        .official-form .oa-actions,
-        .official-form .oa-edit-btn,
-        .official-form .oa-del-btn {
-            display: none !important;
-        }
+        .official-form .oa-add-btn, .official-form .oa-actions, .official-form .oa-edit-btn, .official-form .oa-del-btn { display: none !important; }
     }
 </style>
 {% endblock %}
@@ -1143,6 +641,12 @@
             .replace(/"/g, '&quot;');
     }
 
+    // Auto-resize a textarea to fit its content
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight) + 'px';
+    }
+
     function openModal(employeeId) {
         const modal = document.getElementById('classProgramModal');
         const body = document.getElementById('modalBody');
@@ -1180,16 +684,34 @@
         modalOpen = false;
     }
 
+    // --- CRITICAL FIX: Convert Textareas to Divs before printing ---
     function printSchedule() {
         const modal = document.getElementById('classProgramModal');
         if (!modal.classList.contains('active')) return;
 
+        // 1. Sync textarea values into the print-only divs
+        modal.querySelectorAll('.remark-input').forEach(function(textarea) {
+            const field = textarea.dataset.field;
+            const printDiv = modal.querySelector(`.print-remark-text[data-target="${field}"]`);
+            if (printDiv) {
+                // textContent is safer than innerHTML and stops duplication
+                printDiv.textContent = textarea.value || ' ';
+            }
+        });
+
+        // 2. Trigger print
         const facultyName = document.getElementById('modalFacultyName').textContent
             .trim().replace(/\s+/g, '_') || 'Faculty';
         const originalTitle = document.title;
         document.title = `Class_Program_${facultyName}`;
+        
         window.print();
-        setTimeout(() => { document.title = originalTitle; }, 1000);
+        
+        // 3. Clear the print divs after printing so duplicates never happen
+        setTimeout(() => { 
+            document.title = originalTitle; 
+            modal.querySelectorAll('.print-remark-text').forEach(div => div.textContent = '');
+        }, 1000);
     }
 
     function renderModalContent(data) {
@@ -1503,7 +1025,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="vertical-align: top; height: 100%;">
+                                <td style="vertical-align: top;">
                                     <div class="remarks-grid">
                                         <div class="remark-section">
                                             <div class="remark-label">
@@ -1518,19 +1040,26 @@
                                             </div>
                                         </div>
                                         <div class="remark-section">
-                                            <div class="remark-textarea" style="min-height: 50px;">${data.overload_subjects || ''}</div>
-                                            <div class="print-only-text">${data.overload_subjects || ''}</div>
+                                            <textarea class="remark-textarea remark-input"
+                                                      data-field="overload_subjects"
+                                                      style="min-height: 50px;"
+                                                      placeholder="Enter overload subjects..."
+                                                      ${ro}>${esc(data.overload_subjects || '')}</textarea>
+                                            <pre class="print-remark-text" data-target="overload_subjects"></pre>                            
                                         </div>
                                         <div class="remark-section">
                                             <div class="remark-label">
                                                 Service Credits: 
                                                 <span>${data.service_credits || ''}</span>
                                             </div>
-                                            <div class="print-only-text">${data.service_credits || ''}</div>
                                         </div>
                                         <div class="remark-section grow">
-                                            <div class="remark-textarea" style="min-height: 80px;">${data.adviser_notes || ''}</div>
-                                            <div class="print-only-text">${data.adviser_notes || ''}</div>
+                                            <textarea class="remark-textarea remark-input"
+                                                      data-field="adviser_notes"
+                                                      style="min-height: 80px;"
+                                                      placeholder="Enter adviser notes..."
+                                                      ${ro}>${esc(data.adviser_notes || '')}</textarea>
+                                            <pre class="print-remark-text" data-target="adviser_notes"></pre>
                                         </div>
 
                                         <!-- Student Table -->
@@ -1557,6 +1086,12 @@
 
         // Hook auto-save on blur
         wireInlineEditors(data.employee_id);
+
+        // Auto-resize all remark textareas to fit initial content
+        body.querySelectorAll('.remark-input').forEach(function (el) {
+            autoResize(el);
+            el.addEventListener('input', function () { autoResize(el); });
+        });
     }
 
     function wireInlineEditors(employeeId) {
@@ -1605,6 +1140,24 @@
 
             if (!nameEl.readOnly) nameEl.addEventListener('blur', save);
             if (!posEl.readOnly)  posEl.addEventListener('blur', save);
+        });
+
+        // Remarks — auto-save on blur
+        body.querySelectorAll('.remark-input').forEach(function (el) {
+            if (el.readOnly) return;
+            el.addEventListener('blur', function () {
+                const field = el.dataset.field;
+                const value = el.value.trim();
+
+                fetch(`/update-remarks/${employeeId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrf() },
+                    body: new URLSearchParams({ [field]: value }),
+                })
+                .then(r => r.json())
+                .then(j => { if (!j.success) console.warn('Save failed:', j.error); })
+                .catch(err => console.error('Network error saving remarks:', err));
+            });
         });
     }
 

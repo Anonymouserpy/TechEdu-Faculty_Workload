@@ -160,6 +160,52 @@ def _get_class_list_signatures(section=None):
                 merged[s.action_key]['position'] = s.position
     return merged
 
+
+@require_POST
+def room_create_ajax(request):
+    if not request.user.faculty.is_chairman:
+        return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+
+    room_name     = request.POST.get('room_name', '').strip()
+    room_code     = request.POST.get('room_code', '').strip().upper()
+    building_name = request.POST.get('building_name', '').strip()
+    floor_number  = request.POST.get('floor_number', '').strip()
+    program       = request.POST.get('program', '').strip()
+    is_available  = request.POST.get('is_available') == 'on'
+
+    # Basic validation
+    if not all([room_name, room_code, building_name, floor_number, program]):
+        return JsonResponse({'success': False, 'error': 'Please fill in all required fields.'})
+
+    if models.Room.objects.filter(room_code__iexact=room_code).exists():
+        return JsonResponse({'success': False, 'error': f'Room code "{room_code}" already exists.'})
+
+    try:
+        room = models.Room.objects.create(
+            room_name=room_name,
+            room_code=room_code,
+            building_name=building_name,
+            floor_number=int(floor_number),
+            program=program,
+            is_available=is_available,
+        )
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    return JsonResponse({
+        'success': True,
+        'room': {
+            'id': room.id,
+            'room_name': room.room_name,
+            'room_code': room.room_code,
+            'building_name': room.building_name,
+            'floor_number': room.floor_number,
+            'program': room.program,
+            'program_display': room.get_program_display(),
+            'is_available': room.is_available,
+        },
+    })
+
 @require_POST
 def update_class_list_signature(request):
     """
@@ -248,38 +294,52 @@ def update_effective_date(request, employee_id):
     return JsonResponse({'success': True, 'effective_date': new_date})
 
 
+
 @require_POST
 def update_remarks(request, employee_id):
-    """Save Overload, Service Credits, and Notes to the database."""
+    """
+    Save remark fields (overload_subjects, adviser_notes) for a faculty member.
+    Allowed: chairman OR the faculty themselves.
+    """
     if not request.session.get('faculty_id'):
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
-    try:
-        current = models.FacultyProfile.objects.get(
-            employee_id=request.session['faculty_id']
+    allowed = {'overload_subjects', 'adviser_notes'}
+    updated = {f: (request.POST.get(f) or '').strip()
+               for f in allowed if f in request.POST}
+
+    if not updated:
+        return JsonResponse(
+            {'success': False, 'error': 'No valid fields'},
+            status=400
         )
-        target = models.FacultyProfile.objects.get(employee_id=employee_id)
 
-        # Permission check
-        if not current.is_chairman and current.employee_id != target.employee_id:
-            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
-
-        target.overload_hours    = (request.POST.get('overload_hours') or '').strip()
-        target.overload_subjects = (request.POST.get('overload_subjects') or '').strip()
-        target.service_credits   = (request.POST.get('service_credits') or '').strip()
-        target.adviser_notes     = (request.POST.get('adviser_notes') or '').strip()
-
-        target.save(update_fields=[
-            'overload_hours', 'overload_subjects',
-            'service_credits', 'adviser_notes'
-        ])
-
-        return JsonResponse({'success': True})
-
+    try:
+        profile = models.FacultyProfile.objects.get(employee_id=employee_id)
     except models.FacultyProfile.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Faculty not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        return JsonResponse(
+            {'success': False, 'error': 'Faculty not found'},
+            status=404
+        )
+
+    # Permission: chairman OR the owner themselves (same rule as update_term)
+    current = models.FacultyProfile.objects.filter(
+        employee_id=request.session.get('faculty_id')
+    ).first()
+    if not current or (not current.is_chairman and current.employee_id != employee_id):
+        return JsonResponse(
+            {'success': False, 'error': 'Permission denied'},
+            status=403
+        )
+
+    for k, v in updated.items():
+        setattr(profile, k, v)
+    profile.save(update_fields=list(updated.keys()))
+
+    return JsonResponse({
+        'success': True,
+        'updated': updated,
+    })
 
 
 # NOTE: only ONE definition of update_action_taken now (was defined twice before).
@@ -1364,13 +1424,20 @@ def room_schedule_data(request, room_id):
 
         room = get_object_or_404(models.Room, id=room_id)
 
-        # Try to get the matrix (this might be where the error is happening)
         try:
             matrix = models.RoomUtilizationCalculator.get_room_schedule_matrix(room)
         except Exception as e:
             return JsonResponse({'error': f'Matrix generation failed: {str(e)}'}, status=500)
 
         days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+
+        # ── Guard: only keep schedule IDs whose subject+faculty are active ──
+        valid_schedule_ids = set(
+            models.ClassSchedule.objects.filter(
+                subject__is_active=True,
+                subject__faculty__is_active=True,
+            ).values_list('id', flat=True)
+        )
 
         schedules = []
         for time_key, day_map in matrix.items():
@@ -1393,15 +1460,22 @@ def room_schedule_data(request, room_id):
 
         unique = {}
         for s in schedules:
+            # Drop anything from an inactive faculty/subject
+            if s.get('schedule_type') != 'OTHER':
+                if s.get('schedule_id') not in valid_schedule_ids:
+                    continue
+
             key = f"{s['day']}|{s['subject']}|{s['start_time']}|{s['end_time']}"
             if key not in unique:
                 unique[key] = s
         schedule_list = list(unique.values())
 
         # Append Other Functions / Designation entries
+        # ── Filter out entries belonging to inactive faculty ──
         other_qs = models.FacultyOtherAssignment.objects.filter(
             room=room,
             is_active=True,
+            faculty__is_active=True,        # ← THE KEY FIX
             day__isnull=False,
             start_time__isnull=False,
             end_time__isnull=False,
@@ -1505,7 +1579,6 @@ def room_schedule_data(request, room_id):
                     'is_fully_scheduled': is_fully_scheduled,
                 })
 
-        # Fetch signatures for the footer
         signatures = _get_room_signatures(room) if '_get_room_signatures' in globals() else {}
 
         return JsonResponse({
@@ -1536,7 +1609,7 @@ def room_schedule_data(request, room_id):
         return JsonResponse({'error': 'Faculty not found'}, status=404)
     except Exception as e:
         import traceback
-        traceback.print_exc() # This will print the exact error in your terminal
+        traceback.print_exc()
         return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
     
 def room_list(request):
@@ -3416,6 +3489,7 @@ def room_edit(request, room_id):
         return redirect('login')
 
 
+@require_POST
 def room_toggle_availability(request, room_id):
     if not request.session.get('faculty_id'):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -3431,13 +3505,24 @@ def room_toggle_availability(request, room_id):
             return JsonResponse({'error': 'Permission denied'}, status=403)
 
         room = get_object_or_404(models.Room, id=room_id)
+
+        was_available = room.is_available
         room.is_available = not room.is_available
         room.save(update_fields=['is_available'])
+
+        # ── CASCADE: deschedule everything in this room ─────────
+        descheduled_count = 0
+        if was_available and not room.is_available:
+            affected = models.ClassSchedule.objects.filter(room=room)
+            descheduled_count = affected.count()
+            affected.delete()
+        # ────────────────────────────────────────────────────────
 
         return JsonResponse({
             'success': True,
             'id': room.id,
             'is_available': room.is_available,
+            'descheduled_count': descheduled_count,
         })
 
     except models.FacultyProfile.DoesNotExist:
@@ -3512,6 +3597,8 @@ def room_update_ajax(request, room_id):
         if models.Room.objects.filter(room_code=room_code).exclude(id=room.id).exists():
             return JsonResponse({'error': f'A room with code "{room_code}" already exists.'}, status=400)
 
+        was_available = room.is_available
+
         room.room_name     = room_name
         room.room_code     = room_code
         room.building_name = building_name
@@ -3521,8 +3608,17 @@ def room_update_ajax(request, room_id):
         room.full_clean()
         room.save()
 
+        # ── CASCADE: deschedule everything in this room ─────────
+        descheduled_count = 0
+        if was_available and not room.is_available:
+            affected = models.ClassSchedule.objects.filter(room=room)
+            descheduled_count = affected.count()
+            affected.delete()
+        # ────────────────────────────────────────────────────────
+
         return JsonResponse({
             'success': True,
+            'descheduled_count': descheduled_count,
             'room': {
                 'id': room.id,
                 'room_name': room.room_name,
@@ -3542,7 +3638,6 @@ def room_update_ajax(request, room_id):
         return JsonResponse({'error': msg}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
 
 # ============================================================
 # ROOM SCHEDULE — CHAIRMAN EDIT (reassign / delete)
