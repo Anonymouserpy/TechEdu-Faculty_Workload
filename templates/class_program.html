@@ -1,0 +1,2309 @@
+{% extends 'base_with_sidebar.html' %}
+{% load custom_filters %}
+
+{% block title %}Class Program | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════════════════════════════════════════════════════════
+       PAGE LAYOUT
+       ══════════════════════════════════════════════════════════════ */
+    .main-content { padding: 24px 30px; background: #f0f2f5; }
+
+    .page-header { margin-bottom: 18px; }
+    .page-header h1 {
+        font-size: 24px; color: #0f172a;
+        margin-bottom: 4px; font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+    .page-header p { color: #64748b; font-size: 14px; margin: 0; }
+
+    .print-actions {
+        display: flex; gap: 10px;
+        margin-bottom: 18px; flex-wrap: wrap;
+    }
+
+    .schedule-table td.sched-cell.other { background: #ec4899; color: #fff; }
+
+    .btn {
+        padding: 9px 18px; border-radius: 8px;
+        border: 1px solid transparent;
+        font-size: 13.5px; font-weight: 600;
+        cursor: pointer; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+        transition: all 0.18s ease;
+    }
+    .btn-primary {
+        background: #1e40af; color: #fff;
+        box-shadow: 0 1px 2px rgba(30, 64, 175, 0.25);
+    }
+    .btn-primary:hover {
+        background: #1e3a8a;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.28);
+        transform: translateY(-1px);
+    }
+    .btn-secondary {
+        background: #fff; color: #334155;
+        border-color: #e2e8f0;
+    }
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       OFFICIAL FORM CONTAINER
+       ══════════════════════════════════════════════════════════════ */
+    .form-container {
+        background: #fff;
+        padding: 16px 18px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        color: #0f172a;
+        font-size: 12px;
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    /* ─── TOP HEADER ────────────────────────────────────────── */
+    .form-header {
+        display: grid;
+        grid-template-columns: 190px 1fr 210px;
+        border: 1.5px solid #0f172a;
+        align-items: stretch;
+        margin-bottom: 12px;
+    }
+    .form-header .logo-box {
+        display: flex; align-items: center; justify-content: center;
+        gap: 10px; padding: 8px;
+        border-right: 1.5px solid #0f172a;
+        background: #fdfdfd;
+    }
+    .form-header .logo-box .logo-placeholder {
+        width: 52px; height: 52px;
+        border: 1px solid #94a3b8;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 8.5px; color: #64748b; font-weight: 600;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        text-align: center; line-height: 1.1;
+    }
+    .form-header .school-block {
+        text-align: center;
+        padding: 8px 12px;
+        line-height: 1.3;
+        display: flex; flex-direction: column;
+        justify-content: center;
+    }
+    .form-header .school-block .rep {
+        font-size: 11px; color: #475569; font-weight: 500;
+    }
+    .form-header .school-block .school-name {
+        font-size: 14px; font-weight: 800; color: #0f172a;
+        letter-spacing: 0.6px; margin-top: 1px;
+    }
+    .form-header .school-block .school-sub {
+        font-size: 11px; color: #64748b; font-style: italic;
+    }
+    .form-header .school-block .college {
+        font-size: 11.5px; font-weight: 700; color: #1e40af;
+        letter-spacing: 0.4px; margin-top: 3px;
+    }
+    .form-header .school-block .doc-title {
+        font-size: 12px; font-weight: 800; color: #0f172a;
+        letter-spacing: 0.8px; margin-top: 4px;
+        padding-top: 4px;
+        border-top: 1px solid #cbd5e1;
+    }
+    .form-header .ref-box {
+        border-left: 1.5px solid #0f172a;
+        padding: 8px 10px;
+        font-size: 10px; line-height: 1.4;
+        display: flex; flex-direction: column;
+        justify-content: space-between;
+        background: #fdfdfd;
+    }
+    .form-header .ref-box .row-line {
+        display: flex; justify-content: space-between; gap: 6px;
+        font-weight: 500;
+    }
+    .form-header .ref-box .row-line .ref-label { color: #475569; }
+    .form-header .ref-box .row-line .ref-value { color: #0f172a; font-weight: 700; }
+    .form-header .ref-box .tuv {
+        text-align: center;
+        padding: 6px 4px 2px;
+        border-top: 1px dashed #cbd5e1;
+        margin-top: 4px;
+    }
+    .form-header .ref-box .tuv .tuv-label {
+        font-weight: 800; color: #1e40af;
+        font-size: 13px; letter-spacing: 0.8px;
+        margin-bottom: 2px;
+    }
+    .form-header .ref-box .tuv .tuv-sub {
+        font-size: 8.5px; line-height: 1.3; color: #64748b;
+    }
+
+    /* ─── FACULTY INFO TABLE ───────────────────────────────── */
+    .faculty-info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+        font-size: 11.5px;
+    }
+    .faculty-info-table td {
+        border: 1px solid #cbd5e1;
+        padding: 5px 8px;
+        vertical-align: middle;
+    }
+    .faculty-info-table .label {
+        font-weight: 600;
+        color: #475569;
+        width: 130px;
+        background: #f8fafc;
+    }
+    .faculty-info-table .value {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    /* ─── SCHEDULE TABLE ────────────────────────────────────── */
+    .schedule-table-wrap {
+        border: 1.5px solid #0f172a;
+        overflow-x: auto;
+        margin-bottom: 10px;
+        border-radius: 2px;
+    }
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 10.5px;
+        min-width: 880px;
+    }
+    .schedule-table th,
+    .schedule-table td {
+        border: 1px solid #475569;
+        padding: 2px 3px;
+        text-align: center;
+        vertical-align: middle;
+        height: 26px;
+        word-wrap: break-word;
+    }
+    .schedule-table thead th {
+        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+        font-weight: 800;
+        font-size: 10.5px;
+        letter-spacing: 0.6px;
+        padding: 6px 3px;
+        color: #0f172a;
+        text-transform: uppercase;
+    }
+    .schedule-table th.time-head {
+        width: 82px;
+        background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+    }
+    .schedule-table td.time-col {
+        font-size: 10px;
+        background: #f8fafc;
+        font-weight: 600;
+        white-space: nowrap;
+        width: 82px;
+        padding: 2px 4px;
+        color: #334155;
+    }
+
+    /* Lunch row */
+    .schedule-table tr.lunch-row td {
+        background: #fef3c7;
+        color: #78350f;
+        font-weight: 800;
+        font-size: 10.5px;
+        letter-spacing: 2px;
+        height: 22px;
+        padding: 2px;
+        text-transform: uppercase;
+    }
+    .schedule-table tr.lunch-row td.time-col {
+        background: #fde68a;
+        color: #78350f;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SCHEDULED CELLS
+       ══════════════════════════════════════════════════════════════ */
+    .schedule-table td.sched-cell {
+        padding: 0;
+        vertical-align: middle;
+        position: relative;
+    }
+    .schedule-table td.sched-cell.lecture   { background: #fde047; }
+    .schedule-table td.sched-cell.lab       { background: #fb923c; }
+    .schedule-table td.sched-cell.office    { background: #ec4899; color: #fff; }
+    .schedule-table td.sched-cell.adviser   { background: #7dd3fc; }
+    .schedule-table td.sched-cell.research  { background: #86efac; }
+    .schedule-table td.sched-cell.extension { background: #a5b4fc; }
+
+    .schedule-table td.sched-cell:hover {
+        box-shadow: inset 0 0 0 2px #1e40af;
+        cursor: pointer;
+    }
+
+    .cell-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 4px 3px;
+        min-height: 100%;
+        height: 100%;
+        line-height: 1.15;
+        text-align: center;
+    }
+    .cell-block .subj {
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: -0.1px;
+        line-height: 1.1;
+    }
+    .cell-block .section {
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.1;
+    }
+    .cell-block .room-tag {
+        font-size: 9px;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.10);
+        padding: 1px 6px;
+        border-radius: 6px;
+        margin-top: 2px;
+        display: inline-block;
+    }
+
+    /* ─── WORKLOAD TABLE SPLIT LAYOUT ───────────────────────── */
+    .workload-container {
+        display: flex;
+        width: 100%;
+        margin-bottom: 8px;
+        align-items: stretch;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        font-size: 11px;
+    }
+
+    /* LEFT TABLE */
+    .workload-table-left {
+        border-collapse: collapse;
+        flex: 1;
+        border: 1.5px solid #000;
+        border-right: none;
+    }
+
+    /* RIGHT TABLE */
+    .workload-table-right {
+        border-collapse: collapse;
+        width: 38%;
+        border: 1.5px solid #000;
+    }
+
+    .workload-table-right th {
+        height: 60px !important; /* Use height, not min-height */
+        text-align: center;
+        vertical-align: middle; /* Forces text to the center vertically */
+        letter-spacing: 0.5px;
+        padding: 10px; /* Adds breathing room so it doesn't touch the borders */
+    }
+
+    .workload-container th,
+    .workload-container td {
+        border: 1px solid #000;
+        padding: 6px 8px;
+        vertical-align: top;
+        height: 22px;
+    }
+
+    /* Headers */
+    .workload-container thead th {
+        font-weight: 800;
+        text-align: center;
+        font-size: 11px;
+        color: #000;
+        text-transform: uppercase;
+        background: #fff;
+        vertical-align: middle;
+    }
+
+    /* General Cells */
+    .workload-container td { text-align: center; font-weight: 600; }
+    .workload-container td.left { text-align: left; }
+
+    /* Section Headers */
+    .workload-container .section-header td {
+        background: #fff;
+        font-weight: 800;
+        text-align: left;
+        color: #000;
+        font-size: 11.5px;
+        padding: 4px 8px;
+        vertical-align: middle;
+    }
+
+    /* Subtotal Rows */
+    .workload-container tr.subtotal td {
+        font-weight: 700;
+        background: #fff;
+        font-style: italic;
+    }
+
+    /* Grand Total Row */
+    .workload-container tr.grand-total td {
+        font-weight: 800;
+        background: #fff;
+        color: #000;
+        font-size: 12px;
+        border-top: 2px solid #000;
+        vertical-align: middle;
+        padding: 6px 8px;
+    }
+
+    /* Editable areas */
+    .editable-cell {
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .editable-cell:hover {
+        background: #f0f4ff;
+    }
+
+    /* Right Table Inner Layout */
+    .workload-table-right td {
+        padding: 0 !important;
+    }
+
+    /* ═══════════ RIGHT TABLE INNER LAYOUT (GRID) ═══════════ */
+    .remarks-grid {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100%;
+    }
+
+    .remark-section {
+        padding: 6px 8px;
+        border-bottom: 1px solid #000;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    .remark-section.grow {
+        flex-grow: 1;
+    }
+
+    .remark-label {
+        font-weight: 800;
+        font-size: 11px;
+        margin-bottom: 2px;
+        color: #000;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        text-align: left;
+    }
+
+    .remark-input {
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 800;
+        color: #000;
+        outline: none;
+        padding: 0 4px;
+        border-bottom: 1px dashed #94a3b8;
+        width: 60px;
+    }
+    .remark-input:focus {
+        background: #f8fafc;
+        border-bottom: 1px solid #1e40af;
+    }
+
+    .remark-textarea {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 11px;
+        color: #0f172a;
+        resize: none;
+        outline: none;
+        overflow: hidden;
+        line-height: 1.4;
+        padding: 0;
+    }
+
+    .remark-textarea:focus {
+        background: #f8fafc;
+    }
+
+    /* Hide the print-only divs on the regular screen */
+    .print-only-text {
+        display: none;
+    }
+
+    .remark-total-row {
+        display: flex;
+        border-top: 1px solid #000;
+        background: #fff;
+        min-height: 32px;
+    }
+
+    .remark-total-label {
+        flex: 1;
+        padding: 6px 8px;
+        font-weight: 800;
+        font-size: 11px;
+        border-right: 1px solid #000;
+        display: flex;
+        align-items: center;
+        text-align: left;
+    }
+
+    .remark-total-value {
+        width: 80px;
+        padding: 6px;
+        font-weight: 800;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    /* ═══════════ STUDENT COUNT TABLE ═══════════ */
+    .student-table-wrap {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-top: 1.5px solid #000;
+    }
+
+    .student-table-row {
+        display: flex;
+        width: 100%;
+        border-bottom: 1px solid #000;
+        font-size: 11px;
+    }
+
+    .student-table-row.header-row {
+        background: #f8fafc;
+        font-weight: 800;
+    }
+
+    .student-col-left {
+        flex: 1;
+        padding: 5px 8px;
+        border-right: 1px solid #000;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        line-height: 1.2;
+    }
+
+    .student-col-right {
+        width: 70px;
+        padding: 5px 8px;
+        text-align: center;
+        font-weight: 700;
+        color: #1e40af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ─── ACTION TABLE ──────────────────────────────────────── */
+    .action-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+    .action-table th,
+    .action-table td {
+        border: 1px solid #475569;
+        padding: 5px 8px;
+        vertical-align: middle;
+    }
+    .action-table thead th {
+        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+        font-weight: 800;
+        text-align: center;
+        font-size: 10.5px;
+        color: #0f172a;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+    .action-table thead tr.title-row th {
+        background: #1e40af;
+        color: #fff;
+        text-align: left;
+        font-size: 11px;
+        letter-spacing: 0.8px;
+        padding: 6px 10px;
+    }
+    .action-table td.label-cell {
+        text-align: left;
+        font-weight: 700;
+        color: #1e40af;
+        background: #f8fafc;
+        font-size: 11px;
+    }
+    .action-table td.sig-name {
+        text-align: center;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #0f172a;
+        letter-spacing: 0.3px;
+    }
+    .action-table td.sig-role {
+        text-align: center;
+        font-size: 11px;
+        color: #334155;
+    }
+    .action-table td.sig-space {
+        height: 42px;
+        background:
+            linear-gradient(180deg, transparent 60%, #f1f5f9 100%);
+        position: relative;
+    }
+    .action-table td.sig-space::after {
+        content: '';
+        position: absolute;
+        left: 15%;
+        right: 15%;
+        bottom: 8px;
+        border-bottom: 1px solid #94a3b8;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       OTHER FUNCTIONS / DESIGNATION + EDIT BUTTONS
+       ══════════════════════════════════════════════════════════════ */
+    .oa-add-btn {
+        float: right;
+        margin-left: 8px;
+        background: #1e40af;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .oa-add-btn:hover { background: #1e3a8a; }
+
+    .oa-actions {
+        margin-left: 8px;
+        display: inline-flex;
+        gap: 4px;
+        vertical-align: middle;
+    }
+    .oa-edit-btn, .oa-del-btn {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        border-radius: 4px;
+        font-size: 10px;
+        line-height: 1;
+        padding: 2px 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .oa-edit-btn:hover { background: #eff6ff; border-color: #1e40af; color: #1e40af; }
+    .oa-del-btn:hover  { background: #fef2f2; border-color: #b91c1c; color: #b91c1c; }
+
+    .oa-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .oa-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .oa-modal {
+        background: #fff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .oa-modal-overlay.open .oa-modal { transform: translateY(0) scale(1); }
+
+    .oa-modal-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    }
+    .oa-modal-header h3 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.2px;
+    }
+    .oa-modal-body {
+        padding: 16px 20px;
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    .oa-modal-footer {
+        padding: 12px 20px;
+        border-top: 1px solid #e5e7eb;
+        background: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .oa-lbl {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 10px 0 4px;
+    }
+    .oa-lbl:first-of-type { margin-top: 0; }
+
+    .oa-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+        color: #0f172a;
+        background: #fff;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .oa-input:focus {
+        outline: none;
+        border-color: #1e40af;
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+    }
+
+    .oa-msg {
+        margin-top: 10px;
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        display: none;
+        line-height: 1.4;
+    }
+    .oa-msg.error {
+        display: block;
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+    .oa-msg.success {
+        display: block;
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SCHEDULE DETAIL MODAL
+       ══════════════════════════════════════════════════════════════ */
+    .sched-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex; align-items: center; justify-content: center;
+        padding: 24px;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .sched-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .sched-modal {
+        background: #fff; border-radius: 14px;
+        width: 100%; max-width: 460px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        overflow: hidden;
+        transform: translateY(18px) scale(0.97);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sched-modal-overlay.open .sched-modal { transform: translateY(0) scale(1); }
+
+    .sched-modal-header {
+        padding: 18px 22px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    }
+    .sched-modal-header.lab {
+        background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);
+    }
+    .sched-modal-header h3 {
+        margin: 0; font-size: 15px; font-weight: 700;
+        color: #172033; display: flex; align-items: center; gap: 8px;
+        letter-spacing: -0.2px;
+    }
+    .sched-modal-header h3 .modal-icon { font-size: 17px; }
+
+    .sched-modal-close {
+        background: rgba(15, 23, 42, 0.06);
+        border: none; width: 32px; height: 32px;
+        border-radius: 8px; cursor: pointer;
+        font-size: 14px; color: #64748b;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s ease;
+    }
+    .sched-modal-close:hover { background: rgba(15, 23, 42, 0.12); color: #0f172a; }
+
+    .sched-modal-body { padding: 20px 22px 22px; }
+
+    .sched-modal-subject {
+        text-align: center; padding: 14px 12px 16px;
+        border-bottom: 1px dashed #e5e7eb; margin-bottom: 16px;
+    }
+    .sched-modal-subject .subj-code {
+        font-size: 20px; font-weight: 800; color: #1e40af;
+        letter-spacing: -0.3px; line-height: 1.2;
+    }
+    .sched-modal-subject .subj-title {
+        font-size: 12.5px; color: #475569; margin-top: 4px; font-weight: 500;
+    }
+    .sched-modal-subject .subj-type {
+        display: inline-block; margin-top: 10px;
+        font-size: 10.5px; font-weight: 800;
+        letter-spacing: 0.8px; text-transform: uppercase;
+        padding: 4px 12px; border-radius: 20px;
+    }
+    .sched-modal-subject .subj-type.lec { background: #fef3c7; color: #78350f; }
+    .sched-modal-subject .subj-type.lab { background: #fed7aa; color: #7c2d12; }
+
+    .sched-modal-row {
+        display: grid; grid-template-columns: 118px 1fr;
+        gap: 6px 12px; padding: 9px 0;
+        font-size: 13.5px; border-bottom: 1px solid #f1f5f9;
+    }
+    .sched-modal-row:last-child { border-bottom: none; }
+    .sched-modal-row .label {
+        color: #64748b; font-weight: 600;
+        display: flex; align-items: center; gap: 7px; font-size: 12.5px;
+    }
+    .sched-modal-row .value {
+        color: #0f172a; font-weight: 600; word-break: break-word;
+    }
+
+    .sched-modal-footer {
+        padding: 14px 22px;
+        background: #f8fafc; border-top: 1px solid #e5e7eb;
+        display: flex; justify-content: flex-end;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────── */
+    @media (max-width: 900px) {
+        .main-content { padding: 16px; }
+        .form-container { padding: 12px; }
+        .form-header { grid-template-columns: 1fr; }
+        .form-header .logo-box,
+        .form-header .ref-box { border: none; border-bottom: 1.5px solid #0f172a; }
+        .schedule-table { font-size: 9.5px; min-width: 720px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PRINT — Folio 8.5in × 13in, single page, one source of truth
+       ══════════════════════════════════════════════════════════════ */
+    @page {
+        size: 8.5in 13in;
+        margin: 0.3in;
+    }
+
+    @media print {
+        /* ---- exact colors ---- */
+        *,
+        *::before,
+        *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        /* ---- page reset ---- */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            font-size: 8pt !important;
+        }
+
+        /* ---- hide everything that isn't the form ---- */
+        .sidebar,
+        .sidebar-toggle,
+        .sidebar-overlay,
+        .topbar,
+        .print-actions,
+        .no-print,
+        .messages,
+        .page-header,
+        .sched-modal-overlay,
+        .oa-modal-overlay {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* ---- neutralize the base layout wrapper ---- */
+        .main-content {
+            height: auto !important;
+            overflow: visible !important;
+        }
+        /* ---- THE form ---- */
+        #classProgram,
+        .form-container {
+            display: block !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* ── 1. HEADER ─────────────────────────────────────── */
+        .form-header {
+            grid-template-columns: 150px 1fr 170px !important;
+            border: 1.5px solid #000 !important;
+            margin-bottom: 4px !important;
+        }
+        .form-header .logo-box {
+            border-right: 1.5px solid #000 !important;
+            padding: 4px !important;
+        }
+        .form-header .logo-box .logo-placeholder {
+            width: 35px !important;
+            height: 35px !important;
+            font-size: 6pt !important;
+        }
+        .form-header .school-block { padding: 4px 8px !important; }
+        .form-header .school-block .rep         { font-size: 7.5pt !important; }
+        .form-header .school-block .school-name { font-size: 10pt  !important; }
+        .form-header .school-block .school-sub  { font-size: 7.5pt !important; }
+        .form-header .school-block .college     { font-size: 8pt   !important; }
+        .form-header .school-block .doc-title {
+            font-size: 9pt !important;
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+            border-top: 1px solid #000 !important;
+        }
+        .form-header .ref-box {
+            border-left: 1.5px solid #000 !important;
+            padding: 4px 6px !important;
+            font-size: 6.5pt !important;
+        }
+        .form-header .ref-box .tuv {
+            padding: 2px 0 0 !important;
+            margin-top: 2px !important;
+            border-top: 1px dashed #000 !important;
+        }
+        .form-header .ref-box .tuv .tuv-label { font-size: 7pt !important; }
+        .form-header .ref-box .tuv .tuv-sub   { font-size: 6pt !important; }
+
+        /* ── 2. FACULTY INFO ───────────────────────────────── */
+        .faculty-info-table {
+            font-size: 8pt !important;
+            margin: 3px 0 !important;
+        }
+        .faculty-info-table td {
+            padding: 2px 4px !important;
+            border: 1px solid #000 !important;
+        }
+        .faculty-info-table .label {
+            width: 85px !important;
+            font-size: 8pt !important;
+            background: #f8fafc !important;
+        }
+        .faculty-info-table .value { font-size: 8pt !important; }
+
+        /* ── 3. SCHEDULE TABLE ─────────────────────────────── */
+        .schedule-table-wrap {
+            border: 1px solid #000 !important;
+            margin: 3px 0 !important;
+        }
+        .schedule-table {
+            min-width: 0 !important;
+            width: 100% !important;
+            font-size: 7.5pt !important;
+            table-layout: fixed !important;
+        }
+        .schedule-table th,
+        .schedule-table td {
+            padding: 2px !important;
+            height: 16px !important;
+            font-size: 7.5pt !important;
+            border: 1px solid #000 !important;
+            line-height: 1.1 !important;
+        }
+        .schedule-table thead th {
+            padding: 2px !important;
+            font-size: 8pt !important;
+            height: 20px !important;
+            background: #e2e8f0 !important;
+        }
+        .schedule-table th.time-head,
+        .schedule-table td.time-col {
+            width: 50px !important;
+            font-size: 7pt !important;
+        }
+        .schedule-table tr.lunch-row td {
+            height: 16px !important;
+            font-size: 7.5pt !important;
+            background: #fef3c7 !important;
+        }
+        .cell-block { padding: 1px !important; gap: 1px !important; }
+        .cell-block .subj      { font-size: 7.5pt !important; }
+        .cell-block .section   { font-size: 7pt   !important; }
+        .cell-block .room-tag  { font-size: 6pt   !important; padding: 0 2px !important; }
+
+        /* keep cell shading in print */
+        .schedule-table td.sched-cell.lecture   { background: #fde047 !important; }
+        .schedule-table td.sched-cell.lab       { background: #fb923c !important; }
+        .schedule-table td.sched-cell.office    { background: #ec4899 !important; color: #fff !important; }
+        .schedule-table td.sched-cell.adviser   { background: #7dd3fc !important; }
+        .schedule-table td.sched-cell.research  { background: #86efac !important; }
+        .schedule-table td.sched-cell.extension { background: #a5b4fc !important; }
+        .schedule-table td.sched-cell:hover     { box-shadow: none !important; }
+
+        /* ── 4. WORKLOAD TABLE (split) ─────────────────────── */
+        .workload-container {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            margin-top: 4px !important;
+            align-items: stretch !important;
+            box-sizing: border-box !important;
+        }
+        .workload-table-left {
+            width: 62% !important;
+            border: 1.5px solid #000 !important;
+            border-right: none !important;
+            border-collapse: collapse !important;
+            box-sizing: border-box !important;
+        }
+        .workload-table-right {
+            width: 38% !important;
+            border: 1.5px solid #000 !important;
+            border-left: 1.5px solid #000 !important;
+            border-collapse: collapse !important;
+            box-sizing: border-box !important;
+        }
+        .workload-table-right thead tr {
+            height: 50px !important; /* Use height, not min-height */
+        }
+
+        .workload-table-right th {
+            text-align: center;
+            vertical-align: middle; /* Forces text to the center vertically */
+            letter-spacing: 0.5px;
+            padding: 10px; /* Adds breathing room so it doesn't touch the borders */
+        }
+        .workload-container th,
+        .workload-container td {
+            padding: 3px 4px !important;
+            font-size: 7.5pt !important;
+            border: 1px solid #000 !important;
+            height: 18px !important;
+            vertical-align: middle !important;
+            line-height: 1.1 !important;
+            box-sizing: border-box !important;
+        }
+        .workload-container thead th {
+            font-size: 8pt !important;
+            padding: 3px !important;
+            background: #f1f5f9 !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        .workload-container tr.grand-total td {
+            font-size: 8.5pt !important;
+            border-top: 1.5px solid #000 !important;
+            padding: 3px !important;
+        }
+        .workload-container .section-header td {
+            background: #fff !important;
+            text-align: left !important;
+        }
+
+        /* right-panel remarks — block layout that survives print */
+        .workload-table-right td { padding: 0 !important; }
+        .remarks-grid {
+            display: block !important;
+            height: auto !important;
+        }
+        .remark-section {
+            padding: 5px 6px !important;
+            border-bottom: 1px solid #000 !important;
+            display: block !important;
+        }
+        .remark-section.grow { flex-grow: 0 !important; }
+        .remark-label,
+        .remark-total-label {
+            font-size: 7.5pt !important;
+            font-weight: 800 !important;
+            margin-bottom: 2px !important;
+        }
+        .remark-total-row {
+            display: flex !important;
+            min-height: 20px !important;
+            border-top: 1px solid #000 !important;
+        }
+        .remark-total-value {
+            font-size: 8pt !important;
+            width: 60px !important;
+        }
+        .remark-input {
+            border-bottom: 1px solid #000 !important;
+            font-size: 7.5pt !important;
+        }
+
+        /* HIDE TEXTAREAS IN PRINT */
+        .remark-textarea {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        
+        /* SHOW PRINT DIVS IN PRINT */
+        .print-only-text {
+            display: block !important;
+            visibility: visible !important;
+            font-size: 7.5pt !important;
+            line-height: 1.2 !important;
+            color: #0f172a !important;
+            white-space: pre-wrap !important; 
+            word-break: break-word !important; 
+            min-height: 15px;
+        }
+
+        /* STUDENT TABLE PRINT STYLES */
+        .student-table-wrap {
+            border-top: 1px solid #000 !important;
+        }
+        .student-table-row {
+            border-bottom: 1px solid #000 !important;
+        }
+        .student-col-left {
+            font-size: 7.5pt !important;
+            padding: 2px 4px !important;
+            border-right: 1px solid #000 !important;
+        }
+        .student-col-right {
+            font-size: 7.5pt !important;
+            padding: 2px 4px !important;
+            width: 50px !important;
+        }
+
+        /* ── 5. ACTION TABLE ───────────────────────────────── */
+        .action-table {
+            font-size: 7.5pt !important;
+            margin-top: 4px !important;
+        }
+        .action-table th,
+        .action-table td {
+            padding: 3px 5px !important;
+            border: 1px solid #000 !important;
+        }
+        .action-table thead th { font-size: 8pt !important; background: #f1f5f9 !important; }
+        .action-table thead tr.title-row th {
+            font-size: 8.5pt !important;
+            background: #1e40af !important;
+            color: #fff !important;
+        }
+        .action-table td.sig-name { font-size: 7.5pt !important; }
+        .action-table td.sig-role { font-size: 7.5pt !important; }
+        .action-table td.sig-space { height: 28px !important; }
+
+        /* ---- hide interactive chrome ---- */
+        .oa-add-btn,
+        .oa-actions,
+        .oa-edit-btn,
+        .oa-del-btn {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script>
+      window.CP = {
+        employeeId: "{{ viewing_faculty.employee_id }}",
+        canEditTeaching: {% if faculty.is_chairman %}true{% else %}false{% endif %},
+        canEditOther: {% if can_edit_other %}true{% else %}false{% endif %},
+        canEditStudents: {% if faculty.is_chairman or viewing_faculty.employee_id == faculty.employee_id %}true{% else %}false{% endif %},
+        urls: {
+            list:       "{% url 'other_assignment_list' viewing_faculty.employee_id %}",
+            create:     "{% url 'other_assignment_create' viewing_faculty.employee_id %}",
+            updateBase: "/faculty/{{ viewing_faculty.employee_id }}/other-assignments/",
+            updateEffectiveDate: "/faculty/{{ viewing_faculty.employee_id }}/update-effective-date/",
+            updateSubjectStudents: "/faculty/{{ viewing_faculty.employee_id }}/subject/__ID__/students/",
+            updateTotalStudents:   "/faculty/{{ viewing_faculty.employee_id }}/total-students/",
+            updateRemarks:         "/faculty/{{ viewing_faculty.employee_id }}/update-remarks/"
+        },
+        rooms: [
+            {% for r in rooms %}{id: {{ r.id }}, code: "{{ r.room_code|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+        ]
+      };
+    </script>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <h1>📅 Class Program</h1>
+        <p>
+            {% if viewing_faculty.employee_id == faculty.employee_id %}
+                Your class schedule for this semester.
+            {% else %}
+                Class schedule for <strong>{{ viewing_faculty.full_name }}</strong>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="print-actions no-print">
+        <button onclick="prepareAndPrint()" class="btn btn-primary">🖨️ Print Class Program</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+        {% if faculty.is_chairman %}
+            <a href="{% url 'all_class_programs' %}" class="btn btn-secondary">📋 All Class Programs</a>
+        {% endif %}
+    </div>
+
+    <div class="form-container" id="classProgram">
+
+        <!-- ═══════════ TOP HEADER ═══════════ -->
+        <div class="form-header">
+            <div class="logo-box">
+                <div class="logo-placeholder">PIT<br>LOGO</div>
+                <div class="logo-placeholder">CTE<br>LOGO</div>
+            </div>
+
+            <div class="school-block">
+                <div class="rep">Republic of the Philippines</div>
+                <div class="school-name">PALOMPON INSTITUTE OF TECHNOLOGY</div>
+                <div class="school-sub">Palompon, Leyte</div>
+                <div class="college">{{ viewing_faculty.department|default:"COLLEGE OF TEACHER EDUCATION" }}</div>
+                <div class="doc-title">INSTRUCTOR'S CLASS PROGRAM</div>
+            </div>
+
+            <div class="ref-box">
+                <div>
+                    <div class="row-line">
+                        <span class="ref-label">Ref. Code:</span>
+                        <span class="ref-value">PIT-CTE-FOR-3-2-01B</span>
+                    </div>
+                    <div class="row-line">
+                        <span class="ref-label">Rev. No:</span>
+                        <span class="ref-value">02</span>
+                    </div>
+                </div>
+                <div class="tuv">
+                    <div class="tuv-label">TUV NORD</div>
+                    <div class="tuv-sub">
+                        PIT is ISO 9001:2015 certified by<br>
+                        TUV NORD Philippines, Inc.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ FACULTY INFO (Term & Effective Date pulled from DB) ═══════════ -->
+        <table class="faculty-info-table">
+            <tr>
+                <td class="label">Faculty:</td>
+                <td class="value">{{ viewing_faculty.full_name }}</td>
+                <td class="label">Term:</td>
+                <td class="value">{{ term|default:"First Semester 2026-2027" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Academic Rank:</td>
+                <td class="value">{{ viewing_faculty.get_employment_type_display|default:"Instructor I" }}</td>
+                <td class="label">Department:</td>
+                <td class="value">{{ viewing_faculty.department|default:"Technology Teacher Education" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Effective Date:</td>
+                <td class="value">{{ effective_date|default:"August 3, 2026" }}</td>
+                <td class="label">College:</td>
+                <td class="value">{{ college|default:"College of Teacher Education" }}</td>
+            </tr>
+        </table>
+
+        <!-- ═══════════ SCHEDULE GRID ═══════════ -->
+        <div class="schedule-table-wrap">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th class="time-head">TIME</th>
+                        <th>MONDAY</th>
+                        <th>TUESDAY</th>
+                        <th>WEDNESDAY</th>
+                        <th>THURSDAY</th>
+                        <th>FRIDAY</th>
+                        <th>SATURDAY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for time_slot in time_slots %}
+                        {% if time_slot.is_lunch %}
+                            <tr class="lunch-row">
+                                <td class="time-col">{{ time_slot.display }}</td>
+                                <td colspan="6">🍽️ LUNCH BREAK</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td class="time-col">{{ time_slot.display }}</td>
+
+                                {# MONDAY #}
+                                {% if time_slot.monday %}
+                                    {% if time_slot.monday.is_start %}
+                                        <td class="sched-cell {% if time_slot.monday.info.schedule_type == 'OTHER' %}office{% elif time_slot.monday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.monday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.monday.info.id }}"
+                                            data-subject-code="{{ time_slot.monday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.monday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.monday.info.section_display }}"
+                                            data-room="{{ time_slot.monday.info.room }}"
+                                            data-faculty="{{ time_slot.monday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.monday.info.schedule_type }}"
+                                            data-day="MONDAY"
+                                            data-start="{{ time_slot.monday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.monday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.monday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.monday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.monday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# TUESDAY #}
+                                {% if time_slot.tuesday %}
+                                    {% if time_slot.tuesday.is_start %}
+                                       <td class="sched-cell {% if time_slot.tuesday.info.schedule_type == 'OTHER' %}office{% elif time_slot.tuesday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.tuesday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.tuesday.info.id }}"
+                                            data-subject-code="{{ time_slot.tuesday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.tuesday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.tuesday.info.section_display }}"
+                                            data-room="{{ time_slot.tuesday.info.room }}"
+                                            data-faculty="{{ time_slot.tuesday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.tuesday.info.schedule_type }}"
+                                            data-day="TUESDAY"
+                                            data-start="{{ time_slot.tuesday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.tuesday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.tuesday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.tuesday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.tuesday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# WEDNESDAY #}
+                                {% if time_slot.wednesday %}
+                                    {% if time_slot.wednesday.is_start %}
+                                        <td class="sched-cell {% if time_slot.wednesday.info.schedule_type == 'OTHER' %}office{% elif time_slot.wednesday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.wednesday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.wednesday.info.id }}"
+                                            data-subject-code="{{ time_slot.wednesday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.wednesday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.wednesday.info.section_display }}"
+                                            data-room="{{ time_slot.wednesday.info.room }}"
+                                            data-faculty="{{ time_slot.wednesday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.wednesday.info.schedule_type }}"
+                                            data-day="WEDNESDAY"
+                                            data-start="{{ time_slot.wednesday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.wednesday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.wednesday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.wednesday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.wednesday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# THURSDAY #}
+                                {% if time_slot.thursday %}
+                                    {% if time_slot.thursday.is_start %}
+                                        <td class="sched-cell {% if time_slot.thursday.info.schedule_type == 'OTHER' %}office{% elif time_slot.thursday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.thursday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.thursday.info.id }}"
+                                            data-subject-code="{{ time_slot.thursday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.thursday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.thursday.info.section_display }}"
+                                            data-room="{{ time_slot.thursday.info.room }}"
+                                            data-faculty="{{ time_slot.thursday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.thursday.info.schedule_type }}"
+                                            data-day="THURSDAY"
+                                            data-start="{{ time_slot.thursday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.thursday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.thursday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.thursday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.thursday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# FRIDAY #}
+                                {% if time_slot.friday %}
+                                    {% if time_slot.friday.is_start %}
+                                        <td class="sched-cell {% if time_slot.friday.info.schedule_type == 'OTHER' %}office{% elif time_slot.friday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.friday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.friday.info.id }}"
+                                            data-subject-code="{{ time_slot.friday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.friday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.friday.info.section_display }}"
+                                            data-room="{{ time_slot.friday.info.room }}"
+                                            data-faculty="{{ time_slot.friday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.friday.info.schedule_type }}"
+                                            data-day="FRIDAY"
+                                            data-start="{{ time_slot.friday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.friday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.friday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.friday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.friday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# SATURDAY #}
+                                {% if time_slot.saturday %}
+                                    {% if time_slot.saturday.is_start %}
+                                        <td class="sched-cell {% if time_slot.saturday.info.schedule_type == 'OTHER' %}office{% elif time_slot.saturday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.saturday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.saturday.info.id }}"
+                                            data-subject-code="{{ time_slot.saturday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.saturday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.saturday.info.section_display }}"
+                                            data-room="{{ time_slot.saturday.info.room }}"
+                                            data-faculty="{{ time_slot.saturday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.saturday.info.schedule_type }}"
+                                            data-day="SATURDAY"
+                                            data-start="{{ time_slot.saturday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.saturday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                <span class="subj">{{ time_slot.saturday.info.subject_code }}</span>
+                                                <span class="section">{{ time_slot.saturday.info.section_display }}</span>
+                                                <span class="room-tag">🏫 {{ time_slot.saturday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+         <!-- ═══════════ WORKLOAD TABLE (SPLIT LAYOUT) ═══════════ -->
+        <div class="workload-container">
+
+            <!-- LEFT TABLE -->
+            <table class="workload-table-left">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 160px;">WORKLOAD</th>
+                        <th colspan="2">HOURS PER WEEK</th>
+                        <th rowspan="2" style="width: 90px;">TOTAL HOURS</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 70px; font-size: 10px;">LEC.<br>HRS/WK</th>
+                        <th style="width: 70px; font-size: 10px;">LAB.<br>HRS/WK</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- TEACHING LOAD -->
+                    <tr class="section-header">
+                        <td colspan="3">Teaching Load/s:</td>
+                        <td></td>
+                    </tr>
+
+                   {% for row in workload_rows %}
+                    <tr>
+                        <td class="left">{{ row.section_display }}</td>
+                        <td>{% if row.lec_hours > 0 %}{{ row.lec_hours|floatformat:"-1" }}{% endif %}</td>
+                        <td>
+                            {% if row.lab_hours > 0 %}
+                                {{ row.lab_hours|floatformat:"-1" }} ({{ row.lab_hours_effective|floatformat:"-1" }})
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- TOTAL HOURS (Top) -->
+                            <span class="total-hours" style="display:block; font-size:11px; font-weight:700; color:#1e40af;">
+                                {{ row.weighted_hours|floatformat:"-2" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #64748b; font-style: italic;">No scheduled subjects yet.</td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- SUBTOTAL -->
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ total_lec|floatformat:"-1" }}</td>
+                        <td>{{ total_lab|floatformat:"-1" }} ({{ total_lab|floatformat:"-1" }})</td>
+                        <td>
+                            <span style="display:block; font-size:11px; font-weight:700; color:#1e40af;">
+                                {{ total_weighted|floatformat:"-2" }}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <!-- OTHER FUNCTIONS -->
+                    <tr class="section-header">
+                        <td colspan="3">Other Functions:
+                            {% if can_edit_other %}
+                                <button type="button" class="btn btn-primary no-print" style="padding: 2px 12px; font-size: 11px; border-radius: 12px; margin-left: 8px;" onclick="openOAModal('OTHER_FUNCTION', null)">+ Add</button>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% for a in other_assignments_other %}
+                        <tr class="oa-row" data-id="{{ a.id }}">
+                            <td class="left oa-title">{{ a.title }}</td>
+                            <td>{% if a.hours_per_week %}{{ a.hours_per_week|floatformat:"-1" }}{% endif %}</td>
+                            <td></td>
+                            <td class="left oa-meta" style="text-align: center;">
+                                {% if can_edit_other %}
+                                <span class="oa-actions">
+                                    <button type="button" class="oa-edit-btn" data-id="{{ a.id }}" title="Edit">✎</button>
+                                    <button type="button" class="oa-del-btn"  data-id="{{ a.id }}" title="Delete">✕</button>
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ other_hours_total|floatformat:"-1" }}</td>
+                        <td></td>
+                        <td>{{ other_hours_total|floatformat:"-1" }}</td>
+                        
+                    </tr>
+
+                    <!-- DESIGNATION -->
+                    <tr class="section-header">
+                        <td colspan="3">Designation:
+                            {% if can_edit_other %}
+                                <button type="button" class="btn btn-primary no-print" style="padding: 2px 12px; font-size: 11px; border-radius: 12px; margin-left: 8px;" onclick="openOAModal('DESIGNATION', null)">+ Add</button>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% for a in other_assignments_desig %}
+                        <tr class="oa-row" data-id="{{ a.id }}">
+                            <td class="left oa-title">{{ a.title }}</td>
+                            <td>{% if a.hours_per_week %}{{ a.hours_per_week|floatformat:"-1" }}{% endif %}</td>
+                            <td></td>
+                            <td class="left oa-meta" style="text-align: center;">
+                                {% if can_edit_other %}
+                                <span class="oa-actions">
+                                    <button type="button" class="oa-edit-btn" data-id="{{ a.id }}" title="Edit">✎</button>
+                                    <button type="button" class="oa-del-btn"  data-id="{{ a.id }}" title="Delete">✕</button>
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ desig_hours_total|floatformat:"-1" }}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    <!-- GRAND TOTAL -->
+                    <tr class="grand-total">
+                        <td class="left" colspan="3" >Grand Total</td>
+                        <td colspan="1" style="text-align: center;">{{ grand_total_hours|floatformat:"-1" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- RIGHT TABLE: Remarks -->
+            <table class="workload-table-right">
+                <thead>
+                    <tr>
+                       <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="vertical-align: top; height: 100%; padding: 0 !important;">
+                            <div class="remarks-grid" style="display: flex; flex-direction: column; height: 100%;">
+
+                                <!-- Section 1: Preparations & Overload -->
+                                <div class="remark-section" style="border-bottom: 1px solid #000;">
+                                    <div class="remark-label">
+                                        No. of Preparations:
+                                        <span id="auto_preparations">{{ workload_rows|length }}</span>
+                                    </div>
+                                </div>
+                                <div class="remark-section" style="border-bottom: 1px solid #000;">
+                                    <div class="remark-label" style="margin-top: 4px;">
+                                        Overload:
+                                        <input type="text" id="input_overload" class="remark-input" placeholder="0.0"
+                                            value="{{ overload_hours }}"
+                                            onblur="saveRemarksToDB()">
+                                    </div>
+                                </div>
+
+                                <!-- Section 2: Overload Subjects -->
+                                <div class="remark-section" style="border-bottom: 1px solid #000;">
+                                    <textarea id="remarks_overload_subjects" class="remark-textarea auto-expand" style="min-height: 50px;"
+                                            placeholder="e.g., HE 2 BTLED-HE III (W 1:00-2:30 PM)&#10;FSM 312 (TH 10:00 AM-12:00 PM)">{{ overload_subjects }}</textarea>
+                                    <div class="print-only-text">{{ overload_subjects|default:"" }}</div>
+                                </div>
+
+                                <!-- Section 3: Service Credits -->
+                                <div class="remark-section" style="border-bottom: 1px solid #000;">
+                                    <div class="remark-label">
+                                        Service Credits:
+                                        <input type="text" id="input_service_credits" class="remark-input" placeholder="0"
+                                            value="{{ service_credits }}"
+                                            onblur="saveRemarksToDB()">
+                                    </div>
+                                </div>
+
+                                <!-- Section 4: Adviser / Notes -->
+                                <div class="remark-section grow" style="border-bottom: 1px solid #000;">
+                                    <textarea id="remarks_adviser_notes" class="remark-textarea auto-expand" style="min-height: 80px;"
+                                            placeholder="e.g., Adviser, TechEdO&#10;Monday 9:00 AM-12:00 PM&#10;Tuesday 2:00-4:00 PM">{{ adviser_notes }}</textarea>
+                                    <div class="print-only-text">{{ adviser_notes|default:"" }}</div>
+                                </div>
+
+                                <!-- Section 5: TOTAL STUDENTS TABLE -->
+                                <div class="student-table-wrap">
+                                    
+                                    <!-- Header Row -->
+                                    <div class="student-table-row header-row">
+                                        <div class="student-col-left">Total Number of Students:</div>
+                                        <div class="student-col-right" id="right_total_students">{{ total_students }}</div>
+                                    </div>
+
+                                    <!-- Subject Rows -->
+                                    {% for row in workload_rows %}
+                                    <div class="student-table-row">
+                                        <div class="student-col-left">
+                                            {{ row.section_display }}
+                                        </div>
+                                        <div class="student-col-right editable-cell" 
+                                             data-subject-id="{{ row.subject_id }}"
+                                             onclick="editStudentCount(this)"
+                                             title="Click to edit">
+                                            {{ row.students|default:"0" }}
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="student-table-row" style="justify-content: center; color: #64748b; font-style: italic; padding: 5px;">
+                                        No scheduled subjects.
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════ ACTION TABLE (read-only, DB-backed) ═══════════ -->
+        <table class="action-table">
+            <thead>
+                <tr class="title-row">
+                    <th colspan="4">✍️ ACTIONS TAKEN</th>
+                </tr>
+                <tr>
+                    <th style="width: 140px;">Action</th>
+                    <th>Name</th>
+                    <th style="width: 140px;">Position</th>
+                    <th style="width: 200px;">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="label-cell">Prepared by:</td>
+                    <td class="sig-name">
+                        {% if actions.prepared.name %}{{ actions.prepared.name }}{% else %}{{ viewing_faculty.full_name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.prepared.position %}{{ actions.prepared.position }}{% else %}Faculty{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Reviewed by:</td>
+                    <td class="sig-name">
+                        {% if actions.reviewed.name %}{{ actions.reviewed.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.reviewed.position %}{{ actions.reviewed.position }}{% else %}Dept. Chair{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Verified by:</td>
+                    <td class="sig-name">
+                        {% if actions.verified.name %}{{ actions.verified.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.verified.position %}{{ actions.verified.position }}{% else %}Dean{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Approved by:</td>
+                    <td class="sig-name">
+                        {% if actions.approved.name %}{{ actions.approved.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.approved.position %}{{ actions.approved.position }}{% else %}VPAA{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- ═══════════ OTHER FUNCTIONS / DESIGNATION MODAL ═══════════ -->
+    <div class="oa-modal-overlay no-print" id="oaModal"
+         onclick="if(event.target.id==='oaModal')closeOAModal()">
+        <div class="oa-modal" role="dialog" aria-modal="true">
+            <div class="oa-modal-header">
+                <h3 id="oaModalTitle">Add Other Function</h3>
+                <button type="button" class="sched-modal-close" onclick="closeOAModal()">✕</button>
+            </div>
+            <div class="oa-modal-body">
+                <input type="hidden" id="oaId">
+                <input type="hidden" id="oaCategory">
+
+                <label class="oa-lbl">Work Type <span style="color:#b91c1c;">*</span></label>
+                <select id="oaWorkType" class="oa-input">
+                    <option value="RESEARCH">Research</option>
+                    <option value="EXTENSION">Extension</option>
+                    <option value="CHAIR">Chair / Coordinator</option>
+                    <option value="LESSON_PREP">Lesson Preparation</option>
+                    <option value="ADVISER">Adviser</option>
+                    <option value="OTHER">Other</option>
+                </select>
+
+                <label class="oa-lbl">Title / Description <span style="color:#b91c1c;">*</span></label>
+                <input id="oaTitle" class="oa-input" placeholder="e.g. Chair, TTEd / Research on X">
+
+                <label class="oa-lbl">Hours per Week</label>
+                <input id="oaHours" type="number" step="0.5" min="0" class="oa-input" placeholder="0">
+
+                <label class="oa-lbl">Room (optional)</label>
+                <select id="oaRoom" class="oa-input">
+                    <option value="">— No room —</option>
+                    {% for r in rooms %}
+                        <option value="{{ r.id }}">{{ r.room_code }} — {{ r.room_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+                    <div>
+                        <label class="oa-lbl">Day</label>
+                        <select id="oaDay" class="oa-input">
+                            <option value="">—</option>
+                            <option value="MONDAY">Monday</option>
+                            <option value="TUESDAY">Tuesday</option>
+                            <option value="WEDNESDAY">Wednesday</option>
+                            <option value="THURSDAY">Thursday</option>
+                            <option value="FRIDAY">Friday</option>
+                            <option value="SATURDAY">Saturday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="oa-lbl">Start</label>
+                        <input id="oaStart" type="time" class="oa-input">
+                    </div>
+                    <div>
+                        <label class="oa-lbl">End</label>
+                        <input id="oaEnd" type="time" class="oa-input">
+                    </div>
+                </div>
+
+                <label class="oa-lbl">Remarks</label>
+                <input id="oaRemarks" class="oa-input" placeholder="Optional notes">
+
+                <div class="oa-msg" id="oaMsg"></div>
+            </div>
+            <div class="oa-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeOAModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="oaSaveBtn" onclick="saveOA()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ SCHEDULE DETAIL MODAL ═══════════ -->
+    <div class="sched-modal-overlay no-print" id="schedDetailModal" onclick="handleSchedModalOverlay(event)">
+        <div class="sched-modal" role="dialog" aria-modal="true">
+            <div class="sched-modal-header" id="schedModalHeader">
+                <h3><span class="modal-icon">📚</span><span>Class Details</span></h3>
+                <button type="button" class="sched-modal-close" onclick="closeSchedModal()">✕</button>
+            </div>
+            <div class="sched-modal-body">
+                <div class="sched-modal-subject">
+                    <div class="subj-code" id="schedModalCode">—</div>
+                    <div class="subj-title" id="schedModalTitle2"></div>
+                    <span class="subj-type lec" id="schedModalType">LEC</span>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Section</div>
+                    <div class="value" id="schedModalSection">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Day</div>
+                    <div class="value" id="schedModalDay">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Time</div>
+                    <div class="value" id="schedModalTime">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Room</div>
+                    <div class="value" id="schedModalRoom">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Faculty</div>
+                    <div class="value" id="schedModalFaculty">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Type</div>
+                    <div class="value" id="schedModalTypeRow">—</div>
+                </div>
+            </div>
+            <div class="sched-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSchedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+    function getOACsrf() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        return m ? m.content : '';
+    }
+
+    function capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    /* ============================================================
+       SCHEDULE DETAIL MODAL
+       ============================================================ */
+    function openSchedModal(cell) {
+        const ds = cell.dataset;
+        const rawType = (ds.type || 'LECTURE').toUpperCase();
+        const isLab = rawType === 'LAB' || rawType === 'LABORATORY';
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            const [hour, minute] = timeStr.split(':');
+            const d = new Date();
+            d.setHours(parseInt(hour, 10), parseInt(minute, 10), 0);
+            return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        if (rawType === 'OTHER') {
+            document.getElementById('schedModalCode').textContent = ds.subjectTitle || ds.subjectCode || '—';
+            document.getElementById('schedModalTitle2').textContent = ds.section || '';
+        } else {
+            document.getElementById('schedModalCode').textContent = ds.subjectCode || '—';
+            document.getElementById('schedModalTitle2').textContent = ds.subjectTitle || '';
+        }
+
+        const badge = document.getElementById('schedModalType');
+        badge.textContent = isLab ? 'LAB' : 'LEC';
+        badge.className = 'subj-type ' + (isLab ? 'lab' : 'lec');
+
+        document.getElementById('schedModalSection').textContent = rawType === 'OTHER' ? '—' : (ds.section || '—');
+        document.getElementById('schedModalDay').textContent = capitalize(ds.day || '—');
+
+        document.getElementById('schedModalTime').textContent =
+            (ds.start && ds.end) ? `${formatTime(ds.start)} – ${formatTime(ds.end)}` : '—';
+
+        document.getElementById('schedModalRoom').textContent = ds.room || '—';
+        document.getElementById('schedModalFaculty').textContent = ds.faculty || '—';
+        document.getElementById('schedModalTypeRow').textContent = isLab ? 'LABORATORY' : 'LECTURE';
+
+        document.getElementById('schedModalHeader').classList.toggle('lab', isLab);
+        document.getElementById('schedDetailModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSchedModal() {
+        document.getElementById('schedDetailModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleSchedModalOverlay(event) {
+        if (event.target.id === 'schedDetailModal') closeSchedModal();
+    }
+
+    /* ============================================================
+       OTHER FUNCTIONS / DESIGNATION — CRUD
+       ============================================================ */
+    function openOAModal(category, record) {
+        const msg = document.getElementById('oaMsg');
+        msg.className = 'oa-msg';
+        msg.textContent = '';
+
+        document.getElementById('oaModalTitle').textContent =
+            (record ? 'Edit ' : 'Add ') +
+            (category === 'DESIGNATION' ? 'Designation' : 'Other Function');
+
+        document.getElementById('oaCategory').value = category;
+        document.getElementById('oaId').value       = record ? record.id : '';
+        document.getElementById('oaWorkType').value =
+            record ? record.work_type :
+            (category === 'DESIGNATION' ? 'CHAIR' : 'RESEARCH');
+        document.getElementById('oaTitle').value    = record ? record.title : '';
+        document.getElementById('oaHours').value    = record ? (record.hours_per_week || '') : '';
+        document.getElementById('oaRoom').value     = record ? (record.room_id || '') : '';
+        document.getElementById('oaDay').value      = record ? (record.day || '') : '';
+        document.getElementById('oaStart').value    = record ? (record.start_time || '') : '';
+        document.getElementById('oaEnd').value      = record ? (record.end_time   || '') : '';
+        document.getElementById('oaRemarks').value  = record ? (record.remarks || '') : '';
+
+        document.getElementById('oaModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOAModal() {
+        document.getElementById('oaModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function saveOA() {
+        const id       = document.getElementById('oaId').value;
+        const category = document.getElementById('oaCategory').value;
+        const msg      = document.getElementById('oaMsg');
+        const btn      = document.getElementById('oaSaveBtn');
+
+        const payload = new FormData();
+        payload.append('csrfmiddlewaretoken', getOACsrf());
+        payload.append('category',       category);
+        payload.append('work_type',      document.getElementById('oaWorkType').value);
+        payload.append('title',          document.getElementById('oaTitle').value);
+        payload.append('hours_per_week', document.getElementById('oaHours').value || 0);
+        payload.append('room_id',        document.getElementById('oaRoom').value);
+        payload.append('day',            document.getElementById('oaDay').value);
+        payload.append('start_time',     document.getElementById('oaStart').value);
+        payload.append('end_time',       document.getElementById('oaEnd').value);
+        payload.append('remarks',        document.getElementById('oaRemarks').value);
+
+        const url = id
+            ? `${CP.urls.updateBase}${id}/update/`
+            : CP.urls.create;
+
+        btn.disabled = true;
+
+        fetch(url, {
+            method: 'POST',
+            body: payload,
+            headers: { 'X-CSRFToken': getOACsrf() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ d }) => {
+            if (d.success) {
+                msg.className = 'oa-msg success';
+                msg.textContent = 'Saved successfully.';
+                setTimeout(() => {
+                    closeOAModal();
+                    window.location.reload();
+                }, 500);
+            } else {
+                msg.className = 'oa-msg error';
+                msg.innerText = d.error || 'Failed to save.';
+                msg.style.whiteSpace = 'pre-wrap';
+            }
+        })
+        .catch(err => {
+            msg.className = 'oa-msg error';
+            msg.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { btn.disabled = false; });
+    }
+
+    /* ============================================================
+       STUDENT COUNTS — DB-backed (per-row and grand-total)
+       ============================================================ */
+    function syncTotalDisplays(total) {
+        ['total_students_display', 'grand_total_students', 'right_total_students']
+            .forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = total;
+            });
+    }
+
+    function editStudentCount(cellElement) {
+        if (!window.CP.canEditStudents) {
+            alert('You do not have permission to edit student counts.');
+            return;
+        }
+
+        const subjectId = cellElement.dataset.subjectId;
+        if (!subjectId) return;
+
+        // Since we are clicking on .student-col-right directly
+        let currentVal = cellElement.textContent.trim();
+        if (currentVal === '—' || currentVal === '0') currentVal = '';
+
+        const newVal = prompt("Enter number of students:", currentVal);
+        if (newVal === null) return;
+
+        const parsed = parseInt(newVal, 10);
+        if (isNaN(parsed) || parsed < 0) {
+            alert('Please enter a non-negative whole number.');
+            return;
+        }
+
+        const url = window.CP.urls.updateSubjectStudents.replace('__ID__', subjectId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ students: parsed }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Failed to save.');
+                return;
+            }
+            cellElement.textContent = data.subject_students || '0';
+            syncTotalDisplays(data.total_students); // Updates the top Total Number of Students
+        })
+        .catch(err => alert('Network error: ' + err));
+    }
+
+    function editTotalStudents(cellElement) {
+        if (!window.CP.canEditStudents) {
+            alert('You do not have permission to edit student counts.');
+            return;
+        }
+
+        // Read the CURRENT total directly from the cell the user clicked.
+        let currentVal = cellElement ? cellElement.textContent.trim() : '0';
+        if (currentVal === '—' || currentVal === '') currentVal = '0';
+
+        const newVal = prompt(
+            "Enter Total Number of Students (this will be redistributed across the subjects):",
+            currentVal
+        );
+        if (newVal === null) return;
+
+        const parsed = parseInt(newVal, 10);
+        if (isNaN(parsed) || parsed < 0) {
+            alert('Please enter a non-negative whole number.');
+            return;
+        }
+
+        fetch(window.CP.urls.updateTotalStudents, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ total: parsed }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Failed to save.');
+                return;
+            }
+            window.location.reload();
+        })
+        .catch(err => alert('Network error: ' + err));
+    }
+
+    /* ============================================================
+       SAVE REMARKS & LIVE SYNC (Auto-Save on typing)
+       ============================================================ */
+    let saveTimeout = null;
+
+    function syncPrintText(textarea, printDiv) {
+        if (textarea && printDiv) {
+            // Convert line breaks to <br> for the print div
+            printDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+        }
+    }
+
+    function saveRemarksToDB() {
+        if (!window.CP.canEditStudents) return;
+
+        const payload = new URLSearchParams();
+        payload.append('csrfmiddlewaretoken', getOACsrf());
+        payload.append('overload_hours',    document.getElementById('input_overload').value);
+        payload.append('overload_subjects', document.getElementById('remarks_overload_subjects').value);
+        payload.append('service_credits',   document.getElementById('input_service_credits').value);
+        payload.append('adviser_notes',     document.getElementById('remarks_adviser_notes').value);
+
+        fetch(window.CP.urls.updateRemarks, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: payload.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to save remarks:', data.error);
+            }
+        })
+        .catch(err => console.error('Network error saving remarks:', err));
+    }
+
+    /* Print Trigger */
+    function prepareAndPrint() {
+        // Force sync the text right before printing to prevent stale data
+        const overloadTA = document.getElementById('remarks_overload_subjects');
+        if (overloadTA) {
+            const printDiv = overloadTA.nextElementSibling;
+            if (printDiv && printDiv.classList.contains('print-only-text')) {
+                printDiv.innerHTML = overloadTA.value.replace(/\n/g, '<br>');
+            }
+        }
+        
+        const adviserTA = document.getElementById('remarks_adviser_notes');
+        if (adviserTA) {
+            const printDiv = adviserTA.nextElementSibling;
+            if (printDiv && printDiv.classList.contains('print-only-text')) {
+                printDiv.innerHTML = adviserTA.value.replace(/\n/g, '<br>');
+            }
+        }
+
+        window.print();
+    }
+
+
+    /* ============================================================
+       EVENT BINDINGS
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', function() {
+        /* Bind schedule cell clicks */
+        document.querySelectorAll('.schedule-table td.sched-cell').forEach(function(cell) {
+            cell.addEventListener('click', function () {
+                openSchedModal(this);
+            });
+        });
+
+        /* Bind OA add buttons */
+        document.querySelectorAll('.oa-add-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openOAModal(btn.dataset.category, null);
+            });
+        });
+
+        /* Bind OA edit buttons (skip ones with inline onclick) */
+        document.querySelectorAll('.oa-edit-btn').forEach(btn => {
+            if (btn.getAttribute('onclick')) return;
+
+            btn.addEventListener('click', () => {
+                const row = btn.closest('tr');
+
+                let category = 'OTHER_FUNCTION';
+                let cursor = row.previousElementSibling;
+                while (cursor) {
+                    if (cursor.classList.contains('section-header')) {
+                        const text = cursor.textContent || '';
+                        if (text.includes('Designation')) category = 'DESIGNATION';
+                        else category = 'OTHER_FUNCTION';
+                        break;
+                    }
+                    cursor = cursor.previousElementSibling;
+                }
+
+                fetch(CP.urls.list)
+                    .then(r => r.json())
+                    .then(data => {
+                        const rec = (data.assignments || []).find(
+                            x => String(x.id) === String(btn.dataset.id)
+                        );
+                        if (rec) openOAModal(category, rec);
+                    })
+                    .catch(err => alert('Failed to load entry: ' + err));
+            });
+        });
+
+        /* Bind OA delete buttons */
+        document.querySelectorAll('.oa-del-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!confirm('Delete this entry? This cannot be undone.')) return;
+                const url = `${CP.urls.updateBase}${btn.dataset.id}/delete/`;
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getOACsrf() },
+                    body: new URLSearchParams({ csrfmiddlewaretoken: getOACsrf() })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) window.location.reload();
+                    else alert(d.error || 'Delete failed.');
+                })
+                .catch(err => alert('Network error: ' + err));
+            });
+        });
+
+        /* Auto-dismiss Django messages */
+        document.querySelectorAll('.message').forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            }, 5000);
+        });
+
+        /* --- LIVE SYNC & AUTO-SAVE FOR REMARKS --- */
+        const overloadTA = document.getElementById('remarks_overload_subjects');
+        const overloadPrintDiv = overloadTA ? overloadTA.nextElementSibling : null;
+        
+        const adviserTA = document.getElementById('remarks_adviser_notes');
+        const adviserPrintDiv = adviserTA ? adviserTA.nextElementSibling : null;
+
+        // 1. Initial Sync on page load (pulls from DB into the print div)
+        if (overloadTA && overloadPrintDiv) {
+            syncPrintText(overloadTA, overloadPrintDiv);
+            overloadTA.style.height = 'auto';
+            overloadTA.style.height = (overloadTA.scrollHeight) + 'px';
+        }
+        
+        if (adviserTA && adviserPrintDiv) {
+            syncPrintText(adviserTA, adviserPrintDiv);
+            adviserTA.style.height = 'auto';
+            adviserTA.style.height = (adviserTA.scrollHeight) + 'px';
+        }
+
+        // 2. Live Sync & Auto-Save on typing
+        function handleTextareaInput(textarea, printDiv) {
+            // Update print view instantly
+            syncPrintText(textarea, printDiv);
+
+            // Auto-expand textarea height
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+
+            // Auto-Save to DB after 1 second of no typing
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveRemarksToDB();
+            }, 1000);
+        }
+
+        if (overloadTA) {
+            overloadTA.addEventListener('input', () => handleTextareaInput(overloadTA, overloadPrintDiv));
+        }
+        if (adviserTA) {
+            adviserTA.addEventListener('input', () => handleTextareaInput(adviserTA, adviserPrintDiv));
+        }
+    });
+
+    /* ESC key closes modals */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const oa = document.getElementById('oaModal');
+            if (oa && oa.classList.contains('open')) { closeOAModal(); return; }
+
+            const sd = document.getElementById('schedDetailModal');
+            if (sd && sd.classList.contains('open')) { closeSchedModal(); }
+        }
+    });
+</script>
+{% endblock %}

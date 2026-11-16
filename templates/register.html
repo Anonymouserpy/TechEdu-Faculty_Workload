@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Faculty Workload System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #eef3f8;
+            color: #172033;
+        }
+        
+        .register-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .register-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #172033;
+        }
+        
+        .register-header p {
+            color: #667085;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #344054;
+        }
+        
+        label .required {
+            color: #b42318;
+            margin-left: 2px;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: #ffffff;
+        }
+        
+        select {
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        
+        button[type="submit"]:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+        
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            padding: 12px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .message.success {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .message.error {
+            background: #fef2f2;
+            color: #b42318;
+            border: 1px solid #fecaca;
+        }
+        
+        .message.warning {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .links a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #667085;
+            font-size: 12px;
+        }
+        
+        .password-strength {
+            margin-top: 6px;
+            height: 4px;
+            border-radius: 2px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+        
+        .password-strength .bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease, background-color 0.5s ease;
+            border-radius: 2px;
+        }
+        
+        .password-hint {
+            font-size: 12px;
+            color: #667085;
+            margin-top: 4px;
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .register-card {
+                padding: 24px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <div class="register-header">
+            <h1>Create Account</h1>
+            <p>Register as a faculty member</p>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Registration Form -->
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="employee_id">Employee ID <span class="required">*</span></label>
+                <input type="text" 
+                       name="employee_id" 
+                       id="employee_id" 
+                       placeholder="Enter your Employee ID (e.g., FAC-2024-001)" 
+                       value="{{ request.POST.employee_id|default:'' }}"
+                       autofocus
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="full_name">Full Name <span class="required">*</span></label>
+                <input type="text" 
+                       name="full_name" 
+                       id="full_name" 
+                       placeholder="Enter your full name" 
+                       value="{{ request.POST.full_name|default:'' }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="specialization">Specialization <span class="required">*</span></label>
+                <input type="text" 
+                       name="specialization" 
+                       id="specialization" 
+                       placeholder="Enter your specialization (e.g., Computer Science)" 
+                       value="{{ request.POST.specialization|default:'' }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="attained_degree">Attained Degree <span class="required">*</span></label>
+                <select name="attained_degree" id="attained_degree" required>
+                    <option value="">Select your degree</option>
+                    <option value="Bachelor's Degree" {% if request.POST.attained_degree == "Bachelor's Degree" %}selected{% endif %}>Bachelor's Degree</option>
+                    <option value="Master's Degree" {% if request.POST.attained_degree == "Master's Degree" %}selected{% endif %}>Master's Degree</option>
+                    <option value="Doctorate" {% if request.POST.attained_degree == "Doctorate" %}selected{% endif %}>Doctorate (PhD)</option>
+                    <option value="Post-Doctorate" {% if request.POST.attained_degree == "Post-Doctorate" %}selected{% endif %}>Post-Doctorate</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="department">Department <span class="required">*</span></label>
+                <input type="text" 
+                       name="department" 
+                       id="department" 
+                       placeholder="Enter your department (e.g., Technology Education)" 
+                       value="{{ request.POST.department|default:'' }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input type="password" 
+                       name="password" 
+                       id="password" 
+                       placeholder="Create a password (min 8 characters)" 
+                       required>
+                <div class="password-strength">
+                    <div class="bar" id="strengthBar"></div>
+                </div>
+                <span class="password-hint" id="strengthText">Password must be at least 8 characters</span>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+                <input type="password" 
+                       name="confirm_password" 
+                       id="confirm_password" 
+                       placeholder="Confirm your password" 
+                       required>
+            </div>
+
+            <button type="submit" id="registerBtn">
+                <span id="registerText">Register</span>
+                <span id="registerSpinner" style="display: none;"> ⏳</span>
+            </button>
+        </form>
+
+        <div class="links">
+            Already have an account? <a href="{% url 'login' %}">Sign in here</a>
+        </div>
+
+        <div class="footer">
+            Faculty Workload System &copy; 2024
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss messages after 5 seconds
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(function(msg) {
+                setTimeout(function() {
+                    msg.style.opacity = '0';
+                    msg.style.transition = 'opacity 0.5s';
+                    setTimeout(function() {
+                        msg.style.display = 'none';
+                    }, 500);
+                }, 5000);
+            });
+
+            // Password strength indicator
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                let message = '';
+                let color = '';
+                
+                if (password.length > 0) {
+                    // Calculate strength
+                    if (password.length >= 8) strength += 25;
+                    if (password.length >= 12) strength += 10;
+                    if (/[A-Z]/.test(password)) strength += 25;
+                    if (/[0-9]/.test(password)) strength += 20;
+                    if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+                    
+                    strength = Math.min(strength, 100);
+                    
+                    if (strength <= 20) {
+                        color = '#dc3545';
+                        message = 'Very Weak';
+                    } else if (strength <= 40) {
+                        color = '#ff6b35';
+                        message = 'Weak';
+                    } else if (strength <= 60) {
+                        color = '#ffc107';
+                        message = 'Fair';
+                    } else if (strength <= 80) {
+                        color = '#17a2b8';
+                        message = 'Good';
+                    } else {
+                        color = '#28a745';
+                        message = 'Strong';
+                    }
+                    
+                    strengthBar.style.width = strength + '%';
+                    strengthBar.style.backgroundColor = color;
+                    strengthText.textContent = message;
+                    strengthText.style.color = color;
+                } else {
+                    strengthBar.style.width = '0%';
+                    strengthText.textContent = 'Password must be at least 8 characters';
+                    strengthText.style.color = '#667085';
+                }
+            });
+
+            // Confirm password validation
+            const confirmPasswordInput = document.getElementById('confirm_password');
+            
+            confirmPasswordInput.addEventListener('input', function() {
+                const password = document.getElementById('password').value;
+                if (this.value && this.value !== password) {
+                    this.style.borderColor = '#b42318';
+                } else {
+                    this.style.borderColor = '#d0d5dd';
+                }
+            });
+
+            // Form submission validation
+            const registerForm = document.querySelector('form');
+            const registerBtn = document.getElementById('registerBtn');
+            const registerText = document.getElementById('registerText');
+            const registerSpinner = document.getElementById('registerSpinner');
+            
+            registerForm.addEventListener('submit', function(e) {
+                const employeeId = document.getElementById('employee_id');
+                const fullName = document.getElementById('full_name');
+                const specialization = document.getElementById('specialization');
+                const degree = document.getElementById('attained_degree');
+                const department = document.getElementById('department');
+                const password = document.getElementById('password');
+                const confirmPassword = document.getElementById('confirm_password');
+                
+                let hasError = false;
+                
+                // Validate all required fields
+                if (!employeeId.value.trim()) {
+                    employeeId.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!fullName.value.trim()) {
+                    fullName.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!specialization.value.trim()) {
+                    specialization.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!degree.value) {
+                    degree.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!department.value) {
+                    department.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!password.value.trim()) {
+                    password.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                if (!confirmPassword.value.trim()) {
+                    confirmPassword.style.borderColor = '#b42318';
+                    hasError = true;
+                }
+                
+                // Validate password match
+                if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+                    confirmPassword.style.borderColor = '#b42318';
+                    alert('Passwords do not match. Please try again.');
+                    hasError = true;
+                }
+                
+                // Validate password length
+                if (password.value && password.value.length < 8) {
+                    password.style.borderColor = '#b42318';
+                    alert('Password must be at least 8 characters long.');
+                    hasError = true;
+                }
+                
+                if (hasError) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show loading state
+                registerBtn.disabled = true;
+                registerText.textContent = 'Registering...';
+                registerSpinner.style.display = 'inline';
+            });
+
+            // Remove error border on input
+            document.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('input', function() {
+                    this.style.borderColor = '#d0d5dd';
+                });
+                input.addEventListener('change', function() {
+                    this.style.borderColor = '#d0d5dd';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

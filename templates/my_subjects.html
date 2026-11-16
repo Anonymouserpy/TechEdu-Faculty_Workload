@@ -1,0 +1,808 @@
+{% extends 'base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}My Subjects | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content { padding: 24px 30px; }
+
+    /* ============ PAGE HEADER ============ */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .page-header h1 { font-size: 28px; color: #172033; margin-bottom: 4px; }
+    .page-header p  { color: #667085; font-size: 15px; margin-top: 2px; }
+    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    /* ============ BUTTONS ============ */
+    .btn {
+        padding: 8px 20px; border-radius: 8px; border: none;
+        font-size: 14px; font-weight: 500; cursor: pointer;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 8px; transition: all 0.3s;
+    }
+    .btn-primary { background: #2563eb; color: #ffffff; }
+    .btn-primary:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .btn-outline {
+        background: transparent; color: #2563eb;
+        border: 2px solid #2563eb;
+    }
+    .btn-outline:hover { background: #eff6ff; transform: translateY(-2px); }
+
+    /* ============ MESSAGES ============ */
+    .messages { margin-bottom: 20px; }
+    .message {
+        padding: 12px 16px; border-radius: 8px;
+        font-size: 14px; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 8px;
+        transition: opacity 0.5s ease;
+    }
+    .message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .message.error   { background: #fef2f2; color: #b42318; border: 1px solid #fecaca; }
+    .message.warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+    /* ============ CARD ============ */
+    .card {
+        background: #ffffff; border-radius: 12px;
+        padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* ============ TABLE ============ */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table thead th {
+        text-align: left; padding: 12px 14px; font-weight: 600;
+        color: #667085; border-bottom: 2px solid #e2e8f0;
+        font-size: 12px; text-transform: uppercase;
+        letter-spacing: 0.3px; background: #f8fafc;
+    }
+    table tbody td {
+        padding: 12px 14px; border-bottom: 1px solid #eef2f6;
+        color: #172033; vertical-align: top;
+    }
+    table tbody tr.subject-row {
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    table tbody tr.subject-row:hover td { background: #f0f4ff; }
+    table tbody tr.subject-row.active td {
+        background: #e0e7ff;
+        border-bottom-color: #c7d2fe;
+    }
+
+    .subject-code { font-weight: 600; color: #2563eb; }
+
+    .subject-badge {
+        display: inline-block; padding: 2px 10px;
+        border-radius: 12px; font-size: 11px; font-weight: 500;
+    }
+    .subject-badge.lecture { background: #eff6ff; color: #1e40af; }
+    .subject-badge.lab     { background: #fef3c7; color: #92400e; }
+    .subject-badge.both    { background: #ecfdf5; color: #065f46; }
+
+    /* ============ YEAR BADGE ============ */
+    .year-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+        white-space: nowrap;
+    }
+
+    /* ============ SECTION BADGE ============ */
+    .section-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        white-space: nowrap;
+    }
+
+    /* ============ MAJOR BADGE ============ */
+    .major-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        background: #f5f3ff;
+        color: #6d28d9;
+        border: 1px solid #ddd6fe;
+        white-space: nowrap;
+    }
+
+    /* ============ SCHEDULE CHIPS (in table) ============ */
+    .schedule-chip-list {
+        display: flex; flex-direction: column;
+        gap: 4px; max-width: 340px;
+    }
+    .schedule-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 3px 10px; border-radius: 10px;
+        font-size: 11.5px; font-weight: 500;
+        width: fit-content; white-space: nowrap;
+    }
+    .schedule-chip.lecture { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .schedule-chip.lab     { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .schedule-chip .day  { font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+    .schedule-chip .time { font-weight: 500; font-variant-numeric: tabular-nums; }
+    .schedule-chip .room {
+        background: rgba(0,0,0,0.06); padding: 1px 6px;
+        border-radius: 8px; font-weight: 600;
+    }
+    .no-schedule { font-size: 12px; color: #b42318; font-style: italic; }
+
+    /* ============ STATS ============ */
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px; margin-bottom: 24px;
+    }
+    .stat-card {
+        background: #ffffff; padding: 16px 20px;
+        border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        text-align: center;
+    }
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #172033; }
+    .stat-card .stat-label { font-size: 13px; color: #667085; margin-top: 2px; }
+    .stat-card .stat-icon  { font-size: 24px; display: block; margin-bottom: 4px; }
+    .stat-card.primary .stat-value { color: #2563eb; }
+    .stat-card.success .stat-value { color: #059669; }
+    .stat-card.warning .stat-value { color: #f59e0b; }
+    .stat-card.purple  .stat-value { color: #8b5cf6; }
+
+    /* ============ EMPTY STATE ============ */
+    .empty-state { text-align: center; padding: 60px 20px; color: #667085; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state h4 { color: #172033; margin-bottom: 4px; font-size: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    .count-badge {
+        background: #e5e7eb; color: #374151;
+        padding: 2px 10px; border-radius: 12px;
+        font-size: 13px; font-weight: 600;
+        display: inline-block;
+    }
+
+    /* ============================================================
+       MODAL — Subject Detail
+       ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .modal-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal {
+        background: #ffffff;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    .modal-overlay.open .modal {
+        transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 20px 26px;
+        border-bottom: 1px solid #eef2f6;
+        flex-shrink: 0;
+    }
+    .modal-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .modal-title h3 {
+        font-size: 18px;
+        color: #172033;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .modal-title .sub {
+        font-size: 13.5px;
+        color: #667085;
+    }
+    .modal-close {
+        background: #f1f5f9;
+        border: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        flex-shrink: 0;
+    }
+    .modal-close:hover {
+        background: #e2e8f0;
+        color: #172033;
+    }
+
+    .modal-body {
+        padding: 22px 26px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    /* Info grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .info-item {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 12px 14px;
+        border: 1px solid #eef2f6;
+    }
+    .info-item .info-label {
+        font-size: 11.5px; color: #667085; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.4px;
+        margin-bottom: 4px;
+    }
+    .info-item .info-value {
+        font-size: 14.5px; color: #172033; font-weight: 600;
+    }
+
+    /* Hours summary cards */
+    .hours-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .hours-card {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 14px 16px;
+        text-align: center;
+    }
+    .hours-card.green {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border-color: #a7f3d0;
+    }
+    .hours-card.amber {
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        border-color: #fde68a;
+    }
+    .hours-card.purple {
+        background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+        border-color: #ddd6fe;
+    }
+    .hours-card .num {
+        font-size: 24px; font-weight: 800; color: #1e40af;
+        letter-spacing: -0.5px;
+    }
+    .hours-card.green  .num { color: #047857; }
+    .hours-card.amber  .num { color: #b45309; }
+    .hours-card.purple .num { color: #6d28d9; }
+    .hours-card .lbl {
+        font-size: 11.5px; color: #475569; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.4px;
+        margin-top: 4px;
+    }
+
+    /* Schedule detail table */
+    .sched-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        margin-top: 8px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+    .sched-table thead th {
+        background: #f1f5f9;
+        padding: 10px 12px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 11.5px;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .sched-table tbody td {
+        padding: 10px 12px;
+        border-top: 1px solid #eef2f6;
+        color: #172033;
+    }
+    .sched-table tbody tr:hover td { background: #f8fafc; }
+    .sched-table .type-pill {
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+    .type-pill.lec { background: #eff6ff; color: #1e40af; }
+    .type-pill.lab { background: #fef3c7; color: #92400e; }
+    .sched-table .room-pill {
+        background: #f1f5f9; padding: 2px 8px; border-radius: 8px;
+        font-size: 12px; font-weight: 600; color: #334155;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .sched-table .duration {
+        font-weight: 700; color: #059669;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .modal-footer {
+        padding: 14px 26px;
+        border-top: 1px solid #eef2f6;
+        background: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .main-content { padding: 16px; }
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        table { font-size: 12px; }
+        table thead th, table tbody td { padding: 8px 10px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .schedule-chip-list { max-width: 100%; }
+        .hours-summary { grid-template-columns: 1fr 1fr; }
+        .sched-table { font-size: 12px; }
+        .modal-overlay { padding: 12px; }
+        .modal { max-height: 94vh; }
+        .modal-header, .modal-body, .modal-footer {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>📖 My Subjects</h1>
+            <p>View all subjects assigned to you for this semester. Click a row to see full schedule details.</p>
+        </div>
+        <div class="header-actions">
+            <span class="count-badge">{{ subject_count }} Subjects</span>
+            {% if faculty.is_chairman %}
+                <a href="{% url 'all_subjects' %}" class="btn btn-outline">← All Subjects</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <span class="stat-icon">📖</span>
+            <div class="stat-value">{{ subject_count }}</div>
+            <div class="stat-label">Total Subjects</div>
+        </div>
+        <div class="stat-card success">
+            <span class="stat-icon">✅</span>
+            <div class="stat-value">{{ subjects|length }}</div>
+            <div class="stat-label">Active Subjects</div>
+        </div>
+        <div class="stat-card warning">
+            <span class="stat-icon">📋</span>
+            <div class="stat-value">{{ scheduled_count|default:0 }}</div>
+            <div class="stat-label">Scheduled</div>
+        </div>
+        <div class="stat-card purple">
+            <span class="stat-icon">⏱️</span>
+            <div class="stat-value">{{ total_hours|default:0|floatformat:1 }}</div>
+            <div class="stat-label">Total Hours/Week</div>
+        </div>
+    </div>
+
+    <!-- Subjects Table -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="font-size: 16px; color: #172033;">Subject List &amp; Schedules</h3>
+            <span class="count-badge">{{ subjects|length }} subjects</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Section</th>
+                        <th>Major</th>
+                        <th style="text-align:center;">Hours</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subjects %}
+                        <tr class="subject-row"
+                            data-subject-id="{{ subject.id }}"
+                            onclick="showSubjectDetail(this)">
+                            <td><span class="subject-code">{{ subject.subject_code }}</span></td>
+                            <td>{{ subject.subject_description|truncatechars:35 }}</td>
+                            <td>{{ subject.course_code }}</td>
+                            <td>
+                                <!-- ✅ FIXED: Accessing via the FK model to get the display string properly -->
+                                <span class="year-badge">{{ subject.year_section.get_year_level_display }}</span>
+                            </td>
+                            <td>
+                                <span class="section-badge">{{ subject.section }}</span>
+                            </td>
+                            <td>
+                                {% if subject.major %}
+                                    <span class="major-badge">{{ subject.major }}</span>
+                                {% else %}
+                                    <span style="color:#98a2b3;">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">{{ subject.total_hours_per_week|floatformat:1 }}</td>
+                            <td>
+                                {% if subject.has_lecture and subject.is_laboratory %}
+                                    <span class="subject-badge both">📚 Lecture + Lab</span>
+                                {% elif subject.has_lecture %}
+                                    <span class="subject-badge lecture">📖 Lecture</span>
+                                {% elif subject.is_laboratory %}
+                                    <span class="subject-badge lab">🔬 Lab</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📚</span>
+                                    <h4>No subjects assigned yet</h4>
+                                    <p>Your subjects will appear here once assigned by the chairman.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL — Subject Detail
+         ============================================================ -->
+    <div class="modal-overlay" id="subjectDetailModal" onclick="handleModalOverlay(event)">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSubjectTitle">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h3 id="modalSubjectTitle">
+                        📘 <span id="d-subject-code">—</span>
+                        <span class="subject-badge" id="d-type-badge">—</span>
+                    </h3>
+                    <div class="sub" id="d-subject-description">—</div>
+                </div>
+                <button class="modal-close" type="button" onclick="closeSubjectDetail()" title="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Basic info grid -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Course</div>
+                        <div class="info-value" id="d-course">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Year</div>
+                        <div class="info-value" id="d-year">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Section</div>
+                        <div class="info-value" id="d-section">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Major</div>
+                        <div class="info-value" id="d-major">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Faculty</div>
+                        <div class="info-value" id="d-faculty">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Declared Hours / Week</div>
+                        <div class="info-value" id="d-declared-hours">—</div>
+                    </div>
+                </div>
+
+                <!-- Hours summary -->
+                <div class="hours-summary">
+                    <div class="hours-card">
+                        <div class="num" id="d-total-scheduled">0.0h</div>
+                        <div class="lbl">Total Scheduled</div>
+                    </div>
+                    <div class="hours-card green">
+                        <div class="num" id="d-lecture-scheduled">0.0h</div>
+                        <div class="lbl">Lecture Scheduled</div>
+                    </div>
+                    <div class="hours-card amber">
+                        <div class="num" id="d-lab-scheduled">0.0h</div>
+                        <div class="lbl">Lab Scheduled</div>
+                    </div>
+                    <div class="hours-card purple">
+                        <div class="num" id="d-schedule-count">0</div>
+                        <div class="lbl">Schedules</div>
+                    </div>
+                </div>
+
+                <!-- Schedule detail table -->
+                <h4 style="font-size: 14px; color: #172033; margin: 0 0 8px; font-weight: 700; letter-spacing: 0.2px;">
+                    📋 All Schedules
+                </h4>
+                <div id="d-schedules-container">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeSubjectDetail()">Close</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cache all subjects + their schedules in a JS object as soon as the page loads
+    const SUBJECT_DATA = {
+        {% for subject in subjects %}
+        "{{ subject.id }}": {
+            id: "{{ subject.id }}",
+            subject_code: "{{ subject.subject_code|escapejs }}",
+            subject_description: "{{ subject.subject_description|escapejs }}",
+            course_code: "{{ subject.course_code|escapejs }}",
+            year_level: "{{ subject.year_section.get_year_level_display|escapejs }}", // ✅ FIXED
+            section: "{{ subject.section|escapejs }}",
+            major: "{{ subject.major|default:''|escapejs }}",
+            faculty_name: "{{ subject.faculty.full_name|escapejs }}",
+            has_lecture: {{ subject.has_lecture|yesno:"true,false" }},
+            is_laboratory: {{ subject.is_laboratory|yesno:"true,false" }},
+            declared_hours: {{ subject.total_hours_per_week|default:0 }},
+            schedules: [
+                {% for s in subject.schedules.all %}
+                {
+                    day: "{{ s.day|escapejs }}",
+                    start_time: "{{ s.start_time|time:'g:i A' }}",
+                    end_time: "{{ s.end_time|time:'g:i A' }}",
+                    start_time_raw: "{{ s.start_time|time:'H:i' }}",
+                    end_time_raw: "{{ s.end_time|time:'H:i' }}",
+                    room_code: "{{ s.room.room_code|escapejs }}",
+                    room_name: "{{ s.room.room_name|escapejs }}",
+                    building: "{{ s.room.building_name|escapejs }}",
+                    schedule_type: "{{ s.schedule_type }}",
+                    faculty_name: "{{ s.faculty.full_name|default:subject.faculty.full_name|escapejs }}",
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    let activeSubjectRow = null;
+
+    function computeDurationHours(startRaw, endRaw) {
+        // startRaw / endRaw are "HH:MM"
+        const [sh, sm] = startRaw.split(':').map(Number);
+        const [eh, em] = endRaw.split(':').map(Number);
+        const mins = (eh * 60 + em) - (sh * 60 + sm);
+        return Math.max(0, mins / 60);
+    }
+
+    function showSubjectDetail(row) {
+        const id = row.dataset.subjectId;
+        const data = SUBJECT_DATA[id];
+        if (!data) return;
+
+        // Highlight active row
+        if (activeSubjectRow) activeSubjectRow.classList.remove('active');
+        activeSubjectRow = row;
+        row.classList.add('active');
+
+        // ── Fill basic info ──
+        document.getElementById('d-subject-code').textContent = data.subject_code;
+        document.getElementById('d-subject-description').textContent = data.subject_description;
+        document.getElementById('d-course').textContent = data.course_code;
+        document.getElementById('d-year').textContent = data.year_level;
+        document.getElementById('d-section').textContent = data.section;
+        document.getElementById('d-major').textContent = data.major || '—';
+        document.getElementById('d-faculty').textContent = data.faculty_name;
+        document.getElementById('d-declared-hours').textContent = `${data.declared_hours} h/week`;
+
+        // ── Type badge ──
+        const badge = document.getElementById('d-type-badge');
+        if (data.has_lecture && data.is_laboratory) {
+            badge.className = 'subject-badge both';
+            badge.textContent = '📚 Lecture + Lab';
+        } else if (data.has_lecture) {
+            badge.className = 'subject-badge lecture';
+            badge.textContent = '📖 Lecture';
+        } else if (data.is_laboratory) {
+            badge.className = 'subject-badge lab';
+            badge.textContent = '🔬 Lab';
+        } else {
+            badge.className = 'subject-badge';
+            badge.textContent = '—';
+        }
+
+        // ── Compute totals ──
+        let totalHours = 0;
+        let lectureHours = 0;
+        let labHours = 0;
+
+        data.schedules.forEach(s => {
+            const h = computeDurationHours(s.start_time_raw, s.end_time_raw);
+            totalHours += h;
+            if (s.schedule_type === 'LAB') labHours += h;
+            else lectureHours += h;
+        });
+
+        document.getElementById('d-total-scheduled').textContent   = totalHours.toFixed(1) + 'h';
+        document.getElementById('d-lecture-scheduled').textContent = lectureHours.toFixed(1) + 'h';
+        document.getElementById('d-lab-scheduled').textContent     = labHours.toFixed(1) + 'h';
+        document.getElementById('d-schedule-count').textContent    = data.schedules.length;
+
+        // ── Build schedules table ──
+        const container = document.getElementById('d-schedules-container');
+
+        if (data.schedules.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:24px;color:#667085;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1;">
+                    <div style="font-size:32px;margin-bottom:6px;">⏳</div>
+                    <strong style="color:#172033;">Not scheduled yet</strong>
+                    <div style="font-size:13px;margin-top:4px;">Assign this subject to a room to add schedules.</div>
+                </div>
+            `;
+        } else {
+            let tableHtml = `
+                <table class="sched-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Duration</th>
+                            <th>Type</th>
+                            <th>Room</th>
+                            <th>Building</th>
+                            <th>Faculty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.schedules.forEach(s => {
+                const dur = computeDurationHours(s.start_time_raw, s.end_time_raw);
+                const isLab = s.schedule_type === 'LAB';
+                tableHtml += `
+                    <tr>
+                        <td><strong>${s.day}</strong></td>
+                        <td>${s.start_time} – ${s.end_time}</td>
+                        <td><span class="duration">${dur.toFixed(1)} h</span></td>
+                        <td><span class="type-pill ${isLab ? 'lab' : 'lec'}">${isLab ? 'LAB' : 'LEC'}</span></td>
+                        <td><span class="room-pill">🏫 ${s.room_code}</span></td>
+                        <td>${s.building}</td>
+                        <td><em style="color:#64748b;">${s.faculty_name}</em></td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table>`;
+            container.innerHTML = tableHtml;
+        }
+
+        // ── Open the modal ──
+        const modal = document.getElementById('subjectDetailModal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSubjectDetail() {
+        const modal = document.getElementById('subjectDetailModal');
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+
+        if (activeSubjectRow) {
+            activeSubjectRow.classList.remove('active');
+            activeSubjectRow = null;
+        }
+    }
+
+    function handleModalOverlay(e) {
+        // Click outside the modal content → close
+        if (e.target.id === 'subjectDetailModal') {
+            closeSubjectDetail();
+        }
+    }
+
+    // ESC closes the modal
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSubjectDetail();
+    });
+
+    // Auto-dismiss messages
+    document.addEventListener('DOMContentLoaded', function () {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(function (msg) {
+            setTimeout(function () {
+                msg.style.opacity = '0';
+                setTimeout(function () {
+                    msg.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}

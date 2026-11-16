@@ -1,0 +1,543 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Dashboard | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content {
+        padding: 24px 30px;
+    }
+
+    /* Messages */
+    .messages { margin-bottom: 20px; }
+    .message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .message.error   { background: #fef2f2; color: #b42318; border: 1px solid #fecaca; }
+    .message.warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .message.info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    /* Welcome Section */
+    .welcome-section { margin-bottom: 24px; }
+    .welcome-section h1 { font-size: 28px; color: #172033; margin-bottom: 4px; }
+    .welcome-section p { color: #667085; font-size: 15px; }
+
+    .quick-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+    .quick-actions .btn {
+        padding: 10px 24px;
+        border-radius: 8px;
+        border: none;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .btn-success { background: #059669; color: #fff; }
+    .btn-success:hover { background: #047857; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+    .btn-outline { background: transparent; color: #2563eb; border: 2px solid #2563eb; }
+    .btn-outline:hover { background: #eff6ff; transform: translateY(-2px); }
+    .btn-warning { background: #f59e0b; color: #fff; }
+    .btn-warning:hover { background: #d97706; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .stat-card {
+        background: #fff;
+        padding: 20px 24px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .stat-card .stat-icon { font-size: 32px; margin-bottom: 8px; display: block; }
+    .stat-card .stat-label {
+        font-size: 13px; color: #667085; font-weight: 500;
+        text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .stat-card .stat-value { font-size: 30px; font-weight: 700; color: #172033; margin-top: 4px; }
+    .stat-card .stat-change {
+        font-size: 12px; margin-top: 6px; display: inline-block;
+        padding: 2px 10px; border-radius: 12px;
+        background: #ecfdf5; color: #065f46;
+    }
+    .stat-card .stat-change.negative { background: #fef2f2; color: #b42318; }
+    .stat-card .stat-accent {
+        position: absolute; top: 0; right: 0; width: 80px; height: 80px;
+        border-radius: 50%; opacity: 0.08; transform: translate(30%, -30%);
+        background: #2563eb;
+    }
+    .stat-card:nth-child(2) .stat-accent { background: #059669; }
+    .stat-card:nth-child(3) .stat-accent { background: #f59e0b; }
+    .stat-card:nth-child(4) .stat-accent { background: #8b5cf6; }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+    @media (max-width: 992px) { .content-grid { grid-template-columns: 1fr; } }
+
+    .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 16px; padding-bottom: 12px;
+        border-bottom: 1px solid #eef2f6;
+    }
+    .card-header h3 {
+        font-size: 16px; font-weight: 600; color: #172033;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .card-header a { color: #2563eb; text-decoration: none; font-size: 13px; font-weight: 500; }
+    .card-header a:hover { text-decoration: underline; }
+
+    /* Schedule List */
+    .schedule-list { list-style: none; padding: 0; }
+    .schedule-list li {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 0; border-bottom: 1px solid #f0f2f5;
+    }
+    .schedule-list li:last-child { border-bottom: none; }
+    .schedule-list .schedule-time { font-weight: 600; color: #172033; font-size: 13px; min-width: 100px; }
+    .schedule-list .schedule-info { flex: 1; margin: 0 12px; }
+    .schedule-list .schedule-subject { font-size: 14px; font-weight: 500; color: #172033; }
+    .schedule-list .schedule-detail { font-size: 12px; color: #667085; margin-top: 2px; }
+    .schedule-list .schedule-room {
+        font-size: 13px; color: #667085; background: #f0f2f5;
+        padding: 2px 12px; border-radius: 12px; font-weight: 500;
+    }
+    .schedule-list .schedule-type {
+        font-size: 11px; padding: 2px 10px; border-radius: 12px;
+        font-weight: 500; margin-right: 8px;
+    }
+    .schedule-type.lecture { background: #eff6ff; color: #1e40af; }
+    .schedule-type.lab { background: #fef3c7; color: #92400e; }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 40px 20px; color: #667085; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state h4 { color: #172033; margin-bottom: 4px; font-size: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Subject Table */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table thead th {
+        text-align: left; padding: 10px 12px; font-weight: 600;
+        color: #667085; border-bottom: 2px solid #e2e8f0;
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    table tbody td { padding: 10px 12px; border-bottom: 1px solid #eef2f6; color: #172033; }
+    table tbody tr:hover td { background: #f8fafc; }
+    table tbody tr:last-child td { border-bottom: none; }
+    .subject-code { font-weight: 600; color: #2563eb; }
+    .subject-hours { font-weight: 600; text-align: center; }
+
+    /* Faculty Table (Chairman only) */
+    .faculty-table .status-badge { padding: 2px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-badge.active { background: #ecfdf5; color: #065f46; }
+    .status-badge.inactive { background: #fef2f2; color: #b42318; }
+    .status-badge.chairman { background: #fef3c7; color: #92400e; }
+    .action-btn { padding: 4px 12px; border-radius: 6px; border: none; font-size: 12px; cursor: pointer; text-decoration: none; transition: all 0.2s; margin: 0 2px; }
+    .action-btn.edit { background: #eff6ff; color: #1e40af; }
+    .action-btn.edit:hover { background: #dbeafe; }
+    .action-btn.delete { background: #fef2f2; color: #b42318; }
+    .action-btn.delete:hover { background: #fecaca; }
+
+    /* Chairman Stats */
+    .chairman-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+    .chairman-stat-item {
+        text-align: center; padding: 16px; background: #f8fafc;
+        border-radius: 8px; transition: all 0.3s;
+    }
+    .chairman-stat-item:hover { background: #f0f4ff; transform: translateY(-2px); }
+    .chairman-stat-item .number { font-size: 24px; font-weight: 700; color: #172033; }
+    .chairman-stat-item .label { font-size: 12px; color: #667085; margin-top: 4px; }
+    .chairman-stat-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+
+    .chairman-section { margin-top: 24px; }
+
+    /* Role Badge */
+    .role-badge {
+        display: inline-block; padding: 4px 16px; border-radius: 12px;
+        font-size: 12px; font-weight: 600; background: #eff6ff; color: #1e40af;
+    }
+    .role-badge.chairman { background: #fef3c7; color: #92400e; }
+
+    /* Workload Summary Grid */
+    .workload-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        margin-top: 8px;
+    }
+    .workload-summary-item {
+        text-align: center;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    .workload-summary-item .number {
+        font-size: 28px;
+        font-weight: 700;
+    }
+    .workload-summary-item .label {
+        font-size: 13px;
+        color: #667085;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .main-content { padding: 16px; }
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .welcome-section h1 { font-size: 22px; }
+        .chairman-stats-grid { grid-template-columns: 1fr; }
+        .schedule-list li { flex-wrap: wrap; gap: 8px; }
+        .schedule-list .schedule-time { min-width: 80px; }
+        .faculty-table { font-size: 12px; }
+        .faculty-table td, .faculty-table th { padding: 6px 8px; }
+        .workload-summary-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: 1fr; }
+        .quick-actions { flex-direction: column; }
+        .quick-actions .btn { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Display Messages -->
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h1>Welcome back, {{ faculty.full_name|default:"Faculty" }}! 👋</h1>
+        <p>
+            Here's an overview of your teaching workload and schedule for this semester.
+            {% if faculty.is_chairman %}
+                <span class="role-badge chairman">👑 Chairman</span>
+            {% else %}
+                <span class="role-badge">👨‍🏫 Faculty</span>
+            {% endif %}
+        </p>
+
+        <div class="quick-actions">
+            <a href="{% url 'my_subjects' %}" class="btn btn-primary">📖 My Subjects</a>
+            <a href="{% url 'class_program_view' faculty.employee_id %}" class="btn btn-success">📅 My Class Program</a>
+
+            {% if faculty.is_chairman %}
+                <a href="{% url 'faculty_list' %}" class="btn btn-warning">👥 Manage Faculty</a>
+                <a href="{% url 'all_subjects' %}" class="btn btn-danger">📋 All Subject</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-accent"></div>
+            <span class="stat-icon">📖</span>
+            <div class="stat-label">My Subjects</div>
+            <div class="stat-value">{{ total_subjects|default:0 }}</div>
+            <span class="stat-change">✓ Active subjects</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-accent"></div>
+            <span class="stat-icon">⏱️</span>
+            <div class="stat-label">Total Hours / Week</div>
+            <div class="stat-value">{{ total_hours|floatformat:1|default:"0.0" }}</div>
+            <span class="stat-change">✓ Teaching load</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-accent"></div>
+            <span class="stat-icon">📅</span>
+            <div class="stat-label">Classes Today</div>
+            <div class="stat-value">{{ today_classes|default:0 }}</div>
+            <span class="stat-change {% if today_classes == 0 %}negative{% endif %}">
+                {% if today_classes > 0 %}
+                    ✓ {{ today_classes }} class{{ today_classes|pluralize }}
+                {% else %}
+                    ✗ No classes today
+                {% endif %}
+            </span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-accent"></div>
+            <span class="stat-icon">👨‍🏫</span>
+            <div class="stat-label">
+                Department
+            </div>
+            <div class="stat-value">
+                {{ faculty.department|default:"CTE"|truncatechars:15 }}
+            </div>
+            <span class="stat-change">
+                {% if faculty.is_chairman %}
+                    ✓ Active faculty
+                {% else %}
+                    {{ faculty.employment_type|default:"Part Time" }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Today's Schedule Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📅 Today's Schedule</h3>
+                <a href="{% url 'class_program_view' faculty.employee_id %}">View Full Schedule →</a>
+            </div>
+
+            {% if today_schedule %}
+                <ul class="schedule-list">
+                    {% for schedule in today_schedule %}
+                        <li>
+                            <span class="schedule-time">
+                                {{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}
+                            </span>
+                            <div class="schedule-info">
+                                <div class="schedule-subject">
+                                    <span class="schedule-type {% if schedule.schedule_type == 'LECTURE' %}lecture{% else %}lab{% endif %}">
+                                        {{ schedule.schedule_type|lower }}
+                                    </span>
+                                    {{ schedule.subject.subject_code }}
+                                </div>
+                                <div class="schedule-detail">
+                                    {{ schedule.subject.subject_description|truncatechars:40 }}
+                                </div>
+                            </div>
+                            <span class="schedule-room">{{ schedule.room.room_code }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <span class="empty-icon">📭</span>
+                    <h4>No classes today</h4>
+                    <p>Enjoy your free day! 🎉</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- My Subjects Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📖 My Subjects</h3>
+                <a href="{% url 'my_subjects' %}">View All →</a>
+            </div>
+
+            {% if subjects %}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th style="text-align: center;">Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects|slice:":5" %}
+                                <tr>
+                                    <td><span class="subject-code">{{ subject.subject_code }}</span></td>
+                                    <td>{{ subject.subject_description|truncatechars:30 }}</td>
+                                    <td class="subject-hours">{{ subject.total_hours_per_week }}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if subjects|length > 5 %}
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: #667085; font-style: italic; padding: 12px;">
+                                        + {{ subjects|length|add:"-5" }} more subject{{ subjects|length|add:"-5"|pluralize }}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <span class="empty-icon">📚</span>
+                    <h4>No subjects assigned yet</h4>
+                    <p>Your subjects will appear here once assigned by the chairman.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CHAIRMAN-ONLY SECTION -->
+    {% if faculty.is_chairman %}
+        <div class="chairman-section">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3>🏛️ Department Overview</h3>
+                    <a href="#">View All →</a>
+                </div>
+                <div class="chairman-stats-grid">
+                    <div class="chairman-stat-item">
+                        <span class="icon">👥</span>
+                        <div class="number">{{ total_faculty|default:0 }}</div>
+                        <div class="label">Total Faculty Members</div>
+                    </div>
+                    <div class="chairman-stat-item">
+                        <span class="icon">📖</span>
+                        <div class="number">{{ total_subjects_all|default:0 }}</div>
+                        <div class="label">Total Subjects</div>
+                    </div>
+                    <div class="chairman-stat-item">
+                        <span class="icon">🏫</span>
+                        <div class="number">{{ departments|default:1 }}</div>
+                        <div class="label">Departments</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>👥 Faculty Members</h3>
+                    <a href="{% url 'faculty_list' %}">Manage Faculty →</a>
+                </div>
+                <div class="table-wrapper faculty-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Specialization</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in faculty_members|slice:":5" %}
+                                <tr>
+                                    <td><strong>{{ member.employee_id }}</strong></td>
+                                    <td>{{ member.full_name }}</td>
+                                    <td>{{ member.department|truncatechars:15 }}</td>
+                                    <td>{{ member.specialization|truncatechars:20 }}</td>
+                                    <td>
+                                        {% if member.is_chairman %}
+                                            <span class="status-badge chairman">👑 Chairman</span>
+                                        {% elif member.is_active %}
+                                            <span class="status-badge active">Active</span>
+                                        {% else %}
+                                            <span class="status-badge inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                   
+                                </tr>
+                            {% endfor %}
+                            {% if faculty_members|length > 5 %}
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #667085; font-style: italic; padding: 12px;">
+                                        + {{ faculty_members|length|add:"-5" }} more faculty members
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Regular Faculty: My Workload Summary -->
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-header">
+                <h3>📊 My Workload Summary</h3>
+                <a href="{% url 'my_subjects' %}">View Details →</a>
+            </div>
+            <div class="workload-summary-grid">
+                <div class="workload-summary-item">
+                    <div class="number" style="color: #2563eb;">{{ total_subjects|default:0 }}</div>
+                    <div class="label">Subjects</div>
+                </div>
+                <div class="workload-summary-item">
+                    <div class="number" style="color: #059669;">{{ total_hours|floatformat:1|default:"0.0" }}</div>
+                    <div class="label">Total Hours</div>
+                </div>
+                <div class="workload-summary-item">
+                    <div class="number" style="color: #8b5cf6;">{{ today_classes|default:0 }}</div>
+                    <div class="label">Classes Today</div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-dismiss messages
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            }, 5000);
+        });
+
+        // Animate stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(function(card, index) {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            setTimeout(function() {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+        });
+
+        // Animate chairman stats
+        const chairmanStats = document.querySelectorAll('.chairman-stat-item');
+        chairmanStats.forEach(function(item, index) {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(15px)';
+            item.style.transition = 'all 0.5s ease';
+            setTimeout(function() {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, 300 + (index * 100));
+        });
+    });
+</script>
+{% endblock %}

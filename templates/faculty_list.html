@@ -1,0 +1,1532 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Faculty Members | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content { padding: 24px 30px; background: #f7f9fc; }
+
+    /* ─── PAGE HEADER ─────────────────────────────── */
+    .page-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .page-header h1 { font-size: 26px; color: #172033; margin: 0 0 4px; font-weight: 700; }
+    .page-header p  { color: #667085; font-size: 14px; margin: 0; }
+
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+        padding: 9px 18px; border-radius: 8px; border: none;
+        font-size: 13.5px; font-weight: 600; cursor: pointer;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 8px; transition: all 0.2s ease;
+    }
+    .btn-primary { background: #2563eb; color: #fff; box-shadow: 0 1px 2px rgba(37,99,235,0.25); }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+    .btn-outline { background: #fff; color: #334155; border: 1px solid #e2e8f0; }
+    .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+    .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+    .btn-secondary:hover { background: #e2e8f0; color: #0f172a; }
+
+    .count-badge {
+        background: #fff; color: #374151; padding: 7px 14px;
+        border-radius: 8px; font-size: 13px; font-weight: 600;
+        border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .count-badge strong { color: #2563eb; }
+
+    /* ─── CARD / TABLE ───────────────────────────── */
+    .card {
+        background: #fff; border-radius: 12px; padding: 22px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #eef2f6;
+    }
+
+    .search-box {
+        display: flex; gap: 10px; align-items: center;
+        flex-wrap: wrap; margin-bottom: 16px;
+        padding-bottom: 16px; border-bottom: 1px solid #eef2f6;
+    }
+    .search-box input {
+        padding: 9px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+        font-size: 13.5px; flex: 1; min-width: 220px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .search-box select {
+        padding: 9px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+        font-size: 13.5px; min-width: 150px; cursor: pointer; background: #fff;
+    }
+    .search-box select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .search-box button {
+        padding: 9px 18px; border: none; border-radius: 8px;
+        background: #2563eb; color: #fff; font-size: 13.5px;
+        font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    .search-box button:hover { background: #1d4ed8; }
+    .search-box .clear-link {
+        padding: 9px 14px; color: #2563eb; font-size: 13.5px;
+        font-weight: 600; text-decoration: none; border-radius: 8px;
+        transition: background 0.15s;
+    }
+    .search-box .clear-link:hover { background: #eff6ff; }
+
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    table thead th {
+        text-align: left; padding: 11px 14px; font-weight: 600;
+        color: #667085; border-bottom: 2px solid #e2e8f0;
+        font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px;
+        background: #f8fafc; white-space: nowrap;
+    }
+    table tbody td {
+        padding: 12px 14px; border-bottom: 1px solid #eef2f6;
+        color: #172033; vertical-align: middle;
+    }
+    table tbody tr { cursor: pointer; transition: background 0.15s ease; }
+    table tbody tr:hover td { background: #f0f7ff; }
+    table tbody tr:last-child td { border-bottom: none; }
+
+    .faculty-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 14px; flex-shrink: 0;
+        box-shadow: 0 1px 3px rgba(37,99,235,0.25);
+    }
+    .faculty-cell { display: flex; align-items: center; gap: 12px; }
+    .faculty-cell .faculty-name { font-weight: 600; color: #172033; }
+    .faculty-cell .faculty-id   { font-size: 11.5px; color: #667085; margin-top: 1px; }
+
+    .status-badge {
+        padding: 4px 12px; border-radius: 12px;
+        font-size: 11.5px; font-weight: 600; display: inline-block;
+        white-space: nowrap;
+    }
+    .status-badge.active     { background: #ecfdf5; color: #065f46; }
+    .status-badge.inactive   { background: #fef2f2; color: #b42318; }
+    .status-badge.chairman   { background: #fef3c7; color: #92400e; }
+    .status-badge.full-time  { background: #eff6ff; color: #1e40af; }
+    .status-badge.part-time  { background: #fef3c7; color: #92400e; }
+    .status-badge.contractual{ background: #fce4ec; color: #b42318; }
+
+    /* ─── Action buttons ────────────────────────── */
+    .row-actions {
+        display: inline-flex; gap: 6px; align-items: center;
+    }
+    .action-btn {
+        padding: 6px 10px; border-radius: 6px; border: none;
+        font-size: 11.5px; font-weight: 600; cursor: pointer;
+        text-decoration: none; transition: all 0.15s;
+        display: inline-flex; align-items: center; gap: 4px;
+        white-space: nowrap;
+    }
+    .action-btn.edit    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .action-btn.edit:hover { background: #dbeafe; }
+    .action-btn.toggle  { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .action-btn.toggle:hover { background: #fde68a; }
+    .action-btn.toggle.activate { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .action-btn.toggle.activate:hover { background: #a7f3d0; }
+    .action-btn.delete  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .action-btn.delete:hover { background: #fecaca; }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #667085; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.5; }
+    .empty-state h4 { color: #172033; margin-bottom: 4px; font-size: 16px; }
+    .empty-state p  { font-size: 14px; margin: 0; }
+
+    /* ─── PAGINATION ────────────────────────────── */
+    .pagination {
+        display: flex; justify-content: center; align-items: center;
+        gap: 6px; padding: 20px 0 0;
+        border-top: 1px solid #eef2f6; margin-top: 16px; flex-wrap: wrap;
+    }
+    .pagination a, .pagination span {
+        padding: 7px 14px; border-radius: 6px;
+        text-decoration: none; font-size: 13.5px; font-weight: 500;
+        color: #667085; background: #fff;
+        border: 1px solid #e5e7eb; transition: all 0.2s;
+        min-width: 38px; text-align: center;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .pagination a:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; transform: translateY(-1px); }
+    .pagination .active { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700; }
+    .pagination .disabled { color: #cbd5e1; background: #f8fafc; cursor: not-allowed; pointer-events: none; }
+    .pagination .ellipsis {
+        color: #94a3b8; background: transparent; border: none;
+        pointer-events: none; padding: 7px 4px; min-width: unset;
+    }
+    .pagination-info {
+        text-align: center; font-size: 12.5px; color: #667085; margin-top: 8px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FACULTY DETAIL MODAL
+       ══════════════════════════════════════════════════════════ */
+    .fac-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1200; display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .fac-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .fac-modal {
+        background: #fff; border-radius: 14px;
+        width: 100%; max-width: 900px; max-height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    .fac-modal-overlay.open .fac-modal { transform: translateY(0) scale(1); }
+
+    .fac-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 20px 26px;
+        border-bottom: 1px solid #eef2f6;
+        background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
+        flex-shrink: 0;
+    }
+    .fac-modal-header .f-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: #2563eb; text-transform: uppercase;
+    }
+    .fac-modal-header h2 {
+        margin: 3px 0 2px; font-size: 18px; font-weight: 700;
+        color: #172033; display: flex; align-items: center; gap: 10px;
+    }
+    .fac-modal-header .f-emp-id {
+        font-size: 12.5px; color: #667085;
+    }
+    .fac-close {
+        background: transparent; border: 1px solid #e2e8f0;
+        width: 32px; height: 32px; border-radius: 8px;
+        cursor: pointer; font-size: 14px; color: #64748b;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s ease; flex-shrink: 0;
+    }
+    .fac-close:hover { background: #f1f5f9; color: #0f172a; }
+
+    .fac-modal-body {
+        flex: 1 1 auto; overflow-y: auto;
+        padding: 22px 26px;
+        min-height: 0;
+    }
+    .fac-modal-body::-webkit-scrollbar { width: 10px; }
+    .fac-modal-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1; border-radius: 8px; border: 2px solid #fff;
+    }
+
+    .fac-loading {
+        text-align: center; padding: 60px 20px;
+        color: #667085; font-size: 14px;
+    }
+
+    /* ─── SECTIONS ─── */
+    .fac-section {
+        margin-bottom: 22px;
+    }
+    .fac-section:last-child { margin-bottom: 0; }
+    .fac-section-title {
+        font-size: 11.5px; font-weight: 700;
+        color: #1e40af; text-transform: uppercase; letter-spacing: 0.8px;
+        margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        padding-bottom: 6px; border-bottom: 1px solid #eef2f6;
+    }
+    .fac-section-title .badge-count {
+        background: #eff6ff; color: #1e40af; font-weight: 700;
+        font-size: 11px; padding: 1px 8px; border-radius: 10px;
+        letter-spacing: 0;
+    }
+
+    /* ─── PROFILE GRID ─── */
+    .fac-profile-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    .fac-info-card {
+        background: #f8fafc; border: 1px solid #eef2f6;
+        border-radius: 8px; padding: 12px 14px;
+    }
+    .fac-info-card .label {
+        font-size: 10.5px; color: #667085; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .fac-info-card .value {
+        font-size: 13.5px; color: #172033; font-weight: 600;
+        word-break: break-word;
+    }
+
+    /* ─── STAT CARDS ─── */
+    .fac-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+    }
+    .fac-stat-card {
+        background: #fff; border: 1px solid #e5e7eb;
+        border-radius: 10px; padding: 14px 16px;
+        text-align: center; position: relative;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .fac-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(15,23,42,0.06); }
+    .fac-stat-card .s-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+    .fac-stat-card .s-value {
+        font-size: 22px; font-weight: 800; color: #1e40af;
+        line-height: 1; letter-spacing: -0.5px;
+    }
+    .fac-stat-card .s-label {
+        font-size: 11px; color: #667085; margin-top: 4px;
+        font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .fac-stat-card.warn .s-value { color: #b45309; }
+    .fac-stat-card.good .s-value { color: #047857; }
+    .fac-stat-card.danger .s-value { color: #b91c1c; }
+
+    /* ─── SUBJECT LIST ─── */
+    .fac-subject-table {
+        width: 100%; border-collapse: collapse; font-size: 12.5px;
+        background: #fff; border: 1px solid #eef2f6;
+        border-radius: 8px; overflow: hidden;
+    }
+    .fac-subject-table thead th {
+        background: #f8fafc; padding: 9px 12px;
+        text-align: left; font-size: 10.5px;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        color: #667085; font-weight: 700;
+        border-bottom: 1px solid #eef2f6;
+        white-space: nowrap;
+    }
+    .fac-subject-table tbody td {
+        padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .fac-subject-table tbody tr:last-child td { border-bottom: none; }
+    .fac-subject-table tbody tr:hover td { background: #f8fafc; }
+
+    .fac-subject-table .s-code {
+        font-weight: 700; color: #1e40af; font-size: 12.5px;
+    }
+    .fac-subject-table .s-desc {
+        color: #172033; font-weight: 500;
+    }
+    .fac-subject-table .s-section {
+        font-size: 11px; color: #667085;
+    }
+
+    .hours-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px; border-radius: 10px;
+        font-size: 11px; font-weight: 700;
+    }
+    .hours-pill.full      { background: #ecfdf5; color: #047857; }
+    .hours-pill.partial   { background: #fffbeb; color: #b45309; }
+    .hours-pill.none      { background: #fef2f2; color: #b91c1c; }
+    .hours-pill.info      { background: #eff6ff; color: #1e40af; }
+
+    .subj-status-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 12px;
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .subj-status-badge.complete   { background: #ecfdf5; color: #065f46; }
+    .subj-status-badge.partial    { background: #fffbeb; color: #92400e; }
+    .subj-status-badge.not-started{ background: #fef2f2; color: #b91c1c; }
+
+    .empty-mini {
+        text-align: center; padding: 30px 20px;
+        color: #94a3b8; font-size: 13px;
+        background: #f8fafc; border-radius: 8px;
+        border: 1px dashed #e2e8f0;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       EDIT / ADD FACULTY MODAL
+       ══════════════════════════════════════════════════════════ */
+    .edit-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1400; display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .edit-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .edit-modal {
+        background: #fff; border-radius: 14px;
+        width: 100%; max-width: 560px; max-height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    .edit-modal-overlay.open .edit-modal { transform: translateY(0) scale(1); }
+
+    .edit-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 20px 24px;
+        border-bottom: 1px solid #eef2f6;
+        background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
+        flex-shrink: 0;
+    }
+    .edit-modal-header .e-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: #2563eb; text-transform: uppercase;
+    }
+    .edit-modal-header h2 {
+        margin: 3px 0 0; font-size: 17px; font-weight: 700;
+        color: #172033; display: flex; align-items: center; gap: 8px;
+    }
+
+    .edit-modal-body {
+        flex: 1 1 auto; overflow-y: auto;
+        padding: 20px 24px;
+        min-height: 0;
+    }
+
+    .edit-modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 14px 24px;
+        border-top: 1px solid #eef2f6;
+        background: #f8fafc; flex-shrink: 0;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; }
+    .form-label {
+        font-size: 12px; font-weight: 600;
+        color: #334155; margin-bottom: 6px;
+    }
+    .form-label .req { color: #dc2626; margin-left: 2px; }
+
+    .form-control {
+        width: 100%; padding: 10px 13px;
+        border: 1px solid #d1d5db; border-radius: 8px;
+        font-size: 13.5px; color: #0f172a;
+        background: #fff; font-family: inherit;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus {
+        outline: none; border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    select.form-control {
+        cursor: pointer; appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Toggle switch for status */
+    .toggle-wrap {
+        display: flex; align-items: center; gap: 14px;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        transition: all 0.15s ease;
+    }
+    .toggle-wrap.active   { background: #ecfdf5; border-color: #a7f3d0; }
+    .toggle-wrap.inactive { background: #fef2f2; border-color: #fecaca; }
+
+    .toggle-switch {
+        position: relative; width: 44px; height: 24px;
+        flex-shrink: 0; cursor: pointer;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+        position: absolute; inset: 0;
+        background: #cbd5e1; border-radius: 20px;
+        transition: background 0.2s ease;
+    }
+    .toggle-slider::before {
+        content: ''; position: absolute;
+        width: 18px; height: 18px;
+        left: 3px; top: 3px;
+        background: #fff; border-radius: 50%;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #10b981; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .toggle-info .t-title {
+        font-size: 13.5px; font-weight: 700; color: #0f172a; line-height: 1.2;
+    }
+    .toggle-info .t-sub {
+        font-size: 11.5px; color: #64748b; margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CONFIRM DELETE MODAL
+       ══════════════════════════════════════════════════════════ */
+    .confirm-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1500; display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .confirm-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .confirm-modal {
+        background: #fff; border-radius: 14px;
+        width: 100%; max-width: 440px;
+        display: flex; flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        padding: 24px;
+        text-align: center;
+    }
+    .confirm-modal-overlay.open .confirm-modal { transform: translateY(0) scale(1); }
+
+    .confirm-icon {
+        width: 64px; height: 64px; border-radius: 50%;
+        background: #fef2f2; color: #dc2626;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 30px; margin: 0 auto 14px;
+    }
+
+    .confirm-modal h3 {
+        margin: 0 0 8px; font-size: 17px; font-weight: 700;
+        color: #172033;
+    }
+    .confirm-modal p {
+        margin: 0 0 20px; font-size: 13.5px;
+        color: #667085; line-height: 1.5;
+    }
+    .confirm-modal .name-highlight {
+        color: #b91c1c; font-weight: 700;
+    }
+
+    .confirm-modal .confirm-actions {
+        display: flex; gap: 10px; justify-content: center;
+    }
+    .confirm-modal .confirm-actions .btn { min-width: 110px; justify-content: center; }
+
+    /* Toast notification */
+    .toast-wrap {
+        position: fixed; top: 24px; right: 24px;
+        z-index: 2000;
+        display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+        padding: 12px 18px; border-radius: 10px;
+        background: #fff; box-shadow: 0 8px 24px rgba(15,23,42,0.15);
+        border-left: 4px solid #2563eb;
+        font-size: 13.5px; font-weight: 500; color: #0f172a;
+        display: flex; align-items: center; gap: 10px;
+        animation: toastIn 0.24s ease;
+        min-width: 260px;
+    }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error   { border-left-color: #dc2626; }
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateX(40px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @media (max-width: 640px) {
+        .main-content { padding: 16px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .search-box input, .search-box select { width: 100%; min-width: unset; }
+        .fac-modal { max-height: 95vh; }
+        .fac-modal-header, .fac-modal-body { padding-left: 16px; padding-right: 16px; }
+        .fac-stat-card .s-value { font-size: 18px; }
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Toast container -->
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    {% if messages %}
+        <div style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+            {% for message in messages %}
+                <div style="padding: 12px 16px; border-radius: 8px; font-size: 13.5px;
+                            {% if message.tags == 'success' %}background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;
+                            {% elif message.tags == 'error' %}background:#fef2f2; color:#b42318; border:1px solid #fecaca;
+                            {% else %}background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <h1>👥 Faculty Members</h1>
+            <p>Manage all faculty members — click any row for details</p>
+        </div>
+        <div class="header-actions">
+            <span class="count-badge">
+                <strong>{{ page_obj.paginator.count|default:faculty_members|length }}</strong> Total
+            </span>
+            <button type="button" class="btn btn-primary" onclick="openAddFacultyModal()">➕ Add Faculty</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <!-- ═══════════ SEARCH / FILTER ═══════════ -->
+        <div class="search-box">
+            <form method="get" action="" style="display: contents;">
+                <input type="text" name="q" value="{{ search_q|default:'' }}"
+                       placeholder="🔍 Search by name, ID, or department...">
+                <select name="type">
+                    <option value="all" {% if type_q == 'all' or not type_q %}selected{% endif %}>All Faculty</option>
+                    <option value="chairman" {% if type_q == 'chairman' %}selected{% endif %}>Chairman</option>
+                    <option value="active" {% if type_q == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if type_q == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="full" {% if type_q == 'full' %}selected{% endif %}>Full Time</option>
+                    <option value="part" {% if type_q == 'part' %}selected{% endif %}>Part Time</option>
+                    <option value="contract" {% if type_q == 'contract' %}selected{% endif %}>Contractual</option>
+                </select>
+                <button type="submit">Search</button>
+                {% if search_q or type_q and type_q != 'all' %}
+                    <a href="{% url 'faculty_list' %}" class="clear-link">✕ Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="facultyTable">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Employee ID</th>
+                        <th>Department</th>
+                        <th>Specialization</th>
+                        <th>Employment</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in faculty_members %}
+                        <tr id="fac-row-{{ member.employee_id }}"
+                            data-employee-id="{{ member.employee_id }}"
+                            data-full-name="{{ member.full_name|escapejs }}"
+                            data-department="{{ member.department|default:''|escapejs }}"
+                            data-specialization="{{ member.specialization|default:''|escapejs }}"
+                            data-attained-degree="{{ member.attained_degree|default:''|escapejs }}"
+                            data-employment-type="{{ member.employment_type|default:'' }}"
+                            data-is-active="{% if member.is_active %}1{% else %}0{% endif %}"
+                            data-is-chairman="{% if member.is_chairman %}1{% else %}0{% endif %}"
+                            onclick="openFacultyModal('{{ member.employee_id }}')">
+                            <td>
+                                <div class="faculty-cell">
+                                    <div class="faculty-avatar">{{ member.full_name|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="faculty-name">{{ member.full_name }}</div>
+                                        <div class="faculty-id">{{ member.employee_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><strong>{{ member.employee_id }}</strong></td>
+                            <td>{{ member.department|default:"—"|truncatechars:22 }}</td>
+                            <td>{{ member.specialization|truncatechars:28|default:"—" }}</td>
+                            <td>
+                                <span class="status-badge {{ member.employment_type|lower }}">
+                                    {{ member.get_employment_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if member.is_chairman %}
+                                    <span class="status-badge chairman">👑 Chairman</span>
+                                {% elif member.is_active %}
+                                    <span class="status-badge active">Active</span>
+                                {% else %}
+                                    <span class="status-badge inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td onclick="event.stopPropagation();" style="text-align:right;">
+                                <div class="row-actions">
+                                    <button type="button" class="action-btn edit"
+                                            title="Edit faculty"
+                                            onclick="openEditFacultyModal('{{ member.employee_id }}')">
+                                        ✏️ Edit
+                                    </button>
+
+                                    {% if not member.is_chairman %}
+                                        {% if member.is_active %}
+                                            <button type="button" class="action-btn toggle"
+                                                    title="Deactivate faculty"
+                                                    onclick="toggleFacultyStatus('{{ member.employee_id }}', '{{ member.full_name|escapejs }}', false)">
+                                                🔒 Deactivate
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="action-btn toggle activate"
+                                                    title="Activate faculty"
+                                                    onclick="toggleFacultyStatus('{{ member.employee_id }}', '{{ member.full_name|escapejs }}', true)">
+                                                🔓 Activate
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% if not member.is_chairman %}
+                                        <button type="button" class="action-btn delete"
+                                                title="Delete faculty"
+                                                onclick="openDeleteConfirm('{{ member.employee_id }}', '{{ member.full_name|escapejs }}')">
+                                            🗑️
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr style="cursor: default;">
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <span class="empty-icon">👥</span>
+                                    <h4>No faculty members found</h4>
+                                    <p>
+                                        {% if search_q or type_q and type_q != 'all' %}
+                                            Try adjusting your search filters.
+                                        {% else %}
+                                            Add faculty members to get started.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════ PAGINATION ═══════════ -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    ◀ Previous
+                </a>
+            {% else %}
+                <span class="disabled">◀ Previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="active">{{ num }}</span>
+                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}">{{ num }}</a>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                    <span class="ellipsis">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    Next ▶
+                </a>
+            {% else %}
+                <span class="disabled">Next ▶</span>
+            {% endif %}
+        </div>
+        <div class="pagination-info">
+            Showing page <strong>{{ page_obj.number }}</strong> of
+            <strong>{{ page_obj.paginator.num_pages }}</strong>
+            ({{ page_obj.paginator.count }} faculty total)
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ═══════════ FACULTY DETAIL MODAL ═══════════ -->
+    <div class="fac-modal-overlay" id="facultyDetailModal" onclick="handleFacModalOverlay(event)">
+        <div class="fac-modal" role="dialog" aria-modal="true" aria-labelledby="facModalTitle">
+            <div class="fac-modal-header">
+                <div>
+                    <span class="f-eyebrow">Faculty Profile</span>
+                    <h2 id="facModalTitle">Faculty Name</h2>
+                    <div class="f-emp-id">Employee ID: <span id="facModalEmpId">—</span></div>
+                </div>
+                <button type="button" class="fac-close" onclick="closeFacultyModal()" title="Close">✕</button>
+            </div>
+            <div class="fac-modal-body" id="facModalBody">
+                <div class="fac-loading">
+                    <div style="font-size: 40px; margin-bottom: 8px;">⏳</div>
+                    <p>Loading faculty information...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ EDIT FACULTY MODAL ═══════════ -->
+    <div class="edit-modal-overlay" id="editFacultyModal" onclick="handleEditModalOverlay(event)">
+        <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <div class="edit-modal-header">
+                <div>
+                    <span class="e-eyebrow">Edit Faculty</span>
+                    <h2 id="editModalTitle">✏️ Update Details</h2>
+                </div>
+                <button type="button" class="fac-close" onclick="closeEditFacultyModal()" title="Close">✕</button>
+            </div>
+
+            <div class="edit-modal-body">
+                <input type="hidden" id="edit_employee_id" value="">
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_full_name">Full Name<span class="req">*</span></label>
+                        <input type="text" id="edit_full_name" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit_department">Department<span class="req">*</span></label>
+                        <input type="text" id="edit_department" class="form-control" placeholder="e.g. Technology education">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit_specialization">Specialization<span class="req">*</span></label>
+                        <input type="text" id="edit_specialization" class="form-control" placeholder="e.g. Mathematics">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_attained_degree">Attained Degree</label>
+                        <input type="text" id="edit_attained_degree" class="form-control" placeholder="e.g. Master of Arts in Education">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_employment_type">Employment Type<span class="req">*</span></label>
+                        <select id="edit_employment_type" class="form-control">
+                            <option value="FULL">Full Time</option>
+                            <option value="PART">Part Time</option>
+                            <option value="CONTRACT">Contractual</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Account Status</label>
+                        <div class="toggle-wrap active" id="editStatusWrap">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="edit_is_active" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-info">
+                                <div class="t-title" id="editStatusTitle">Active</div>
+                                <div class="t-sub" id="editStatusSub">Faculty can log in and be assigned schedules.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editErrorBox" style="display:none; margin-top:14px; padding:10px 14px;
+                     background:#fef2f2; color:#b42318; border:1px solid #fecaca; border-radius:8px;
+                     font-size:13px; line-height:1.5;"></div>
+            </div>
+
+            <div class="edit-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditFacultyModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="editSaveBtn" onclick="saveFacultyEdit()">
+                    💾 Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ ADD FACULTY MODAL ═══════════ -->
+    <div class="edit-modal-overlay" id="addFacultyModal" onclick="handleAddModalOverlay(event)">
+        <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+            <div class="edit-modal-header">
+                <div>
+                    <span class="e-eyebrow">Add Faculty</span>
+                    <h2 id="addModalTitle">➕ New Faculty Member</h2>
+                </div>
+                <button type="button" class="fac-close" onclick="closeAddFacultyModal()" title="Close">✕</button>
+            </div>
+
+            <div class="edit-modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label" for="add_employee_id">Employee ID<span class="req">*</span></label>
+                        <input type="text" id="add_employee_id" class="form-control" placeholder="e.g. F-005 or 12345" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_full_name">Full Name<span class="req">*</span></label>
+                        <input type="text" id="add_full_name" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_department">Department<span class="req">*</span></label>
+                        <input type="text" id="add_department" class="form-control" placeholder="e.g. Technoly Education">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_specialization">Specialization<span class="req">*</span></label>
+                        <input type="text" id="add_specialization" class="form-control" placeholder="e.g. Mathematics">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_attained_degree">Attained Degree</label>
+                        <input type="text" id="add_attained_degree" class="form-control" placeholder="e.g. Master of Arts in Education">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_employment_type">Employment Type<span class="req">*</span></label>
+                        <select id="add_employment_type" class="form-control">
+                            <option value="FULL">Full Time</option>
+                            <option value="PART" selected>Part Time</option>
+                            <option value="CONTRACT">Contractual</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_password">Password<span class="req">*</span></label>
+                        <input type="password" id="add_password" class="form-control" placeholder="Min. 8 characters" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_confirm_password">Confirm Password<span class="req">*</span></label>
+                        <input type="password" id="add_confirm_password" class="form-control" placeholder="Re-enter password" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Account Status</label>
+                        <div class="toggle-wrap active" id="addStatusWrap">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="add_is_active" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-info">
+                                <div class="t-title" id="addStatusTitle">Active</div>
+                                <div class="t-sub" id="addStatusSub">Faculty can log in and be assigned schedules.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="addErrorBox" style="display:none; margin-top:14px; padding:10px 14px;
+                     background:#fef2f2; color:#b42318; border:1px solid #fecaca; border-radius:8px;
+                     font-size:13px; line-height:1.5;"></div>
+            </div>
+
+            <div class="edit-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAddFacultyModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addSaveBtn" onclick="saveAddFaculty()">
+                    💾 Create Faculty
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ CONFIRM DELETE MODAL ═══════════ -->
+    <div class="confirm-modal-overlay" id="deleteConfirmModal" onclick="handleDeleteConfirmOverlay(event)">
+        <div class="confirm-modal" role="dialog" aria-modal="true">
+            <div class="confirm-icon">🗑️</div>
+            <h3>Delete Faculty Member?</h3>
+            <p>
+                You are about to permanently delete
+                <span class="name-highlight" id="deleteName">this faculty member</span>.
+                This action cannot be undone.
+            </p>
+            <div class="confirm-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDeleteFaculty()">
+                    🗑️ Delete
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function getCSRFToken() {
+        const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (input) return input.value;
+
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.content;
+
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+        }
+        return '';
+    }
+
+    function showToast(message, type = 'info') {
+        const wrap = document.getElementById('toastWrap');
+        if (!wrap) return;
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = message;
+        wrap.appendChild(t);
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => t.remove(), 300);
+        }, 3200);
+    }
+
+    /* ============================================================
+       FACULTY DETAIL MODAL
+       ============================================================ */
+    const facCache = {};
+
+    function openFacultyModal(employeeId) {
+        const modal = document.getElementById('facultyDetailModal');
+        const body  = document.getElementById('facModalBody');
+        const title = document.getElementById('facModalTitle');
+        const empId = document.getElementById('facModalEmpId');
+
+        title.textContent = 'Loading...';
+        empId.textContent = employeeId;
+
+        body.innerHTML = `
+            <div class="fac-loading">
+                <div style="font-size: 40px; margin-bottom: 8px;">⏳</div>
+                <p>Fetching faculty information...</p>
+            </div>
+        `;
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        if (facCache[employeeId]) {
+            renderFacultyDetail(facCache[employeeId]);
+            return;
+        }
+
+        fetch(`/faculty-info-data/${encodeURIComponent(employeeId)}/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    title.textContent = 'Error';
+                    body.innerHTML = `<div class="fac-loading" style="color:#b91c1c;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">❌</div>
+                        <p>${escapeHtml(data.error)}</p>
+                    </div>`;
+                    return;
+                }
+                facCache[employeeId] = data;
+                renderFacultyDetail(data);
+            })
+            .catch(err => {
+                title.textContent = 'Error';
+                body.innerHTML = `<div class="fac-loading" style="color:#b91c1c;">
+                    <div style="font-size: 40px; margin-bottom: 8px;">❌</div>
+                    <p>Network error: ${escapeHtml(String(err))}</p>
+                </div>`;
+            });
+    }
+
+    function closeFacultyModal() {
+        document.getElementById('facultyDetailModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleFacModalOverlay(e) {
+        if (e.target.id === 'facultyDetailModal') closeFacultyModal();
+    }
+
+    function renderFacultyDetail(d) {
+        const title = document.getElementById('facModalTitle');
+        const empId = document.getElementById('facModalEmpId');
+        const body  = document.getElementById('facModalBody');
+
+        title.textContent = d.full_name || 'Faculty Member';
+        empId.textContent = d.employee_id || '—';
+
+        const profileHtml = `
+            <div class="fac-section">
+                <div class="fac-section-title">👤 Faculty Information</div>
+                <div class="fac-profile-grid">
+                    <div class="fac-info-card"><div class="label">Full Name</div><div class="value">${escapeHtml(d.full_name || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Employee ID</div><div class="value">${escapeHtml(d.employee_id || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Department</div><div class="value">${escapeHtml(d.department || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Specialization</div><div class="value">${escapeHtml(d.specialization || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Attained Degree</div><div class="value">${escapeHtml(d.attained_degree || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Employment Type</div><div class="value">${escapeHtml(d.employment_type || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Status</div><div class="value">
+                        ${d.is_chairman ? '<span class="status-badge chairman">👑 Chairman</span>'
+                                        : d.is_active ? '<span class="status-badge active">Active</span>'
+                                                      : '<span class="status-badge inactive">Inactive</span>'}
+                    </div></div>
+                    <div class="fac-info-card"><div class="label">Last Login</div><div class="value">${escapeHtml(d.last_login || 'Never')}</div></div>
+                </div>
+            </div>
+        `;
+
+        const statsHtml = `
+            <div class="fac-section">
+                <div class="fac-section-title">📊 Teaching Statistics</div>
+                <div class="fac-stats-row">
+                    <div class="fac-stat-card"><span class="s-icon">📚</span><div class="s-value">${d.total_subjects || 0}</div><div class="s-label">Subjects</div></div>
+                    <div class="fac-stat-card"><span class="s-icon">📅</span><div class="s-value">${d.total_schedules || 0}</div><div class="s-label">Schedules</div></div>
+                    <div class="fac-stat-card"><span class="s-icon">⏱️</span><div class="s-value">${d.total_hours || 0}</div><div class="s-label">Hrs / Week</div></div>
+                    <div class="fac-stat-card good"><span class="s-icon">✅</span><div class="s-value">${d.fully_scheduled_count || 0}</div><div class="s-label">Complete</div></div>
+                    <div class="fac-stat-card warn"><span class="s-icon">⏳</span><div class="s-value">${d.partial_count || 0}</div><div class="s-label">Partial</div></div>
+                    <div class="fac-stat-card danger"><span class="s-icon">⚠️</span><div class="s-value">${d.not_started_count || 0}</div><div class="s-label">Not Started</div></div>
+                </div>
+            </div>
+        `;
+
+        const subjects = d.subjects || [];
+        let subjectsHtml = '';
+        if (subjects.length === 0) {
+            subjectsHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">📖 Assigned Subjects <span class="badge-count">0</span></div>
+                    <div class="empty-mini">No subjects assigned to this faculty member.</div>
+                </div>`;
+        } else {
+            const rows = subjects.map(s => {
+                const lecPill = s.has_lecture
+                    ? `<span class="hours-pill ${s.lec_remaining <= 0 ? 'full' : s.lec_used > 0 ? 'partial' : 'none'}">${s.lec_used}h / ${s.lec_max}h LEC</span>`
+                    : `<span class="hours-pill info">— LEC</span>`;
+                const labPill = s.is_laboratory
+                    ? `<span class="hours-pill ${s.lab_remaining <= 0 ? 'full' : s.lab_used > 0 ? 'partial' : 'none'}">${s.lab_used}h / ${s.lab_max}h LAB</span>`
+                    : `<span class="hours-pill info">— LAB</span>`;
+                let statusBadge;
+                if (s.is_fully_scheduled) statusBadge = '<span class="subj-status-badge complete">✓ Complete</span>';
+                else if (s.lec_used > 0 || s.lab_used > 0) statusBadge = '<span class="subj-status-badge partial">◐ Partial</span>';
+                else statusBadge = '<span class="subj-status-badge not-started">○ Not Started</span>';
+                return `<tr>
+                    <td><div class="s-code">${escapeHtml(s.subject_code)}</div><div class="s-desc">${escapeHtml(s.subject_description)}</div></td>
+                    <td><div class="s-section">${escapeHtml(s.section_display)}</div></td>
+                    <td>${lecPill}</td><td>${labPill}</td><td>${statusBadge}</td>
+                </tr>`;
+            }).join('');
+            subjectsHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">📖 Assigned Subjects <span class="badge-count">${subjects.length}</span></div>
+                    <div style="overflow-x:auto;">
+                        <table class="fac-subject-table">
+                            <thead><tr><th>Subject</th><th>Section</th><th>Lecture</th><th>Laboratory</th><th>Status</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        const fullyDone = subjects.filter(s => s.is_fully_scheduled);
+        let doneHtml = '';
+        if (fullyDone.length > 0) {
+            doneHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">✅ Fully Scheduled Subjects <span class="badge-count">${fullyDone.length}</span></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${fullyDone.map(s => `<span class="hours-pill full">${escapeHtml(s.subject_code)} — ${escapeHtml(s.section_display)}</span>`).join('')}
+                    </div>
+                </div>`;
+        }
+
+        const pending = subjects.filter(s => !s.is_fully_scheduled);
+        let pendingHtml = '';
+        if (pending.length > 0) {
+            pendingHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">⏳ Still Needs Scheduling <span class="badge-count">${pending.length}</span></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${pending.map(s => {
+                            const missing = [];
+                            if (s.has_lecture && s.lec_remaining > 0) missing.push(`${s.lec_remaining}h LEC`);
+                            if (s.is_laboratory && s.lab_remaining > 0) missing.push(`${s.lab_remaining}h LAB`);
+                            const label = missing.length ? ` (${missing.join(' + ')} left)` : '';
+                            return `<span class="hours-pill partial">${escapeHtml(s.subject_code)} — ${escapeHtml(s.section_display)}${label}</span>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+        }
+
+        body.innerHTML = profileHtml + statsHtml + subjectsHtml + doneHtml + pendingHtml;
+    }
+
+    /* ============================================================
+       EDIT FACULTY MODAL
+       ============================================================ */
+    function openEditFacultyModal(employeeId) {
+        const row = document.getElementById('fac-row-' + employeeId);
+        if (!row) return;
+
+        document.getElementById('edit_employee_id').value      = employeeId;
+        document.getElementById('edit_full_name').value        = row.dataset.fullName || '';
+        document.getElementById('edit_department').value       = row.dataset.department || '';
+        document.getElementById('edit_specialization').value   = row.dataset.specialization || '';
+        document.getElementById('edit_attained_degree').value  = row.dataset.attainedDegree || '';
+        document.getElementById('edit_employment_type').value  = row.dataset.employmentType || 'FULL';
+
+        const isActive = row.dataset.isActive === '1';
+        document.getElementById('edit_is_active').checked = isActive;
+        updateStatusToggleUI(isActive);
+
+        const err = document.getElementById('editErrorBox');
+        err.style.display = 'none';
+        err.textContent = '';
+
+        document.getElementById('editFacultyModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => document.getElementById('edit_full_name').focus(), 200);
+    }
+
+    function closeEditFacultyModal() {
+        document.getElementById('editFacultyModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleEditModalOverlay(e) {
+        if (e.target.id === 'editFacultyModal') closeEditFacultyModal();
+    }
+
+    function updateStatusToggleUI(isActive) {
+        const wrap  = document.getElementById('editStatusWrap');
+        const title = document.getElementById('editStatusTitle');
+        const sub   = document.getElementById('editStatusSub');
+        if (isActive) {
+            wrap.className = 'toggle-wrap active';
+            title.textContent = 'Active';
+            sub.textContent = 'Faculty can log in and be assigned schedules.';
+        } else {
+            wrap.className = 'toggle-wrap inactive';
+            title.textContent = 'Inactive';
+            sub.textContent = 'Faculty cannot log in and will be hidden from assignments.';
+        }
+    }
+
+    function saveFacultyEdit() {
+        const employeeId   = document.getElementById('edit_employee_id').value;
+        const fullName     = document.getElementById('edit_full_name').value.trim();
+        const department   = document.getElementById('edit_department').value.trim();
+        const specialization = document.getElementById('edit_specialization').value.trim();
+        const attainedDegree = document.getElementById('edit_attained_degree').value.trim();
+        const employmentType = document.getElementById('edit_employment_type').value;
+        const isActive     = document.getElementById('edit_is_active').checked;
+
+        const errBox = document.getElementById('editErrorBox');
+        const saveBtn = document.getElementById('editSaveBtn');
+
+        const errors = [];
+        if (!fullName) errors.push('Full name is required.');
+        if (!department) errors.push('Department is required.');
+        if (!specialization) errors.push('Specialization is required.');
+        if (!employmentType) errors.push('Employment type is required.');
+
+        if (errors.length) {
+            errBox.style.display = 'block';
+            errBox.innerHTML = errors.map(e => '• ' + escapeHtml(e)).join('<br>');
+            return;
+        }
+
+        errBox.style.display = 'none';
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Saving...';
+
+        const fd = new FormData();
+        fd.append('full_name', fullName);
+        fd.append('department', department);
+        fd.append('specialization', specialization);
+        fd.append('attained_degree', attainedDegree);
+        fd.append('employment_type', employmentType);
+        fd.append('is_active', isActive ? '1' : '0');
+
+        fetch(`/faculty/${encodeURIComponent(employeeId)}/update/`, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty updated successfully.', 'success');
+                closeEditFacultyModal();
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                errBox.style.display = 'block';
+                errBox.textContent = d.error || 'Failed to update faculty.';
+            }
+        })
+        .catch(err => {
+            errBox.style.display = 'block';
+            errBox.textContent = 'Network error: ' + err;
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save Changes';
+        });
+    }
+
+    /* ============================================================
+       ADD FACULTY MODAL
+       ============================================================ */
+    function openAddFacultyModal() {
+        document.getElementById('add_employee_id').value        = '';
+        document.getElementById('add_full_name').value          = '';
+        document.getElementById('add_department').value         = '';
+        document.getElementById('add_specialization').value     = '';
+        document.getElementById('add_attained_degree').value    = '';
+        document.getElementById('add_employment_type').value    = 'PART';
+        document.getElementById('add_password').value           = '';
+        document.getElementById('add_confirm_password').value   = '';
+        document.getElementById('add_is_active').checked        = true;
+
+        updateAddStatusToggleUI(true);
+
+        const err = document.getElementById('addErrorBox');
+        err.style.display = 'none';
+        err.textContent = '';
+
+        const btn = document.getElementById('addSaveBtn');
+        btn.disabled = false;
+        btn.textContent = '💾 Create Faculty';
+
+        document.getElementById('addFacultyModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => document.getElementById('add_employee_id').focus(), 200);
+    }
+
+    function closeAddFacultyModal() {
+        document.getElementById('addFacultyModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleAddModalOverlay(e) {
+        if (e.target.id === 'addFacultyModal') closeAddFacultyModal();
+    }
+
+    function updateAddStatusToggleUI(isActive) {
+        const wrap  = document.getElementById('addStatusWrap');
+        const title = document.getElementById('addStatusTitle');
+        const sub   = document.getElementById('addStatusSub');
+        if (isActive) {
+            wrap.className = 'toggle-wrap active';
+            title.textContent = 'Active';
+            sub.textContent = 'Faculty can log in and be assigned schedules.';
+        } else {
+            wrap.className = 'toggle-wrap inactive';
+            title.textContent = 'Inactive';
+            sub.textContent = 'Faculty cannot log in and will be hidden from assignments.';
+        }
+    }
+
+    function saveAddFaculty() {
+        const employeeId     = document.getElementById('add_employee_id').value.trim();
+        const fullName       = document.getElementById('add_full_name').value.trim();
+        const department     = document.getElementById('add_department').value.trim();
+        const specialization = document.getElementById('add_specialization').value.trim();
+        const attainedDegree = document.getElementById('add_attained_degree').value.trim();
+        const employmentType = document.getElementById('add_employment_type').value;
+        const password       = document.getElementById('add_password').value;
+        const confirmPassword= document.getElementById('add_confirm_password').value;
+        const isActive       = document.getElementById('add_is_active').checked;
+
+        const errBox = document.getElementById('addErrorBox');
+        const saveBtn = document.getElementById('addSaveBtn');
+
+        const errors = [];
+        if (!employeeId)           errors.push('Employee ID is required.');
+        if (!fullName)             errors.push('Full name is required.');
+        if (!department)           errors.push('Department is required.');
+        if (!specialization)       errors.push('Specialization is required.');
+        if (!employmentType)       errors.push('Employment type is required.');
+        if (!password)             errors.push('Password is required.');
+        else if (password.length < 8) errors.push('Password must be at least 8 characters.');
+        if (!confirmPassword)      errors.push('Please confirm the password.');
+        else if (password && confirmPassword && password !== confirmPassword) {
+            errors.push('Passwords do not match.');
+        }
+
+        if (errors.length) {
+            errBox.style.display = 'block';
+            errBox.innerHTML = errors.map(e => '• ' + escapeHtml(e)).join('<br>');
+            return;
+        }
+
+        errBox.style.display = 'none';
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Creating...';
+
+        const fd = new FormData();
+        fd.append('employee_id', employeeId);
+        fd.append('full_name', fullName);
+        fd.append('department', department);
+        fd.append('specialization', specialization);
+        fd.append('attained_degree', attainedDegree);
+        fd.append('employment_type', employmentType);
+        fd.append('password', password);
+        fd.append('confirm_password', confirmPassword);
+        fd.append('is_active', isActive ? '1' : '0');
+
+        fetch('/faculty/create/', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty created successfully.', 'success');
+                closeAddFacultyModal();
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                errBox.style.display = 'block';
+                errBox.textContent = d.error || 'Failed to create faculty.';
+            }
+        })
+        .catch(err => {
+            errBox.style.display = 'block';
+            errBox.textContent = 'Network error: ' + err;
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Create Faculty';
+        });
+    }
+
+    /* ============================================================
+       TOGGLE ACTIVE / INACTIVE
+       ============================================================ */
+    function toggleFacultyStatus(employeeId, fullName, makeActive) {
+        const verb = makeActive ? 'activate' : 'deactivate';
+        if (!confirm(`Are you sure you want to ${verb} "${fullName}"?`)) return;
+
+        fetch(`/faculty/${encodeURIComponent(employeeId)}/toggle-status/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast(`Faculty ${makeActive ? 'activated' : 'deactivated'}.`, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(d.error || 'Failed to update status.', 'error');
+            }
+        })
+        .catch(err => showToast('Network error: ' + err, 'error'));
+    }
+
+    /* ============================================================
+       DELETE FACULTY
+       ============================================================ */
+    let pendingDeleteId = null;
+
+    function openDeleteConfirm(employeeId, fullName) {
+        pendingDeleteId = employeeId;
+        document.getElementById('deleteName').textContent = `"${fullName}"`;
+        document.getElementById('deleteConfirmModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteConfirm() {
+        pendingDeleteId = null;
+        document.getElementById('deleteConfirmModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleDeleteConfirmOverlay(e) {
+        if (e.target.id === 'deleteConfirmModal') closeDeleteConfirm();
+    }
+
+    function confirmDeleteFaculty() {
+        if (!pendingDeleteId) return;
+        const btn = document.getElementById('deleteConfirmBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Deleting...';
+
+        fetch(`/faculty/${encodeURIComponent(pendingDeleteId)}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty deleted successfully.', 'success');
+                closeDeleteConfirm();
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(d.error || 'Failed to delete faculty.', 'error');
+                btn.disabled = false;
+                btn.textContent = '🗑️ Delete';
+            }
+        })
+        .catch(err => {
+            showToast('Network error: ' + err, 'error');
+            btn.disabled = false;
+            btn.textContent = '🗑️ Delete';
+        });
+    }
+
+    /* ============================================================
+       LIVE TOGGLE SWITCHES
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', function() {
+        const editCb = document.getElementById('edit_is_active');
+        if (editCb) {
+            editCb.addEventListener('change', function() {
+                updateStatusToggleUI(this.checked);
+            });
+        }
+
+        const addCb = document.getElementById('add_is_active');
+        if (addCb) {
+            addCb.addEventListener('change', function() {
+                updateAddStatusToggleUI(this.checked);
+            });
+        }
+    });
+
+    /* ============================================================
+       ESCAPE KEY
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const del = document.getElementById('deleteConfirmModal');
+            if (del && del.classList.contains('open')) { closeDeleteConfirm(); return; }
+
+            const add = document.getElementById('addFacultyModal');
+            if (add && add.classList.contains('open')) { closeAddFacultyModal(); return; }
+
+            const ed = document.getElementById('editFacultyModal');
+            if (ed && ed.classList.contains('open')) { closeEditFacultyModal(); return; }
+
+            const fm = document.getElementById('facultyDetailModal');
+            if (fm && fm.classList.contains('open')) closeFacultyModal();
+        }
+    });
+</script>
+{% endblock %}

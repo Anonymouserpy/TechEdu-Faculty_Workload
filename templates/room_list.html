@@ -1,0 +1,4118 @@
+{% extends 'base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}Rooms | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #1e40af;
+        --primary-hover: #1e3a8a;
+        --primary-soft: #eff6ff;
+        --primary-ring: rgba(30, 64, 175, 0.15);
+        --success: #047857;
+        --success-soft: #ecfdf5;
+        --warning: #b45309;
+        --warning-soft: #fffbeb;
+        --danger: #b91c1c;
+        --danger-soft: #fef2f2;
+        --ink-900: #0f172a;
+        --ink-700: #334155;
+        --ink-500: #64748b;
+        --ink-400: #94a3b8;
+        --ink-200: #e2e8f0;
+        --ink-100: #f1f5f9;
+        --ink-50:  #f8fafc;
+        --surface: #ffffff;
+        --page-bg: #f7f9fc;
+        --radius-sm: 6px;
+        --radius: 10px;
+        --radius-lg: 14px;
+        --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10);
+        --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.20);
+    }
+
+    .main-content {
+        padding: 32px 40px;
+        background: var(--page-bg);
+        min-height: calc(100vh - 64px);
+    }
+
+    .page-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+    }
+    .page-header-title { display: flex; flex-direction: column; gap: 4px; }
+    .page-header h1 {
+        font-size: 26px; font-weight: 700; color: var(--ink-900);
+        letter-spacing: -0.4px; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1 .title-icon { font-size: 24px; line-height: 1; }
+    .page-header p { color: var(--ink-500); font-size: 14px; margin: 0; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .btn {
+        padding: 9px 18px; border-radius: var(--radius-sm);
+        border: 1px solid transparent; font-size: 13.5px; font-weight: 600;
+        letter-spacing: 0.1px; cursor: pointer; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+        transition: all 0.18s ease; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 1px 2px rgba(30, 64, 175, 0.25); }
+    .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(30, 64, 175, 0.28); transform: translateY(-1px); }
+    .btn-outline { background: var(--surface); color: var(--ink-700); border-color: var(--ink-200); }
+    .btn-outline:hover { background: var(--ink-50); border-color: var(--ink-400); color: var(--ink-900); }
+    .btn-secondary { background: var(--ink-100); color: var(--ink-700); border-color: var(--ink-200); }
+    .btn-secondary:hover { background: var(--ink-200); color: var(--ink-900); }
+    .btn-warning { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+    .btn-warning:hover { background: #d97706; }
+
+    .count-badge {
+        background: var(--surface); color: var(--ink-700);
+        padding: 7px 14px; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 600; border: 1px solid var(--ink-200);
+        display: inline-flex; align-items: center; gap: 6px;
+        box-shadow: var(--shadow-xs);
+    }
+    .count-badge strong { color: var(--primary); font-weight: 700; }
+
+    .card {
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--ink-200); padding: 24px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .messages { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .message {
+        padding: 12px 16px; border-radius: var(--radius-sm);
+        font-size: 13.5px; font-weight: 500;
+        display: flex; align-items: center; gap: 10px;
+        transition: opacity 0.4s ease;
+        border: 1px solid transparent; box-shadow: var(--shadow-xs);
+    }
+    .message i { font-size: 15px; }
+    .message.success { background: var(--success-soft); color: var(--success); border-color: #a7f3d0; }
+    .message.error   { background: var(--danger-soft); color: var(--danger); border-color: #fecaca; }
+    .message.warning { background: var(--warning-soft); color: var(--warning); border-color: #fde68a; }
+
+    .filter-controls {
+        display: flex; gap: 10px; flex-wrap: wrap;
+        margin-bottom: 20px; padding-bottom: 20px;
+        border-bottom: 1px solid var(--ink-100);
+    }
+    .filter-controls input,
+    .filter-controls select {
+        padding: 9px 14px; border: 1px solid var(--ink-200);
+        border-radius: var(--radius-sm); font-size: 13.5px;
+        color: var(--ink-900); background: var(--surface);
+        font-family: inherit; transition: all 0.15s ease; outline: none;
+    }
+    .filter-controls input { flex: 1; min-width: 240px; }
+    .filter-controls select {
+        min-width: 160px; cursor: pointer; appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 12px center;
+        padding-right: 34px;
+    }
+    .filter-controls input:focus,
+    .filter-controls select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+    .filter-controls input::placeholder { color: var(--ink-400); }
+
+    .rooms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+    }
+    .room-card {
+        background: var(--surface); border-radius: var(--radius);
+        padding: 20px; border: 1px solid var(--ink-200);
+        transition: all 0.22s ease; position: relative;
+        display: flex; flex-direction: column; gap: 14px;
+    }
+    .room-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0;
+        height: 3px; border-radius: var(--radius) var(--radius) 0 0;
+        background: var(--ink-200); transition: background 0.22s ease;
+    }
+    .room-card[data-status="available"]::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .room-card[data-status="unavailable"]::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .room-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--ink-200); }
+
+    .room-card .room-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .room-card .room-name { font-size: 16px; font-weight: 700; color: var(--ink-900); letter-spacing: -0.2px; line-height: 1.3; }
+    .room-card .room-code {
+        font-size: 11.5px; color: var(--ink-700); background: var(--ink-100);
+        padding: 3px 10px; border-radius: 20px; font-weight: 600;
+        letter-spacing: 0.3px; white-space: nowrap; border: 1px solid var(--ink-200);
+    }
+    .room-card .room-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .room-card .room-detail-item { font-size: 13px; color: var(--ink-700); display: flex; flex-direction: column; gap: 3px; }
+    .room-card .room-detail-item strong {
+        color: var(--ink-500); font-size: 10.5px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .room-card .room-detail-item.program-item { grid-column: 1 / -1; }
+
+    .room-card .room-status {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 20px; font-size: 11.5px;
+        font-weight: 600; width: fit-content; letter-spacing: 0.2px;
+        border: none; cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .room-status.available { background: var(--success-soft); color: var(--success); border: 1px solid #a7f3d0; }
+    .room-status.unavailable { background: var(--danger-soft); color: var(--danger); border: 1px solid #fecaca; }
+    .room-status:hover { transform: scale(1.03); box-shadow: var(--shadow-xs); }
+    .room-status::before {
+        content: ''; width: 6px; height: 6px; border-radius: 50%;
+        background: currentColor; box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+    }
+    .room-card .room-actions {
+        display: flex; gap: 6px; margin-top: auto;
+        padding-top: 14px; border-top: 1px solid var(--ink-100);
+    }
+    .room-card .room-actions .action-btn {
+        flex: 1; padding: 7px 10px; border-radius: var(--radius-sm);
+        border: 1px solid transparent; font-size: 12px; font-weight: 600;
+        cursor: pointer; text-decoration: none; transition: all 0.15s ease;
+        display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .action-btn.edit { background: var(--warning-soft); color: var(--warning); border-color: #fde68a; }
+    .action-btn.edit:hover { background: #fde68a; color: #78350f; }
+    .action-btn.schedule { background: var(--primary-soft); color: var(--primary); border-color: #bfdbfe; }
+    .action-btn.schedule:hover { background: #dbeafe; color: var(--primary-hover); }
+    .action-btn.delete { background: var(--danger-soft); color: var(--danger); border-color: #fecaca; flex: 0 0 auto; min-width: 38px; }
+    .action-btn.delete:hover { background: #fecaca; color: #7f1d1d; }
+
+    .empty-state { text-align: center; padding: 72px 20px; color: var(--ink-500); grid-column: 1 / -1; }
+    .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; display: block; opacity: 0.5; }
+    .empty-state h4 { color: var(--ink-900); margin: 0 0 6px; font-size: 17px; font-weight: 700; }
+    .empty-state p { font-size: 14px; margin: 0; }
+
+    /* INLINE SCHEDULE PANEL */
+    .schedule-panel {
+        display: none;
+        background: var(--surface);
+        border: 1px solid var(--ink-200);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow-md);
+        margin-top: 24px;
+        animation: slideDown 0.25s ease;
+    }
+    .schedule-panel.open { display: block; }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .schedule-panel-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-bottom: 14px; border-bottom: 1px solid var(--ink-100);
+        margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+    }
+    .schedule-panel-header h2 {
+        font-size: 17px; color: var(--ink-900); margin: 0; font-weight: 700;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .schedule-panel-header h2 i { color: var(--primary); font-size: 18px; }
+    .schedule-panel-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .schedule-loading { text-align: center; padding: 60px 20px; color: var(--ink-500); font-size: 14px; }
+    .schedule-loading i { margin-right: 8px; color: var(--primary); }
+
+    .official-header {
+        border: 2px solid var(--ink-900); border-bottom: none;
+        padding: 14px 18px 10px; text-align: center; background: #fff;
+    }
+    .official-header .school { font-size: 13px; letter-spacing: 0.5px; color: var(--ink-700); font-weight: 600; }
+    .official-header .school-name { font-size: 16px; font-weight: 800; color: var(--ink-900); letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    .official-header .school-sub { font-size: 11.5px; color: var(--ink-500); margin-top: 2px; }
+    .official-header .college-name { font-size: 12.5px; font-weight: 700; color: var(--primary); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .official-header .form-title { font-size: 13px; font-weight: 700; color: var(--ink-900); margin-top: 4px; letter-spacing: 0.4px; }
+
+    .official-info {
+        display: grid; grid-template-columns: 1fr auto auto;
+        align-items: center; border: 2px solid var(--ink-900);
+        border-bottom: none; background: #fff;
+    }
+    .official-info .dept { padding: 8px 14px; font-size: 12.5px; font-weight: 700; color: var(--ink-900); letter-spacing: 0.3px; }
+    .official-info .label {
+        padding: 8px 14px; font-size: 12.5px; font-weight: 800;
+        color: var(--ink-900); letter-spacing: 1px;
+        background: #e8eef7; border-left: 2px solid var(--ink-900);
+    }
+    .official-info .value {
+        padding: 8px 22px; font-size: 13px; font-weight: 800;
+        color: var(--ink-900); letter-spacing: 1px;
+        background: #dbe7f5; border-left: 2px solid var(--ink-900);
+    }
+
+    .schedule-table-wrap { overflow-x: auto; border: 2px solid var(--ink-900); }
+    .schedule-table {
+        width: 100%; border-collapse: collapse;
+        font-size: 11.5px; background: var(--surface);
+        table-layout: fixed; min-width: 820px;
+    }
+    .schedule-table th,
+    .schedule-table td {
+        border: 1px solid #6b7280; padding: 4px;
+        text-align: center; vertical-align: middle;
+        word-wrap: break-word; overflow-wrap: break-word;
+        height: 26px;
+    }
+    .schedule-table thead th {
+        background: #d9e6d9; font-weight: 800; font-size: 10.5px;
+        color: var(--ink-900); letter-spacing: 0.8px;
+        padding: 8px 4px; text-transform: uppercase;
+    }
+
+    .schedule-table thead th.time-head { 
+        background: #c8dcc8; 
+        width: 115px;
+        white-space: nowrap; 
+    }
+    
+    .schedule-table td.time-col {
+        background: #f3f4f6; 
+        font-weight: 700; 
+        font-size: 10.5px;
+        color: var(--ink-700); 
+        letter-spacing: 0.2px;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        width: 115px;
+        padding: 4px 2px;
+        vertical-align: middle;
+    }
+
+    .schedule-table tr.lunch-row td {
+        background: #fef3c7 !important;
+        color: #92400e;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 2px;
+        font-size: 11px;
+        height: 30px;
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: default;
+    }
+    .schedule-table tr.lunch-row td.lunch-cell { text-transform: uppercase; }
+    .schedule-table tr.lunch-row td.time-col,
+    .schedule-table tr.lunch-row td.lunch-col {
+        background: #fde68a !important;
+        color: #78350f;
+        font-weight: 800;
+    }
+
+    .schedule-table td.room-empty-cell {
+        cursor: pointer;
+        transition: background 0.15s, box-shadow 0.15s;
+        min-height: 42px;
+    }
+    .schedule-table td.room-empty-cell:hover {
+        background: #f0f4ff;
+        box-shadow: inset 0 0 0 2px #93c5fd;
+    }
+    .schedule-table td.room-empty-cell.selected {
+        background: #c7d2fe !important;
+        box-shadow: inset 0 0 0 2px #4f46e5;
+    }
+    .schedule-table td.room-empty-cell.selected:hover {
+        background: #a5b4fc !important;
+    }
+
+    .schedule-table td.room-empty-cell.gap-warning {
+        background: #fecaca !important;
+        box-shadow: inset 0 0 0 2px #dc2626 !important;
+        animation: gapShake 0.4s ease;
+    }
+    .schedule-table td.room-empty-cell.gap-warning:hover {
+        background: #fca5a5 !important;
+    }
+
+    @keyframes gapShake {
+        0%, 100% { transform: translateX(0); }
+        25%      { transform: translateX(-2px); }
+        75%      { transform: translateX(2px); }
+    }
+
+    .selection-toolbar.has-gap {
+        background: #7f1d1d;
+        box-shadow:
+            0 12px 32px rgba(127, 29, 29, 0.45),
+            0 2px 8px rgba(127, 29, 29, 0.35);
+    }
+    .selection-toolbar.has-gap .st-count .st-dot {
+        background: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.30);
+        animation: stPulseRed 1.6s ease-in-out infinite;
+    }
+    @keyframes stPulseRed {
+        0%, 100% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.30); }
+        50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.15); }
+    }
+    .selection-toolbar.has-gap .st-btn.assign {
+        background: rgba(255,255,255,0.12);
+        color: #fca5a5;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+    .selection-toolbar.has-gap .st-count {
+        border-right-color: rgba(255,255,255,0.20);
+    }
+    .selection-toolbar.has-gap .st-count::after {
+        content: '⚠️ gap';
+        margin-left: 4px;
+        font-size: 11px;
+        color: #fca5a5;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+    .schedule-table td.sched-editable {
+        cursor: pointer;
+        transition: box-shadow 0.15s, filter 0.15s;
+    }
+    .schedule-table td.sched-editable:hover {
+        box-shadow: inset 0 0 0 2px #4f46e5;
+        filter: brightness(1.03);
+    }
+
+    .cell-block {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 2px; padding: 4px 3px;
+        min-height: 40px; border-radius: 3px;
+    }
+    .cell-block .subj { font-weight: 800; font-size: 11.5px; color: var(--ink-900); letter-spacing: -0.1px; line-height: 1.15; }
+    .cell-block .section { font-size: 10px; font-weight: 600; color: var(--ink-700); line-height: 1.15; }
+    .cell-block .faculty { font-size: 10px; font-style: italic; color: var(--ink-500); line-height: 1.15; }
+
+    .cell-block .sched-type {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        padding: 1px 7px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        line-height: 1.4;
+        margin-top: 3px;
+        display: inline-block;
+    }
+    .cell-block .sched-type.lecture {
+        background: rgba(30, 64, 175, 0.14);
+        color: #1e40af;
+        border: 1px solid rgba(30, 64, 175, 0.30);
+    }
+    .cell-block .sched-type.lab {
+        background: rgba(4, 120, 87, 0.14);
+        color: #047857;
+        border: 1px solid rgba(4, 120, 87, 0.30);
+    }
+
+    .color-0 { background: #cfe6cf; }
+    .color-1 { background: #f8c9c9; }
+    .color-2 { background: #fbe5c1; }
+    .color-3 { background: #e3cdb0; }
+    .color-4 { background: #cfe0f3; }
+    .color-5 { background: #f5d5dc; }
+    .color-6 { background: #d9d4ee; }
+    .color-7 { background: #fff2b3; }
+    .color-8 { background: #d2e6ea; }
+    .color-9 { background: #f4d2a1; }
+
+    .official-footer {
+        border: 2px solid var(--ink-900); border-top: none;
+        display: grid; grid-template-columns: 1fr 1fr 1fr;
+        text-align: center; font-size: 11px;
+    }
+    .official-footer .sig-block { padding: 12px 10px 14px; border-right: 2px solid var(--ink-900); }
+    .official-footer .sig-block:last-child { border-right: none; }
+    .official-footer .sig-label { color: var(--ink-700); font-weight: 600; margin-bottom: 26px; letter-spacing: 0.3px; }
+    .official-footer .sig-name {
+        font-weight: 800; color: var(--ink-900); letter-spacing: 0.3px;
+        text-transform: uppercase; border-top: 1px solid var(--ink-900); padding-top: 6px;
+    }
+    .official-footer .sig-role { font-size: 10.5px; color: var(--ink-500); margin-top: 2px; }
+
+    /* ══════════════════════════════════════════════════════════════
+       EDITABLE SIGNATURE BLOCK
+       ══════════════════════════════════════════════════════════════ */
+    .sig-name.sig-editable,
+    .sig-role.sig-editable {
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: 0 -4px;
+    }
+    .sig-name.sig-editable:hover,
+    .sig-role.sig-editable:hover {
+        background: var(--primary-soft);
+        box-shadow: inset 0 0 0 1px rgba(30, 64, 175, 0.25);
+    }
+    .sig-name.sig-editable::after {
+        content: ' ✏️';
+        font-size: 10px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+    .sig-name.sig-editable:hover::after {
+        opacity: 0.7;
+    }
+
+    .sig-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1150;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; opacity: 0; visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .sig-modal-overlay.open { opacity: 1; visibility: visible; }
+    .sig-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%; max-width: 460px;
+        box-shadow: var(--shadow-xl);
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .sig-modal-overlay.open .sig-modal { transform: translateY(0) scale(1); }
+    .sig-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--ink-100);
+    }
+    .sig-modal-header h2 {
+        font-size: 16px; color: var(--ink-900); margin: 2px 0 0;
+        font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .sig-modal-header h2 i { color: var(--primary); font-size: 15px; }
+    .sig-modal-body { padding: 16px 22px 6px; }
+    .sig-modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 12px 22px;
+        border-top: 1px solid var(--ink-100);
+        background: var(--ink-50);
+    }
+
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1000; display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 20px;
+        overflow-y: auto;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal-overlay .modal { margin: auto 0; }
+
+    .modal {
+        background: var(--surface); border-radius: var(--radius-lg);
+        width: 100%; max-width: 720px;
+        max-height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: var(--shadow-xl);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal.modal-bulk { max-width: 520px; }
+
+    .modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 26px 15px;
+        border-bottom: 1px solid var(--ink-100);
+        flex-shrink: 0; background: var(--surface);
+    }
+    .modal-header .modal-title-block { display: flex; flex-direction: column; gap: 3px; }
+    .modal-header .modal-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: var(--primary); text-transform: uppercase;
+    }
+    .modal-header h2 {
+        font-size: 17px; color: var(--ink-900); margin: 0; font-weight: 700;
+        letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px;
+    }
+    .modal-header h2 i { color: var(--primary); font-size: 16px; }
+    .modal-header .modal-subtitle {
+        font-size: 12px; color: var(--ink-500); margin-top: 1px;
+    }
+    .close-modal {
+        background: transparent; border: 1px solid var(--ink-200);
+        width: 32px; height: 32px;
+        border-radius: 8px; cursor: pointer; font-size: 14px;
+        color: var(--ink-500); display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s ease; flex-shrink: 0;
+    }
+    .close-modal:hover { background: var(--ink-100); color: var(--ink-900); border-color: #cbd5e1; }
+
+    .modal-body {
+        padding: 18px 16px 18px 26px;
+        flex: 1 1 auto;
+        flex-shrink: 1;
+        min-height: 0;
+        max-height: calc(90vh - 160px);
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+
+    .modal-body::-webkit-scrollbar { width: 10px; background: #f1f5f9; }
+    .modal-body::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+    .modal-body::-webkit-scrollbar-thumb {
+        background: #94a3b8; border-radius: 8px;
+        border: 2px solid #f1f5f9; background-clip: padding-box; min-height: 40px;
+    }
+    .modal-body::-webkit-scrollbar-thumb:hover { background: #64748b; background-clip: padding-box; }
+    .modal-body::-webkit-scrollbar-corner { background: #f1f5f9; }
+
+    .modal-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px;
+        padding: 14px 26px; border-top: 1px solid var(--ink-100);
+        background: var(--ink-50); flex-shrink: 0; flex-wrap: wrap;
+    }
+    .modal-footer .footer-hint {
+        font-size: 11.5px; color: var(--ink-500); font-weight: 500;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .modal-footer .footer-hint i { color: var(--primary); font-size: 12px; }
+    .modal-footer .footer-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .form-section {
+        margin-bottom: 16px; padding-bottom: 16px;
+        border-bottom: 1px dashed var(--ink-100);
+    }
+    .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .form-section h5 {
+        font-size: 11.5px; color: var(--ink-900); margin: 0 0 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.7px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .form-section h5 .section-num {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--primary-soft); color: var(--primary);
+        border: 1px solid rgba(30, 64, 175, 0.18);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 800; letter-spacing: 0;
+        flex-shrink: 0;
+    }
+    .form-section h5 .section-hint {
+        margin-left: auto; font-size: 11px; color: var(--ink-500);
+        font-weight: 500; text-transform: none; letter-spacing: 0;
+    }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .form-group { display: flex; flex-direction: column; margin-bottom: 4px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+
+    .form-label {
+        font-weight: 600; font-size: 12px; color: var(--ink-700);
+        margin-bottom: 6px; letter-spacing: 0.1px;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .required-star { color: var(--danger); font-size: 13px; line-height: 1; }
+
+    .form-control {
+        width: 100%; padding: 10px 13px;
+        border: 1px solid var(--ink-200);
+        border-radius: 8px; font-size: 13.5px; color: var(--ink-900);
+        background: var(--surface); font-family: inherit; box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .form-control:hover { border-color: #cbd5e1; }
+    .form-control:focus {
+        outline: none; border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-ring);
+        background: #fff;
+    }
+    .form-control::placeholder { color: var(--ink-400); }
+    .form-hint { font-size: 11px; color: var(--ink-500); margin-top: 4px; line-height: 1.3; }
+
+    select.form-control {
+        cursor: pointer; appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    .status-card {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 15px;
+        border: 1px solid var(--ink-200);
+        border-radius: 8px; cursor: pointer;
+        transition: all 0.15s ease; background: var(--surface);
+    }
+    .status-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .status-card input[type="checkbox"] {
+        width: 17px; height: 17px; cursor: pointer;
+        accent-color: var(--primary); flex-shrink: 0;
+    }
+    .status-card label {
+        cursor: pointer; font-weight: 600; font-size: 13px;
+        color: var(--ink-700); margin: 0;
+    }
+
+    .modal-message {
+        padding: 10px 14px; border-radius: 8px;
+        font-size: 13px; margin-bottom: 14px; display: none;
+        border-left: 3px solid transparent;
+        white-space: pre-line;
+        line-height: 1.5;
+    }
+    .modal-message.error {
+        background: #fef2f2;
+        color: #b42318;
+        border: 1px solid #fecaca;
+        border-left: 3px solid #dc2626;
+        display: block;
+    }
+    .modal-message.success {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+        border-left: 3px solid #10b981;
+        display: block;
+    }
+    .modal-message.info {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+        border-left: 3px solid var(--primary);
+        display: block;
+    }
+
+    .selected-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .selected-chips .chip {
+        display: inline-block; background: #e0e7ff; color: #3730a3;
+        padding: 2px 8px; border-radius: 10px;
+        font-size: 11.5px; font-weight: 600;
+    }
+
+    .step-indicator {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 14px; background: var(--ink-50);
+        border-radius: 8px; margin-bottom: 18px;
+        border: 1px solid var(--ink-100);
+    }
+    .step-indicator .step {
+        display: flex; align-items: center; gap: 7px;
+        font-size: 12px; font-weight: 600;
+        color: var(--ink-400);
+        transition: color 0.2s ease;
+    }
+    .step-indicator .step .step-num {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--ink-200); color: var(--ink-500);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 800;
+        transition: all 0.2s ease;
+    }
+    .step-indicator .step.active { color: var(--primary); }
+    .step-indicator .step.active .step-num {
+        background: var(--primary); color: #fff;
+        box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+    .step-indicator .step.done .step-num {
+        background: var(--success); color: #fff;
+    }
+    .step-indicator .step-divider {
+        width: 20px; height: 2px;
+        background: var(--ink-200);
+        border-radius: 2px;
+    }
+
+    .teacher-list-wrap {
+        display: flex; flex-direction: column; gap: 8px;
+        max-height: 260px; overflow-y: auto;
+        padding: 4px;
+        margin-top: 4px;
+    }
+    .teacher-option {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--ink-200);
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--surface);
+        transition: all 0.15s ease;
+    }
+    .teacher-option:hover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+    }
+    .teacher-option.selected {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+    .teacher-option .to-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #fff; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 800;
+        letter-spacing: 0.3px;
+    }
+    .teacher-option .to-info { flex: 1; min-width: 0; }
+    .teacher-option .to-name {
+        font-size: 13.5px; font-weight: 700; color: var(--ink-900);
+        line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .teacher-option .to-dept {
+        font-size: 11.5px; color: var(--ink-500); margin-top: 2px;
+    }
+    .teacher-option .to-check {
+        color: var(--primary); font-size: 16px;
+        opacity: 0; transition: opacity 0.15s ease;
+    }
+    .teacher-option.selected .to-check { opacity: 1; }
+
+    .teacher-search {
+        width: 100%;
+        padding: 10px 13px;
+        border: 1px solid var(--ink-200);
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        margin-bottom: 8px;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .teacher-search:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+
+    .current-status-display {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px;
+        padding: 11px 15px;
+        background: var(--ink-50);
+        border-radius: 8px;
+        border: 1px solid var(--ink-100);
+        margin-bottom: 16px;
+    }
+    .current-status-display .label {
+        font-size: 11px; font-weight: 700;
+        color: var(--ink-500);
+        text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .current-status-display .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 20px;
+        font-size: 11.5px; font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+    .current-status-display .pill.available { background: var(--success-soft); color: var(--success); border: 1px solid #a7f3d0; }
+    .current-status-display .pill.unavailable { background: var(--danger-soft); color: var(--danger); border: 1px solid #fecaca; }
+    .current-status-display .pill::before {
+        content: ''; width: 6px; height: 6px; border-radius: 50%;
+        background: currentColor;
+    }
+
+    .avail-toggle-wrap {
+        display: flex; align-items: center; gap: 14px;
+        padding: 13px 16px;
+        background: var(--surface);
+        border: 1px solid var(--ink-200);
+        border-radius: 8px;
+        transition: all 0.15s ease;
+    }
+    .avail-toggle-wrap.available { background: var(--success-soft); border-color: #a7f3d0; }
+    .avail-toggle-wrap.unavailable { background: var(--danger-soft); border-color: #fecaca; }
+    .avail-toggle-switch {
+        position: relative;
+        width: 44px; height: 24px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+    .avail-toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .avail-toggle-slider {
+        position: absolute; inset: 0;
+        background: #cbd5e1;
+        border-radius: 20px;
+        transition: background 0.2s ease;
+    }
+    .avail-toggle-slider::before {
+        content: ''; position: absolute;
+        width: 18px; height: 18px;
+        left: 3px; top: 3px;
+        background: #fff; border-radius: 50%;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .avail-toggle-switch input:checked + .avail-toggle-slider { background: #10b981; }
+    .avail-toggle-switch input:checked + .avail-toggle-slider::before { transform: translateX(20px); }
+    .avail-toggle-info { flex: 1; min-width: 0; }
+    .avail-toggle-info .t-title {
+        font-size: 13.5px; font-weight: 700; color: var(--ink-900);
+        line-height: 1.2;
+    }
+    .avail-toggle-info .t-sub {
+        font-size: 11.5px; color: var(--ink-500); margin-top: 2px;
+    }
+
+    .sched-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1100;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; opacity: 0; visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .sched-modal-overlay.open { opacity: 1; visibility: visible; }
+    .sched-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%; max-width: 480px;
+        max-height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: var(--shadow-xl);
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .sched-modal-overlay.open .sched-modal { transform: translateY(0) scale(1); }
+    .sched-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--ink-100);
+        flex-shrink: 0;
+    }
+    .sched-modal-header .modal-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: var(--primary); text-transform: uppercase;
+    }
+    .sched-modal-header h2 {
+        font-size: 16px; color: var(--ink-900); margin: 2px 0 0;
+        font-weight: 700; letter-spacing: -0.3px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .sched-modal-header h2 i { color: var(--primary); font-size: 15px; }
+    .sched-modal-body { padding: 16px 22px 4px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+    .sched-modal-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 10px; padding: 12px 22px;
+        border-top: 1px solid var(--ink-100);
+        background: var(--ink-50); flex-shrink: 0;
+    }
+    .sched-modal-footer .sched-delete-btn {
+        background: var(--danger-soft); color: var(--danger);
+        border: 1px solid #fecaca;
+        padding: 8px 14px; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 600; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: all 0.15s ease;
+    }
+    .sched-modal-footer .sched-delete-btn:hover { background: #fecaca; color: #7f1d1d; }
+    .sched-modal-footer .sched-save-btn {
+        background: var(--primary); color: #fff;
+        border: 1px solid var(--primary);
+        padding: 8px 18px; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 600; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: all 0.15s ease;
+    }
+    .sched-modal-footer .sched-save-btn:hover { background: var(--primary-hover); }
+
+    .sched-detail-card {
+        background: var(--ink-50); border: 1px solid var(--ink-100);
+        border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .sched-detail-row {
+        display: flex; justify-content: space-between; gap: 10px;
+        font-size: 12.5px; padding: 4px 0;
+    }
+    .sched-detail-row .k {
+        color: var(--ink-500); font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.4px; font-size: 10.5px;
+        padding-top: 2px;
+    }
+    .sched-detail-row .v { color: var(--ink-900); font-weight: 600; text-align: right; }
+
+    /* ALL CLASS PROGRAMS MODAL */
+    .acp-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 1200;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .acp-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .acp-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%; max-width: 1280px;
+        height: 90vh;
+        display: flex; flex-direction: column;
+        box-shadow: var(--shadow-xl);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .acp-modal-overlay.open .acp-modal { transform: translateY(0) scale(1); }
+
+    .acp-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 26px 15px;
+        border-bottom: 1px solid var(--ink-100);
+        flex-shrink: 0;
+    }
+    .acp-header .acp-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: var(--primary); text-transform: uppercase;
+    }
+    .acp-header h2 {
+        font-size: 18px; color: var(--ink-900); margin: 2px 0 0;
+        font-weight: 700; letter-spacing: -0.3px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .acp-header h2 i { color: var(--primary); font-size: 17px; }
+
+    .acp-body {
+        flex: 1 1 auto;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .acp-sidebar {
+        border-right: 1px solid var(--ink-100);
+        background: var(--ink-50);
+        display: flex; flex-direction: column;
+        min-height: 0;
+    }
+    .acp-sidebar-header {
+        padding: 12px 14px 8px;
+        border-bottom: 1px solid var(--ink-100);
+        flex-shrink: 0;
+    }
+    .acp-sidebar-header input {
+        width: 100%; padding: 8px 12px;
+        border: 1px solid var(--ink-200);
+        border-radius: 8px; font-size: 13px;
+        font-family: inherit; box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .acp-sidebar-header input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+    .acp-sidebar-list {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 8px;
+        min-height: 0;
+    }
+    .acp-sidebar-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+    }
+    .acp-sidebar-item:hover { background: #e0e7ff; }
+    .acp-sidebar-item.active {
+        background: var(--primary-soft);
+        border-color: var(--primary);
+    }
+    .acp-sidebar-item .acp-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #fff; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 800;
+    }
+    .acp-sidebar-item .acp-item-info { flex: 1; min-width: 0; }
+    .acp-sidebar-item .acp-item-name {
+        font-size: 13px; font-weight: 700; color: var(--ink-900);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .acp-sidebar-item .acp-item-dept {
+        font-size: 11px; color: var(--ink-500);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .acp-main {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--page-bg);
+    }
+
+    .acp-tabs {
+        display: flex;
+        gap: 0;
+        padding: 0 24px;
+        border-bottom: 1px solid var(--ink-200);
+        background: var(--surface);
+        flex-shrink: 0;
+    }
+    .acp-tab {
+        padding: 14px 20px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink-500);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .acp-tab:hover {
+        color: var(--ink-900);
+        background: var(--ink-50);
+    }
+    .acp-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: var(--primary-soft);
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+    }
+
+    .acp-content-wrapper {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 20px 24px;
+        min-height: 0;
+    }
+
+    .acp-empty {
+        text-align: center; padding: 80px 20px;
+        color: var(--ink-500); font-size: 14px;
+    }
+    .acp-empty .acp-empty-icon {
+        font-size: 56px; opacity: 0.4;
+        margin-bottom: 12px; display: block;
+    }
+    .acp-empty h4 { color: var(--ink-900); margin: 0 0 6px; font-size: 17px; }
+
+    .acp-info-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; flex-wrap: wrap;
+        padding: 12px 16px;
+        background: var(--surface);
+        border: 1px solid var(--ink-200);
+        border-radius: 10px;
+        margin-bottom: 14px;
+    }
+    .acp-info-bar .acp-fac-name {
+        font-size: 15px; font-weight: 700; color: var(--ink-900);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .acp-info-bar .acp-fac-name .acp-avatar-sm {
+        width: 30px; height: 30px; border-radius: 50%;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800;
+    }
+    .acp-info-bar .acp-fac-dept {
+        font-size: 12px; color: var(--ink-500); margin-top: 2px;
+    }
+    .acp-info-bar .acp-fac-stats {
+        display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .acp-info-bar .acp-stat {
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 11.5px; font-weight: 700;
+        padding: 4px 12px; border-radius: 20px;
+        border: 1px solid #bfdbfe;
+    }
+
+    .acp-loading {
+        text-align: center; padding: 60px 20px;
+        color: var(--ink-500); font-size: 14px;
+    }
+    .acp-loading i {
+        margin-right: 8px; color: var(--primary);
+    }
+
+    .acp-schedule-wrap {
+        background: var(--surface);
+        border: 1px solid var(--ink-200);
+        border-radius: 10px;
+        padding: 14px;
+        overflow-x: auto;
+    }
+    .acp-schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        min-width: 900px;
+        font-size: 11.5px;
+    }
+    .acp-schedule-table th,
+    .acp-schedule-table td {
+        border: 1px solid #cbd5e1;
+        padding: 4px;
+        text-align: center;
+        vertical-align: middle;
+        height: 60px;
+    }
+    .acp-schedule-table thead th {
+        background: #dbeafe;
+        font-weight: 700;
+        color: var(--ink-900);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 8px 4px;
+        height: 40px;
+    }
+    .acp-schedule-table th.time-col-header { width: 110px; }
+    .acp-schedule-table .acp-time-col {
+        background: #f1f5f9;
+        font-weight: 700;
+        color: var(--ink-700);
+        font-size: 11px;
+        white-space: nowrap;
+        width: 110px;
+    }
+    .acp-schedule-table .acp-time-col.noon {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .acp-schedule-table td.acp-cell {
+        background: #fff;
+        padding: 4px;
+        transition: background 0.15s ease;
+    }
+    .acp-schedule-table td.acp-cell.has-sched {
+        background: #eff6ff;
+    }
+    .acp-schedule-table td.acp-cell.has-sched.lab {
+        background: #fef3c7;
+    }
+    .acp-schedule-table td.acp-cell.noon {
+        background: #fef3c7;
+        color: #92400e;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .acp-cell-block {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 1px;
+        height: 100%;
+        overflow: hidden;
+    }
+    .acp-cell-block .acp-subj {
+        font-weight: 800; color: #1e40af;
+        font-size: 11.5px; line-height: 1.15;
+    }
+    .acp-cell-block.lab .acp-subj { color: #92400e; }
+    .acp-cell-block .acp-desc {
+        font-size: 10px; color: var(--ink-700);
+        font-weight: 500; line-height: 1.15;
+    }
+    .acp-cell-block .acp-section {
+        font-size: 10px; color: var(--ink-700);
+        font-weight: 500; line-height: 1.15;
+    }
+    .acp-cell-block .acp-room {
+        font-size: 9.5px;
+        color: var(--ink-500);
+        background: #e5e7eb;
+        padding: 1px 6px;
+        border-radius: 8px;
+        margin-top: 2px;
+    }
+    .acp-cell-block .acp-type {
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-top: 2px;
+    }
+    .acp-cell-block .acp-type.lec { background: #dbeafe; color: #1e40af; }
+    .acp-cell-block .acp-type.lab { background: #fde68a; color: #92400e; }
+
+    /* FLOATING BUBBLE BUTTON */
+    .acp-bubble {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 1190;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 20px 14px 16px;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        box-shadow:
+            0 8px 20px rgba(30, 64, 175, 0.35),
+            0 2px 6px rgba(30, 64, 175, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.22s ease;
+        font-family: inherit;
+        overflow: visible;
+    }
+    .acp-bubble:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow:
+            0 12px 28px rgba(30, 64, 175, 0.45),
+            0 4px 10px rgba(30, 64, 175, 0.30);
+    }
+    .acp-bubble:active {
+        transform: translateY(-1px) scale(0.99);
+    }
+    .acp-bubble-icon {
+        font-size: 18px;
+        line-height: 1;
+        display: inline-block;
+    }
+    .acp-bubble-label {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .acp-bubble-pulse {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.55);
+        z-index: -1;
+        animation: acpPulse 2.4s ease-out infinite;
+        pointer-events: none;
+    }
+    @keyframes acpPulse {
+        0%   { transform: scale(1);    opacity: 0.55; }
+        70%  { transform: scale(1.25); opacity: 0;    }
+        100% { transform: scale(1.25); opacity: 0;    }
+    }
+
+    .acp-bubble.bubble-behind {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(20px) scale(0.9);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SUBJECTS CARDS
+       ══════════════════════════════════════════════════════════════ */
+    .subj-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+    }
+    .subj-card {
+        background: var(--surface);
+        border: 1px solid var(--ink-200);
+        border-radius: 10px;
+        padding: 16px;
+        display: flex; flex-direction: column; gap: 8px;
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+        border-left: 4px solid var(--success);
+    }
+    .subj-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    .subj-card .subj-code {
+        font-size: 15px; font-weight: 800; color: var(--ink-900);
+        letter-spacing: -0.2px;
+    }
+    .subj-card .subj-desc {
+        font-size: 12.5px; color: var(--ink-700);
+        line-height: 1.35;
+    }
+    .subj-card .subj-meta {
+        display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+    }
+    .subj-card .subj-pill {
+        font-size: 10.5px; font-weight: 700;
+        padding: 3px 9px; border-radius: 20px;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+    }
+    .subj-card .subj-pill.section {
+        background: var(--primary-soft); color: var(--primary);
+        border: 1px solid #bfdbfe;
+    }
+    .subj-card .subj-pill.lec {
+        background: #ecfdf5; color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+    .subj-card .subj-pill.lab {
+        background: #fffbeb; color: #b45309;
+        border: 1px solid #fde68a;
+    }
+    .subj-card .subj-pill.students {
+        background: var(--ink-100); color: var(--ink-700);
+        border: 1px solid var(--ink-200);
+    }
+    .subj-card .subj-progress {
+        margin-top: 6px;
+        height: 6px;
+        background: var(--ink-100);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+    }
+    .subj-card .subj-progress .bar-lec {
+        background: #10b981;
+        height: 100%;
+    }
+    .subj-card .subj-progress .bar-lab {
+        background: #f59e0b;
+        height: 100%;
+    }
+    .subj-card .subj-progress-label {
+        font-size: 10.5px; color: var(--ink-500);
+        margin-top: 4px;
+        display: flex; justify-content: space-between;
+    }
+
+    /* FLOATING SELECTION TOOLBAR */
+    .selection-toolbar {
+        position: fixed;
+        z-index: 1300;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px 8px 12px;
+        background: #0f172a;
+        color: #fff;
+        border-radius: 12px;
+        box-shadow:
+            0 12px 32px rgba(15, 23, 42, 0.35),
+            0 2px 8px rgba(15, 23, 42, 0.25);
+        font-size: 12.5px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: auto;
+        transform-origin: top left;
+        animation: selToolbarIn 0.18s ease;
+    }
+    .selection-toolbar.visible { display: inline-flex; }
+
+    .selection-toolbar::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.08);
+        z-index: -1;
+    }
+
+    .selection-toolbar .st-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding-right: 10px;
+        border-right: 1px solid rgba(255,255,255,0.15);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    .selection-toolbar .st-count .st-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+        animation: stPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes stPulse {
+        0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
+        50%      { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.10); }
+    }
+
+    .selection-toolbar .st-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 700;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .selection-toolbar .st-btn.assign {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .selection-toolbar .st-btn.assign:hover {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        transform: translateY(-1px);
+    }
+    .selection-toolbar .st-btn.clear {
+        background: rgba(255,255,255,0.10);
+        color: #f1f5f9;
+        border: 1px solid rgba(255,255,255,0.10);
+    }
+    .selection-toolbar .st-btn.clear:hover {
+        background: rgba(239, 68, 68, 0.18);
+        color: #fecaca;
+        border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .selection-toolbar .st-arrow {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #0f172a;
+        transform: rotate(45deg);
+        border-radius: 2px;
+    }
+    .selection-toolbar.pos-top .st-arrow    { bottom: -4px; left: 20px; }
+    .selection-toolbar.pos-bottom .st-arrow { top: -4px;    left: 20px; }
+    .selection-toolbar.pos-left .st-arrow   { right: -4px;  top: 16px; }
+    .selection-toolbar.pos-right .st-arrow  { left: -4px;   top: 16px; }
+
+    @keyframes selToolbarIn {
+        from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    body.modal-open .selection-toolbar {
+        display: none !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #roomBulkAssignBtn,
+    #roomClearSelectionBtn {
+        display: none !important;
+    }
+
+    @media (max-width: 900px) {
+        .acp-body { grid-template-columns: 1fr; }
+        .acp-sidebar {
+            max-height: 200px;
+            border-right: none;
+            border-bottom: 1px solid var(--ink-100);
+        }
+        .acp-modal { height: 95vh; }
+    }
+
+    @media (max-width: 900px) {
+        .main-content { padding: 20px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .header-actions { width: 100%; }
+    }
+    @media (max-width: 640px) {
+        .rooms-grid { grid-template-columns: 1fr; }
+        .form-grid { grid-template-columns: 1fr; }
+        .filter-controls { flex-direction: column; }
+        .filter-controls input,
+        .filter-controls select { width: 100%; min-width: unset; }
+        .modal-overlay { padding: 12px; }
+        .modal { max-height: 92vh; }
+        .modal-body { max-height: calc(92vh - 160px); }
+        .modal-header, .modal-body, .modal-footer { padding-left: 18px; padding-right: 18px; }
+        .modal-footer { flex-direction: column-reverse; align-items: stretch; }
+        .modal-footer .footer-actions { width: 100%; }
+        .modal-footer .footer-actions .btn { flex: 1; justify-content: center; }
+        .schedule-table { font-size: 10px; min-width: 680px; }
+        .schedule-table td.time-col,
+        .schedule-table thead th.time-head { width: 72px; font-size: 9.5px; }
+        .schedule-panel-header { flex-direction: column; align-items: flex-start; }
+        .schedule-panel-actions { width: 100%; }
+        .schedule-panel-actions .btn { flex: 1; justify-content: center; }
+        .step-indicator { flex-wrap: wrap; }
+
+        .acp-bubble {
+            padding: 14px;
+            width: 56px;
+            height: 56px;
+            justify-content: center;
+            bottom: 20px;
+            right: 20px;
+        }
+        .acp-bubble-label { display: none; }
+        .acp-bubble-icon { font-size: 22px; }
+
+        .selection-toolbar {
+            font-size: 11.5px;
+            padding: 6px 8px 6px 10px;
+            gap: 4px;
+        }
+        .selection-toolbar .st-btn { padding: 6px 10px; font-size: 11.5px; }
+        .selection-toolbar .st-count { font-size: 11px; padding-right: 8px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PRINT STYLES — Absolute One Page Fit (No 2nd Page, Fills Space)
+       ══════════════════════════════════════════════════════════════ */
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+
+        #schedulePanel,
+        #schedulePanel * {
+            visibility: visible !important;
+        }
+
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            overflow: hidden !important;
+            height: 100% !important;
+        }
+
+        .acp-bubble, .selection-toolbar,
+        .schedule-panel-header, .schedule-panel-actions {
+            display: none !important;
+        }
+
+        @page {
+            size: portrait;
+            margin: 8mm !important;
+        }
+
+        #schedulePanel {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            border: none !important;
+            box-shadow: none !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        #schedulePanelBody {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            width: 100% !important;
+        }
+
+        .official-header .school,
+        .official-header .school-sub,
+        .cell-block .faculty,
+        .official-footer .sig-role {
+            color: #000 !important;
+        }
+
+        .schedule-table-wrap {
+            border: 2px solid #000 !important;
+            flex: 1 1 auto !important;
+            width: 100% !important; 
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        .schedule-table {
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 0 !important; 
+            table-layout: fixed !important; 
+            border-collapse: collapse !important;
+            font-size: 8pt !important;
+        }
+
+        .schedule-table thead th.time-head,
+        .schedule-table td.time-col {
+            width: 14% !important; 
+            font-size: 7.5pt !important; 
+            white-space: normal !important; 
+            padding: 2px !important;
+            text-align: center !important;
+        }
+
+        .schedule-table thead th:not(.time-head) {
+            width: 17.2% !important; 
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 2px !important;
+            line-height: 1.1 !important;
+            word-break: break-all !important; 
+            overflow-wrap: break-word !important;
+        }
+
+        .cell-block .subj    { font-size: 8.5pt !important; }
+        .cell-block .section { font-size: 8pt !important; }
+        .cell-block .faculty { font-size: 7.5pt !important; }
+        .cell-block .sched-type { font-size: 7pt !important; padding: 0 4px !important; margin-top: 2px !important; }
+
+        .official-header { padding: 8px !important; flex-shrink: 0 !important; }
+        .official-header .school-name { font-size: 13pt !important; }
+        .official-header .school-sub, .official-header .school { font-size: 9pt !important; }
+        
+        .official-info { flex-shrink: 0 !important; }
+        .official-info .dept, .official-info .label, .official-info .value { padding: 6px 10px !important; font-size: 9.5pt !important; }
+        
+        .official-footer { padding: 10px !important; flex-shrink: 0 !important; }
+        .official-footer .sig-label { margin-bottom: 25px !important; font-size: 9.5pt !important; }
+        .official-footer .sig-name { font-size: 10pt !important; }
+
+        .official-footer, .schedule-table tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Hide editable affordances in print */
+        .sig-name.sig-editable::after { display: none !important; }
+        .sig-name.sig-editable,
+        .sig-role.sig-editable {
+            box-shadow: none !important;
+            background: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            cursor: default !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div class="page-header-title">
+            <h1><span class="title-icon">🏫</span> Rooms</h1>
+            <p>View all rooms and assign your own schedules</p>
+        </div>
+        <div class="header-actions">
+            <span class="count-badge"><strong>{{ room_count }}</strong> Rooms</span>
+            {% if faculty.is_chairman %}
+                <button type="button" class="btn btn-primary" onclick="openAddRoomModal()">
+                    <i class="fas fa-plus"></i> Add Room
+                </button>
+                <a href="{% url 'utilization' %}" class="btn btn-outline">
+                    <i class="fas fa-chart-bar"></i> Utilization
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="filter-controls">
+            <input type="text" id="searchInput" placeholder="Search rooms by name, code, or building..." onkeyup="filterRooms()">
+            <select id="filterStatus" onchange="filterRooms()">
+                <option value="all">All Rooms</option>
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+            </select>
+            <select id="filterBuilding" onchange="filterRooms()">
+                <option value="all">All Buildings</option>
+                {% for room in rooms %}
+                    <option value="{{ room.building_name }}">{{ room.building_name }}</option>
+                {% endfor %}
+            </select>
+            <select id="filterProgram" onchange="filterRooms()">
+                <option value="all">All Programs</option>
+                <option value="BTLED">BTLED — Bachelor of Technology and Livelihood Education</option>
+                <option value="BTVTED">BTVTED — Bachelor of Technical-Vocational Teacher Education</option>
+            </select>
+        </div>
+
+        <div class="rooms-grid" id="roomsGrid">
+            {% for room in rooms %}
+                <div class="room-card"
+                     id="room-card-{{ room.id }}"
+                     data-room-id="{{ room.id }}"
+                     data-room-name="{{ room.room_name }}"
+                     data-room-code="{{ room.room_code }}"
+                     data-building="{{ room.building_name }}"
+                     data-floor="{{ room.floor_number }}"
+                     data-program="{{ room.program }}"
+                     data-status="{% if room.is_available %}available{% else %}unavailable{% endif %}">
+                    <div class="room-header">
+                        <span class="room-name">{{ room.room_name }}</span>
+                        <span class="room-code">{{ room.room_code }}</span>
+                    </div>
+                    <div class="room-details">
+                        <div class="room-detail-item">
+                            <strong>Building</strong>
+                            {{ room.building_name }}
+                        </div>
+                        <div class="room-detail-item">
+                            <strong>Floor</strong>
+                            {{ room.floor_number }}
+                        </div>
+                        <div class="room-detail-item program-item">
+                            <strong>Program</strong>
+                            {{ room.get_program_display }}
+                        </div>
+                    </div>
+
+                    {% if faculty.is_chairman %}
+                        <button type="button"
+                                class="room-status {% if room.is_available %}available{% else %}unavailable{% endif %}"
+                                id="room-status-{{ room.id }}"
+                                title="Click to toggle availability"
+                                onclick="toggleRoomAvailability({{ room.id }}, this)">
+                            {% if room.is_available %}Available{% else %}Unavailable{% endif %}
+                        </button>
+                    {% else %}
+                        <span class="room-status {% if room.is_available %}available{% else %}unavailable{% endif %}">
+                            {% if room.is_available %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                    {% endif %}
+
+                    <div class="room-actions">
+                        {% if faculty.is_chairman %}
+                            <a href="#" class="action-btn edit"
+                               onclick="openEditRoomModal(
+                                   {{ room.id }},
+                                   '{{ room.room_name|escapejs }}',
+                                   '{{ room.room_code|escapejs }}',
+                                   '{{ room.building_name|escapejs }}',
+                                   '{{ room.floor_number }}',
+                                   {% if room.is_available %}true{% else %}false{% endif %},
+                                   '{{ room.program|escapejs }}'
+                               ); return false;">
+                                <i class="fas fa-pen"></i> Edit
+                            </a>
+                        {% endif %}
+                        <a href="#" class="action-btn schedule"
+                           onclick="loadScheduleInline({{ room.id }}, '{{ room.room_code }}'); return false;">
+                           <i class="fas fa-calendar-alt"></i> Schedule
+                        </a>
+                        {% if faculty.is_chairman %}
+                            <a href="#" class="action-btn delete" title="Delete room"><i class="fas fa-trash"></i>Delete</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <span class="empty-icon">🏫</span>
+                    <h4>No rooms found</h4>
+                    <p>Rooms will appear here once added.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- INLINE SCHEDULE PANEL -->
+    <div class="schedule-panel" id="schedulePanel">
+        <div class="schedule-panel-header">
+            <h2>
+                <i class="fas fa-calendar-alt"></i>
+                Room Utilization — <span id="inlineRoomCode">—</span>
+            </h2>
+            <div class="schedule-panel-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeSchedulePanel()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printRoomSchedule()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <div id="schedulePanelBody">
+            <div class="schedule-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading schedule...
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING SELECTION TOOLBAR -->
+    <div class="selection-toolbar" id="selectionToolbar">
+        <span class="st-count">
+            <span class="st-dot"></span>
+            <span id="stCount">0</span> selected
+        </span>
+        <button type="button" class="st-btn assign" onclick="openRoomBulkAssign()">
+            📋 Assign
+        </button>
+        <button type="button" class="st-btn clear" onclick="clearRoomSelection()">
+            ✕ Clear
+        </button>
+        <span class="st-arrow"></span>
+    </div>
+
+    {% if faculty.is_chairman %}
+    <div class="modal-overlay" id="addRoomModal" onclick="handleOverlayClick(event)">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <div class="modal-title-block">
+                    <span class="modal-eyebrow">Room Management</span>
+                    <h2 id="modalTitle"><i class="fas fa-door-open"></i> Add New Room</h2>
+                    <span class="modal-subtitle">Register a new room so faculty can schedule classes in it.</span>
+                </div>
+                <button type="button" class="close-modal" onclick="closeAddRoomModal()" title="Close">✕</button>
+            </div>
+
+            <form method="post" action="{% url 'room_create' %}" id="addRoomForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h5><span class="section-num">1</span> Room Identity</h5>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="room_name" class="form-label">Room Name <span class="required-star">*</span></label>
+                                <input type="text" id="room_name" name="room_name" class="form-control"
+                                       placeholder="e.g., Room 101, Computer Lab"
+                                       value="{{ form_data.room_name|default:'' }}" required>
+                                <span class="form-hint">A short, descriptive name shown on cards.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="room_code" class="form-label">Room Code <span class="required-star">*</span></label>
+                                <input type="text" id="room_code" name="room_code" class="form-control"
+                                       placeholder="e.g., R101, CLAB-01"
+                                       value="{{ form_data.room_code|default:'' }}" required>
+                                <span class="form-hint">Unique identifier for the room.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">2</span> Program Assignment</h5>
+                        <div class="form-group full-width">
+                            <label for="program" class="form-label">Program / Department <span class="required-star">*</span></label>
+                            <select id="program" name="program" class="form-control" required>
+                                <option value="">— Select Program —</option>
+                                <option value="BTLED"  {% if form_data.program == 'BTLED'  %}selected{% endif %}>
+                                    Bachelor of Technology and Livelihood Education
+                                </option>
+                                <option value="BTVTED" {% if form_data.program == 'BTVTED' %}selected{% endif %}>
+                                    Bachelor of Technical-Vocational Teacher Education
+                                </option>
+                            </select>
+                            <span class="form-hint">Determines the department printed on the room utilization form.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">3</span> Location</h5>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="building_name" class="form-label">Building <span class="required-star">*</span></label>
+                                <input type="text" id="building_name" name="building_name" class="form-control"
+                                       placeholder="e.g., Main Building"
+                                       value="{{ form_data.building_name|default:'' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="floor_number" class="form-label">Floor Number <span class="required-star">*</span></label>
+                                <input type="number" id="floor_number" name="floor_number" class="form-control"
+                                       placeholder="e.g., 1, 2, 3" min="0"
+                                       value="{{ form_data.floor_number|default:'' }}" required>
+                                <span class="form-hint">Use 0 for ground floor.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">4</span> Availability</h5>
+                        <div class="status-card">
+                            <input type="checkbox" id="is_available" name="is_available"
+                                   {% if form_data.is_available or not form_data %}checked{% endif %}>
+                            <label for="is_available">Room is available for scheduling</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="footer-hint">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Fields marked <strong style="color:var(--danger);">*</strong> are required.</span>
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddRoomModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save Room</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if faculty.is_chairman %}
+    <div class="modal-overlay" id="editRoomModal" onclick="handleEditOverlayClick(event)">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <div class="modal-header">
+                <div class="modal-title-block">
+                    <span class="modal-eyebrow">Room Management</span>
+                    <h2 id="editModalTitle"><i class="fas fa-pen"></i> Edit Room</h2>
+                    <span class="modal-subtitle">Update room details, program, or availability.</span>
+                </div>
+                <button type="button" class="close-modal" onclick="closeEditRoomModal()" title="Close">✕</button>
+            </div>
+
+            <form id="editRoomForm" onsubmit="return submitEditRoom(event);">
+                {% csrf_token %}
+                <input type="hidden" id="edit_room_id" name="room_id" value="">
+                <div class="modal-body">
+                    <div class="modal-message" id="editRoomMsg"></div>
+
+                    <div class="current-status-display">
+                        <span class="label">Current Status</span>
+                        <span class="pill available" id="editCurrentPill">Available</span>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">1</span> Room Identity</h5>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="edit_room_name" class="form-label">Room Name <span class="required-star">*</span></label>
+                                <input type="text" id="edit_room_name" name="room_name" class="form-control"
+                                       placeholder="e.g., Room 101, Computer Lab" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_room_code" class="form-label">Room Code <span class="required-star">*</span></label>
+                                <input type="text" id="edit_room_code" name="room_code" class="form-control"
+                                       placeholder="e.g., R101, CLAB-01" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">2</span> Program Assignment</h5>
+                        <div class="form-group full-width">
+                            <label for="edit_program" class="form-label">Program / Department <span class="required-star">*</span></label>
+                            <select id="edit_program" name="program" class="form-control" required>
+                                <option value="BTLED">Bachelor of Technology and Livelihood Education</option>
+                                <option value="BTVTED">Bachelor of Technical-Vocational Teacher Education</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">3</span> Location</h5>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="edit_building_name" class="form-label">Building <span class="required-star">*</span></label>
+                                <input type="text" id="edit_building_name" name="building_name" class="form-control"
+                                       placeholder="e.g., Main Building" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_floor_number" class="form-label">Floor Number <span class="required-star">*</span></label>
+                                <input type="number" id="edit_floor_number" name="floor_number" class="form-control"
+                                       placeholder="e.g., 1, 2, 3" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><span class="section-num">4</span> Availability</h5>
+                        <div class="avail-toggle-wrap available" id="editAvailWrap">
+                            <label class="avail-toggle-switch">
+                                <input type="checkbox" id="edit_is_available" name="is_available" checked>
+                                <span class="avail-toggle-slider"></span>
+                            </label>
+                            <div class="avail-toggle-info">
+                                <div class="t-title" id="editAvailTitle">Room is Available</div>
+                                <div class="t-sub" id="editAvailSub">Faculty can assign schedules to this room.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="footer-hint">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Changes take effect immediately.</span>
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditRoomModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="editRoomSaveBtn">
+                            <i class="fas fa-check"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="modal-overlay" id="roomBulkAssignModal" onclick="handleBulkAssignOverlay(event)">
+        <div class="modal modal-bulk">
+            <div class="modal-header">
+                <div class="modal-title-block">
+                    <span class="modal-eyebrow">Room Scheduling</span>
+                    <h2 id="bulkModalTitle"><i class="fas fa-edit"></i> Assign Subject to Selected Cells</h2>
+                    <span class="modal-subtitle">Pick a teacher and subject to fill the selected time slots.</span>
+                </div>
+                <button type="button" class="close-modal" onclick="closeRoomBulkAssign()">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="step-indicator" id="bulkStepIndicator" style="display:none;">
+                    <div class="step" id="step1Indicator">
+                        <span class="step-num">1</span>
+                        <span>Pick Teacher</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="step" id="step2Indicator">
+                        <span class="step-num">2</span>
+                        <span>Pick Subject</span>
+                    </div>
+                </div>
+
+                <div class="modal-message" id="roomBulkMsg"></div>
+
+                <div id="bulkStep1" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Select Teacher <span class="required-star">*</span>
+                        </label>
+                        <input type="text" class="teacher-search" id="teacherSearchInput"
+                               placeholder="🔍 Search teacher by name or department...">
+                    </div>
+                    <div class="teacher-list-wrap" id="teacherListWrap">
+                        <div class="schedule-loading" style="padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading teachers...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bulkStep2">
+                    <form id="roomBulkForm" onsubmit="return false;">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="form-label">Subject <span class="required-star">*</span></label>
+                            <select class="form-control" id="roomBulkSubject"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type <span class="required-star">*</span></label>
+                            <select class="form-control" id="roomBulkType">
+                                <option value="LECTURE">📖 Lecture</option>
+                                <option value="LAB">🔬 Laboratory</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Selected Cells</label>
+                            <div class="selected-chips" id="roomBulkCellsList"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="footer-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Assigning respects weekly hour limits.</span>
+                </div>
+                <div class="footer-actions">
+                    <button type="button" class="btn btn-secondary" id="bulkBackBtn"
+                            onclick="goToBulkStep1()" style="display:none;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRoomBulkAssign()">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="roomBulkSaveBtn"
+                            onclick="submitRoomBulkAssign()" style="display:none;">
+                        <i class="fas fa-check"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if faculty.is_chairman %}
+    <div class="sched-modal-overlay" id="schedEditModal" onclick="handleSchedEditOverlay(event)">
+        <div class="sched-modal" role="dialog" aria-modal="true" aria-labelledby="schedEditTitle">
+            <div class="sched-modal-header">
+                <div>
+                    <span class="modal-eyebrow">Room Schedule</span>
+                    <h2 id="schedEditTitle"><i class="fas fa-pen"></i> Edit Schedule</h2>
+                </div>
+                <button type="button" class="close-modal" onclick="closeSchedEditModal()">✕</button>
+            </div>
+
+            <div class="sched-modal-body">
+                <div class="modal-message" id="schedEditMsg"></div>
+
+                <div class="sched-detail-card">
+                    <div class="sched-detail-row">
+                        <span class="k">Day</span>
+                        <span class="v" id="schedEditDay">—</span>
+                    </div>
+                    <div class="sched-detail-row">
+                        <span class="k">Time</span>
+                        <span class="v" id="schedEditTime">—</span>
+                    </div>
+                    <div class="sched-detail-row">
+                        <span class="k">Room</span>
+                        <span class="v" id="schedEditRoom">—</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teacher <span class="required-star">*</span></label>
+                    <select class="form-control" id="schedEditTeacher"></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Subject <span class="required-star">*</span></label>
+                    <select class="form-control" id="schedEditSubject"></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Type <span class="required-star">*</span></label>
+                    <select class="form-control" id="schedEditType">
+                        <option value="LECTURE">📖 Lecture</option>
+                        <option value="LAB">🔬 Laboratory</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sched-modal-footer">
+                <button type="button" class="sched-delete-btn" onclick="deleteCurrentSchedule()">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeSchedEditModal()">Cancel</button>
+                    <button type="button" class="sched-save-btn" id="schedEditSaveBtn" onclick="saveScheduleEdit()">
+                        <i class="fas fa-check"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if faculty.is_chairman %}
+    <div class="sig-modal-overlay" id="sigEditModal" onclick="handleSigEditOverlay(event)">
+        <div class="sig-modal" role="dialog" aria-modal="true" aria-labelledby="sigEditTitle">
+            <div class="sig-modal-header">
+                <div>
+                    <span class="modal-eyebrow">Room Utilization</span>
+                    <h2 id="sigEditTitle"><i class="fas fa-pen"></i> Edit Signature</h2>
+                </div>
+                <button type="button" class="close-modal" onclick="closeSigEditModal()">✕</button>
+            </div>
+            <div class="sig-modal-body">
+                <div class="modal-message" id="sigEditMsg"></div>
+                <div class="form-group">
+                    <label class="form-label">Name <span class="required-star">*</span></label>
+                    <input type="text" class="form-control" id="sigEditName" placeholder="e.g., HAIDE B. SELPA, PhD">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <input type="text" class="form-control" id="sigEditPosition" placeholder="e.g., CHAIR, IT DEPARTMENT">
+                </div>
+            </div>
+            <div class="sig-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSigEditModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sigEditSaveBtn" onclick="saveSigEdit()">
+                    <i class="fas fa-check"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if faculty.is_chairman %}
+    <div class="acp-modal-overlay" id="allClassProgramsModal" onclick="handleACPClick(event)">
+        <div class="acp-modal" role="dialog" aria-modal="true" aria-labelledby="acpTitle">
+            <div class="acp-header">
+                <div>
+                    <span class="acp-eyebrow">Faculty Workload</span>
+                    <h2 id="acpTitle"><i class="fas fa-calendar-check"></i> All Faculty Class Programs</h2>
+                </div>
+                <button type="button" class="close-modal" onclick="closeAllClassProgramsModal()" title="Close">✕</button>
+            </div>
+
+            <div class="acp-body">
+                <aside class="acp-sidebar">
+                    <div class="acp-sidebar-header">
+                        <input type="text" id="acpSearchInput"
+                               placeholder="🔍 Search faculty..."
+                               oninput="filterACPFaculty()">
+                    </div>
+                    <div class="acp-sidebar-list" id="acpFacultyList">
+                        <div class="acp-loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading faculty...
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="acp-main">
+                    <!-- TABS -->
+                    <div class="acp-tabs" id="acpTabs" style="display:none;">
+                        <div class="acp-tab active" data-tab="schedule" onclick="switchACPTab('schedule')">
+                            <i class="fas fa-calendar-alt"></i> Class Program
+                        </div>
+                        <div class="acp-tab" data-tab="subjects" onclick="switchACPTab('subjects')">
+                            <i class="fas fa-book"></i> Subjects
+                        </div>
+                    </div>
+
+                    <!-- CONTENT WRAPPER -->
+                    <div class="acp-content-wrapper" id="acpMain">
+                        <div class="acp-empty">
+                            <span class="acp-empty-icon">👈</span>
+                            <h4>Select a faculty member</h4>
+                            <p>Pick someone from the list on the left to view their class program.</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if faculty.is_chairman %}
+    <button type="button"
+            class="acp-bubble"
+            id="acpBubbleBtn"
+            onclick="openAllClassProgramsModal()"
+            title="View all faculty class programs"
+            aria-label="View all faculty class programs">
+        <span class="acp-bubble-pulse" aria-hidden="true"></span>
+        <span class="acp-bubble-icon">📅</span> 
+        <span class="acp-bubble-label">Class Programs & Subjects</span>
+    </button>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       CONFIG
+       ============================================================ */
+    const CAN_EDIT    = true;
+    const IS_CHAIRMAN = {% if faculty.is_chairman %}true{% else %}false{% endif %};
+
+    /* ============================================================
+       STATE
+       ============================================================ */
+    let currentRoomId    = null;
+    let currentRoomCode  = null;
+    let currentRoomData  = null;
+    let allTeachers      = [];
+    let selectedTeacherId = null;
+    let selectedTeacherName = null;
+    const selectedRoomCells = new Set();
+
+    let currentScheduleCell = null;
+    let currentScheduleId   = null;
+
+    let acpAllFaculty = [];
+    let acpSelectedId = null;
+    let acpActiveTab = 'schedule';
+    const acpCache = {};
+
+    let currentSigKey = null;
+
+    /* ============================================================
+       GLOBAL MODAL OPEN/CLOSE HELPERS
+       ============================================================ */
+    function markModalOpen() {
+        document.body.classList.add('modal-open');
+    }
+    function markModalClose() {
+        const anyOpen = document.querySelector(
+            '.modal-overlay.open, .sched-modal-overlay.open, .acp-modal-overlay.open, .sig-modal-overlay.open'
+        );
+        if (!anyOpen) {
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    /* ============================================================
+       EDIT ROOM MODAL
+       ============================================================ */
+    function openEditRoomModal(roomId, roomName, roomCode, buildingName, floorNumber, isAvailable, program) {
+        markModalOpen();
+
+        document.getElementById('edit_room_id').value = roomId;
+        document.getElementById('edit_room_name').value = roomName;
+        document.getElementById('edit_room_code').value = roomCode;
+        document.getElementById('edit_building_name').value = buildingName;
+        document.getElementById('edit_floor_number').value = floorNumber;
+        document.getElementById('edit_is_available').checked = !!isAvailable;
+        document.getElementById('edit_program').value = program || 'BTVTED';
+
+        const pill = document.getElementById('editCurrentPill');
+        if (isAvailable) {
+            pill.className = 'pill available';
+            pill.textContent = 'Available';
+        } else {
+            pill.className = 'pill unavailable';
+            pill.textContent = 'Unavailable';
+        }
+
+        updateEditAvailabilityUI(!!isAvailable);
+
+        const msgEl = document.getElementById('editRoomMsg');
+        msgEl.className = 'modal-message';
+        msgEl.textContent = '';
+
+        const modal = document.getElementById('editRoomModal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditRoomModal() {
+        const modal = document.getElementById('editRoomModal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        markModalClose();
+    }
+
+    function handleEditOverlayClick(event) {
+        if (event.target.id === 'editRoomModal') closeEditRoomModal();
+    }
+
+    function updateEditAvailabilityUI(isAvailable) {
+        const wrap  = document.getElementById('editAvailWrap');
+        const title = document.getElementById('editAvailTitle');
+        const sub   = document.getElementById('editAvailSub');
+
+        if (isAvailable) {
+            wrap.className = 'avail-toggle-wrap available';
+            title.textContent = 'Room is Available';
+            sub.textContent = 'Faculty can assign schedules to this room.';
+        } else {
+            wrap.className = 'avail-toggle-wrap unavailable';
+            title.textContent = 'Room is Unavailable';
+            sub.textContent = 'This room will be hidden from scheduling.';
+        }
+    }
+
+    function submitEditRoom(e) {
+        e.preventDefault();
+        const roomId = document.getElementById('edit_room_id').value;
+        const msgEl  = document.getElementById('editRoomMsg');
+        const saveBtn = document.getElementById('editRoomSaveBtn');
+
+        const room_name     = document.getElementById('edit_room_name').value.trim();
+        const room_code     = document.getElementById('edit_room_code').value.trim().toUpperCase();
+        const building_name = document.getElementById('edit_building_name').value.trim();
+        const floor_number  = document.getElementById('edit_floor_number').value;
+        const is_available  = document.getElementById('edit_is_available').checked;
+        const program       = document.getElementById('edit_program').value;
+
+        if (!room_name || !room_code || !building_name || floor_number === '') {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please fill in all required fields.';
+            return false;
+        }
+        if (!program) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please select a program.';
+            return false;
+        }
+
+        const csrfInput = document.querySelector('#editRoomForm input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('room_name', room_name);
+        fd.append('room_code', room_code);
+        fd.append('building_name', building_name);
+        fd.append('floor_number', floor_number);
+        fd.append('program', program);
+        if (is_available) fd.append('is_available', 'on');
+
+        saveBtn.disabled = true;
+
+        fetch(`/room/${roomId}/update-ajax/`, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = 'Room updated successfully!';
+                updateRoomCard(d.room);
+                setTimeout(() => closeEditRoomModal(), 700);
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to update room.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { saveBtn.disabled = false; });
+
+        return false;
+    }
+
+    function updateRoomCard(room) {
+        const card = document.getElementById(`room-card-${room.id}`);
+        if (!card) return;
+
+        card.dataset.roomName   = room.room_name;
+        card.dataset.roomCode   = room.room_code;
+        card.dataset.building   = room.building_name;
+        card.dataset.floor      = room.floor_number;
+        card.dataset.program    = room.program;
+        card.dataset.status     = room.is_available ? 'available' : 'unavailable';
+
+        card.querySelector('.room-name').textContent = room.room_name;
+        card.querySelector('.room-code').textContent = room.room_code;
+
+        const detailItems = card.querySelectorAll('.room-detail-item');
+        if (detailItems[0]) detailItems[0].innerHTML = `<strong>Building</strong> ${escapeHtml(room.building_name)}`;
+        if (detailItems[1]) detailItems[1].innerHTML = `<strong>Floor</strong> ${escapeHtml(room.floor_number)}`;
+        if (detailItems[2]) detailItems[2].innerHTML = `<strong>Program</strong> ${escapeHtml(room.program_display || room.program)}`;
+
+        const statusEl = card.querySelector('.room-status');
+        if (statusEl) {
+            if (room.is_available) {
+                statusEl.classList.remove('unavailable'); statusEl.classList.add('available'); statusEl.textContent = 'Available';
+            } else {
+                statusEl.classList.remove('available'); statusEl.classList.add('unavailable'); statusEl.textContent = 'Unavailable';
+            }
+        }
+        filterRooms();
+    }
+
+    /* ============================================================
+       TOGGLE AVAILABILITY
+       ============================================================ */
+    function toggleRoomAvailability(roomId, btnEl) {
+        if (!IS_CHAIRMAN) return;
+        const wasAvailable = btnEl.classList.contains('available');
+        if (btnEl.dataset.busy === '1') return;
+        btnEl.dataset.busy = '1';
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+
+        fetch(`/room/${roomId}/toggle-availability/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                if (d.is_available) {
+                    btnEl.classList.remove('unavailable'); btnEl.classList.add('available'); btnEl.textContent = 'Available';
+                } else {
+                    btnEl.classList.remove('available'); btnEl.classList.add('unavailable'); btnEl.textContent = 'Unavailable';
+                }
+                const card = document.getElementById(`room-card-${roomId}`);
+                if (card) card.dataset.status = d.is_available ? 'available' : 'unavailable';
+                filterRooms();
+            } else {
+                if (wasAvailable) { btnEl.classList.add('available'); btnEl.classList.remove('unavailable'); }
+                else { btnEl.classList.add('unavailable'); btnEl.classList.remove('available'); }
+                alert(d.error || 'Failed to toggle availability.');
+            }
+        })
+        .catch(err => alert('Network error: ' + err))
+        .finally(() => { delete btnEl.dataset.busy; });
+    }
+
+    /* ============================================================
+       ADD ROOM MODAL
+       ============================================================ */
+    function openAddRoomModal() {
+        const modal = document.getElementById('addRoomModal');
+        if (!modal) return;
+        markModalOpen();
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            const firstInput = document.getElementById('room_name');
+            if (firstInput) firstInput.focus();
+        }, 200);
+    }
+    function closeAddRoomModal() {
+        const modal = document.getElementById('addRoomModal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        markModalClose();
+    }
+    function handleOverlayClick(event) {
+        if (event.target.id === 'addRoomModal') closeAddRoomModal();
+    }
+
+    /* ============================================================
+       FILTER
+       ============================================================ */
+    function filterRooms() {
+        const filter = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('filterStatus').value;
+        const buildingFilter = document.getElementById('filterBuilding').value;
+        const programFilter = document.getElementById('filterProgram').value;
+        const cards = document.querySelectorAll('.room-card');
+
+        cards.forEach(function(card) {
+            const name = card.querySelector('.room-name')?.textContent?.toLowerCase() || '';
+            const code = card.querySelector('.room-code')?.textContent?.toLowerCase() || '';
+            const building = card.dataset.building?.toLowerCase() || '';
+            const searchMatch = name.includes(filter) || code.includes(filter) || building.includes(filter);
+            const statusMatch = statusFilter === 'all' || card.dataset.status === statusFilter;
+            const buildingMatch = buildingFilter === 'all' || building === buildingFilter.toLowerCase();
+            const programMatch = programFilter === 'all' || card.dataset.program === programFilter;
+            card.style.display = (searchMatch && statusMatch && buildingMatch && programMatch) ? '' : 'none';
+        });
+    }
+
+    /* ============================================================
+       INLINE SCHEDULE PANEL
+       ============================================================ */
+    function loadScheduleInline(roomId, roomCode) {
+        currentRoomId   = roomId;
+        currentRoomCode = roomCode;
+        selectedTeacherId = null;
+        selectedTeacherName = null;
+        document.getElementById('inlineRoomCode').textContent = roomCode;
+        const panel = document.getElementById('schedulePanel');
+        panel.classList.add('open');
+        setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+        fetchRoomSchedule();
+    }
+
+    function closeSchedulePanel() {
+        document.getElementById('schedulePanel').classList.remove('open');
+        currentRoomId = null; currentRoomCode = null; currentRoomData = null;
+        selectedTeacherId = null; selectedTeacherName = null;
+        clearRoomSelection();
+    }
+
+    function printRoomSchedule() {
+        const panel = document.getElementById('schedulePanel');
+        if (!panel) return;
+
+        if (!panel.classList.contains('open')) {
+            alert('Please open a room schedule before printing.');
+            return;
+        }
+
+        clearRoomSelection();
+
+        requestAnimationFrame(() => {
+            setTimeout(() => window.print(), 100);
+        });
+    }
+
+    function fetchRoomSchedule() {
+        document.getElementById('schedulePanelBody').innerHTML =
+            '<div class="schedule-loading"><i class="fas fa-spinner fa-spin"></i> Loading schedule...</div>';
+
+        fetch(`/rooms/${currentRoomId}/schedule-data/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('schedulePanelBody').innerHTML =
+                        `<div class="schedule-loading" style="color:#b42318;">
+                            <i class="fas fa-exclamation-circle"></i> ${data.error}
+                        </div>`;
+                    return;
+                }
+                renderRoomSchedule(data);
+            })
+            .catch(err => {
+                document.getElementById('schedulePanelBody').innerHTML =
+                    `<div class="schedule-loading" style="color:#b42318;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to load schedule.
+                    </div>`;
+            });
+    }
+
+    function renderRoomSchedule(data) {
+        currentRoomData = data;
+        clearRoomSelection();
+
+        const days       = data.days;
+        const timeRows   = data.time_rows;
+        const schedules  = data.schedules;
+
+        const palette = [
+            'color-0','color-1','color-2','color-3','color-4',
+            'color-5','color-6','color-7','color-8','color-9'
+        ];
+        const colorMap = {};
+        let colorIdx = 0;
+        schedules.forEach(s => {
+            if (!colorMap[s.subject]) {
+                colorMap[s.subject] = palette[colorIdx % palette.length];
+                colorIdx++;
+            }
+        });
+
+        const scheduleMap = {};
+        schedules.forEach(s => {
+            const sp = s.start_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            const ep = s.end_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!sp || !ep) return;
+            const to24 = (h, m, ap) => {
+                h = parseInt(h, 10);
+                if (ap.toUpperCase() === 'PM' && h !== 12) h += 12;
+                if (ap.toUpperCase() === 'AM' && h === 12) h = 0;
+                return h * 60 + parseInt(m, 10);
+            };
+            const sMin = to24(sp[1], sp[2], sp[3]);
+            const eMin = to24(ep[1], ep[2], ep[3]);
+            for (let t = sMin; t < eMin; t += 30) {
+                const hh = String(Math.floor(t / 60)).padStart(2, '0');
+                const mm = String(t % 60).padStart(2, '0');
+                scheduleMap[`${s.day}|${hh}:${mm}`] = s;
+            }
+        });
+
+        const rowspanMap = {};
+        const skipMap = {};
+        
+        days.forEach(day => {
+            const validRows = timeRows.filter(r => !r.is_lunch);
+            for (let i = 0; i < validRows.length; i++) {
+                const row = validRows[i];
+                const key = `${day}|${row.key}`;
+                if (skipMap[key]) continue;
+                
+                const sched = scheduleMap[key];
+                if (!sched) continue;
+                
+                let span = 1;
+                let j = i + 1;
+                while (j < validRows.length) {
+                    const nextRow = validRows[j];
+                    const nk = `${day}|${nextRow.key}`;
+                    if (scheduleMap[nk] === sched) {
+                        span++;
+                        skipMap[nk] = true;
+                        j++;
+                    } else {
+                        break;
+                    }
+                }
+                rowspanMap[key] = span;
+            }
+        });
+
+        // ── Build editable signature footer ─────────────────────
+        const sigDefaults = {
+            prepared_by: { name: 'HAIDE B. SELPA, PhD', position: 'CHAIR, IT DEPARTMENT', label: 'Prepared by:' },
+            reviewed_by: { name: 'ENGR. RONALD B. LACABA', position: 'DEAN, COTE', label: 'Reviewed by:' },
+            approved_by: { name: 'NELSON N. ENAGE, PhD, EdD', position: 'VP Academic Affairs', label: 'Approved by:' },
+        };
+        const signatures = data.signatures || {};
+        const sigKeys = ['prepared_by', 'reviewed_by', 'approved_by'];
+        const editable = IS_CHAIRMAN;
+
+        const footerHtml = `
+            <div class="official-footer">
+                ${sigKeys.map(key => {
+                    const def = sigDefaults[key];
+                    const saved = signatures[key] || {};
+                    const name = saved.name ?? def.name;
+                    const position = saved.position ?? def.position;
+                    return `
+                        <div class="sig-block">
+                            <div class="sig-label">${escapeHtml(def.label)}</div>
+                            <div class="sig-name ${editable ? 'sig-editable' : ''}"
+                                 ${editable ? `data-sig-key="${key}" onclick="openSigEditModal('${key}')"` : ''}
+                                 title="${editable ? 'Click to edit' : ''}">
+                                ${escapeHtml(name)}
+                            </div>
+                            <div class="sig-role ${editable ? 'sig-editable' : ''}"
+                                 ${editable ? `data-sig-key="${key}" onclick="openSigEditModal('${key}')"` : ''}
+                                 title="${editable ? 'Click to edit' : ''}">
+                                ${escapeHtml(position)}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        let html = `
+            <div class="official-header">
+                <div class="school">Republic of the Philippines</div>
+                <div class="school-name">PALOMPON INSTITUTE OF TECHNOLOGY</div>
+                <div class="school-sub">Palompon, Leyte</div>
+                <div class="college-name">${data.college}</div>
+                <div class="form-title">ROOM UTILIZATION A.Y. 2026-2027 — First Semester</div>
+            </div>
+            <div class="official-info">
+                <div class="dept">Department: ${data.department}</div>
+                <div class="label">ROOM:</div>
+                <div class="value">${data.room.code}</div>
+            </div>
+            <div class="schedule-table-wrap">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th class="time-head">TIME</th>
+                            ${days.map(d => `<th>${d}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        timeRows.forEach(row => {
+            if (row.is_lunch) {
+                const lunchDisplay = row.display.replace(/\s*-\s*/, ' – ');
+                html += `
+                    <tr class="lunch-row">
+                        <td class="time-col lunch-col" style="font-size: 10px; white-space: nowrap; word-break: keep-all;">${lunchDisplay}</td>
+                        <td class="lunch-cell" colspan="${days.length}">🍽️ LUNCH BREAK</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            html += `<tr><td class="time-col">${row.display.replace(/\s*-\s*/, ' – ')}</td>`;
+            days.forEach(day => {
+                const key = `${day}|${row.key}`;
+                if (skipMap[key]) return;
+                const sched = scheduleMap[key];
+                if (!sched) {
+                    if (CAN_EDIT) {
+                        html += `<td class="room-empty-cell"
+                                     data-day="${day}"
+                                     data-time="${row.key}"
+                                     onclick="toggleRoomCell(this)"></td>`;
+                    } else {
+                        html += `<td></td>`;
+                    }
+                } else {
+                    const span = rowspanMap[key] || 1;
+                    const color = colorMap[sched.subject] || 'color-0';
+                    const rawType = (sched.schedule_type || sched.type || 'LECTURE').toUpperCase();
+                    const isLab   = rawType === 'LAB' || rawType === 'LABORATORY';
+                    const typeLabel = isLab ? 'LAB' : 'LEC';
+                    const typeClass = isLab ? 'lab' : 'lecture';
+                    const editableAttr = IS_CHAIRMAN
+                        ? `data-schedule-id="${sched.schedule_id}" data-editable="1" onclick="openSchedEditModal(this)"`
+                        : '';
+                    const editableClass = IS_CHAIRMAN ? 'sched-editable' : '';
+
+                    html += `
+                        <td rowspan="${span}" class="${color} ${editableClass}" ${editableAttr}>
+                            <div class="cell-block">
+                                <div class="subj">${sched.subject}</div>
+                                <div class="section">${sched.section}</div>
+                                <div class="faculty">${sched.faculty}</div>
+                                <span class="sched-type ${typeClass}">${typeLabel}</span>
+                            </div>
+                        </td>`;
+                }
+            });
+            html += `</tr>`;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            ${footerHtml}
+        `;
+
+        document.getElementById('schedulePanelBody').innerHTML = html;
+    }
+
+    /* ============================================================
+       SIGNATURE BLOCK EDITING
+       ============================================================ */
+    function openSigEditModal(sigKey) {
+        if (!IS_CHAIRMAN) return;
+        if (!currentRoomId) return;
+
+        const nameEl = document.querySelector(`.sig-name[data-sig-key="${sigKey}"]`);
+        const roleEl = document.querySelector(`.sig-role[data-sig-key="${sigKey}"]`);
+        if (!nameEl || !roleEl) return;
+
+        currentSigKey = sigKey;
+
+        const labelEl = nameEl.closest('.sig-block')?.querySelector('.sig-label');
+        const labelText = labelEl ? labelEl.textContent.trim() : 'Signature';
+
+        document.getElementById('sigEditTitle').innerHTML =
+            `<i class="fas fa-pen"></i> Edit — ${escapeHtml(labelText)}`;
+        document.getElementById('sigEditName').value = nameEl.textContent.trim();
+        document.getElementById('sigEditPosition').value = roleEl.textContent.trim();
+
+        const msgEl = document.getElementById('sigEditMsg');
+        msgEl.className = 'modal-message';
+        msgEl.textContent = '';
+
+        markModalOpen();
+        document.getElementById('sigEditModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('sigEditName').focus(), 150);
+    }
+
+    function closeSigEditModal() {
+        const m = document.getElementById('sigEditModal');
+        if (!m) return;
+        m.classList.remove('open');
+        document.body.style.overflow = '';
+        currentSigKey = null;
+        markModalClose();
+    }
+
+    function handleSigEditOverlay(e) {
+        if (e.target.id === 'sigEditModal') closeSigEditModal();
+    }
+
+    function saveSigEdit() {
+        if (!currentSigKey || !currentRoomId) return;
+
+        const name     = document.getElementById('sigEditName').value.trim();
+        const position = document.getElementById('sigEditPosition').value.trim();
+        const msgEl    = document.getElementById('sigEditMsg');
+        const saveBtn  = document.getElementById('sigEditSaveBtn');
+
+        if (!name) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Name is required.';
+            return;
+        }
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('signature_key', currentSigKey);
+        fd.append('name', name);
+        fd.append('position', position);
+
+        saveBtn.disabled = true;
+
+        fetch(`/room/${currentRoomId}/update-signature/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                const nameEl = document.querySelector(`.sig-name[data-sig-key="${currentSigKey}"]`);
+                const roleEl = document.querySelector(`.sig-role[data-sig-key="${currentSigKey}"]`);
+                if (nameEl) nameEl.textContent = d.name;
+                if (roleEl) roleEl.textContent = d.position;
+
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = 'Signature updated!';
+                setTimeout(() => closeSigEditModal(), 600);
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to update signature.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { saveBtn.disabled = false; });
+    }
+
+    /* ============================================================
+       CELL SELECTION
+       ============================================================ */
+    function toggleRoomCell(cell) {
+        if (!CAN_EDIT) return;
+        if (cell.classList.contains('lunch-cell')) return;
+        if (selectedRoomCells.has(cell)) {
+            selectedRoomCells.delete(cell); cell.classList.remove('selected');
+        } else {
+            selectedRoomCells.add(cell); cell.classList.add('selected');
+        }
+        updateRoomSelectionToolbar();
+    }
+
+    function updateRoomSelectionToolbar() {
+        const toolbar = document.getElementById('selectionToolbar');
+        const countEl = document.getElementById('stCount');
+        if (!toolbar) return;
+
+        const n = selectedRoomCells.size;
+        if (countEl) countEl.textContent = n;
+
+        if (n === 0) {
+            toolbar.classList.remove('visible', 'has-gap', 'pos-top', 'pos-bottom', 'pos-left', 'pos-right');
+            document.querySelectorAll('.room-empty-cell.gap-warning').forEach(c => {
+                c.classList.remove('gap-warning');
+            });
+            return;
+        }
+
+        const { hasGap, gapCells } = detectGaps();
+
+        document.querySelectorAll('.room-empty-cell.gap-warning').forEach(c => {
+            c.classList.remove('gap-warning');
+        });
+
+        gapCells.forEach(cell => cell.classList.add('gap-warning'));
+
+        if (hasGap) {
+            toolbar.classList.add('has-gap');
+        } else {
+            toolbar.classList.remove('has-gap');
+        }
+
+        toolbar.classList.add('visible');
+        positionSelectionToolbar();
+    }
+
+    function detectGaps() {
+        const byDay = {};
+        selectedRoomCells.forEach(cell => {
+            const day = cell.dataset.day;
+            const time = cell.dataset.time;
+            if (!byDay[day]) byDay[day] = [];
+            byDay[day].push({ cell, time });
+        });
+
+        function addThirty(t) {
+            const [h, m] = t.split(':').map(Number);
+            const total = h * 60 + m + 30;
+            const nh = Math.floor(total / 60) % 24;
+            const nm = total % 60;
+            return String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
+        }
+
+        const gapCells = [];
+        let hasGap = false;
+
+        const dayKeys = Object.keys(byDay);
+
+        if (dayKeys.length > 1) {
+            hasGap = true;
+            selectedRoomCells.forEach(cell => gapCells.push(cell));
+            return { hasGap, gapCells: [...new Set(gapCells)] };
+        }
+
+        if (dayKeys.length === 1) {
+            const day = dayKeys[0];
+            const entries = byDay[day].sort((a, b) => a.time.localeCompare(b.time));
+
+            for (let i = 1; i < entries.length; i++) {
+                const prevEnd = addThirty(entries[i - 1].time);
+                if (entries[i].time !== prevEnd) {
+                    hasGap = true;
+                    gapCells.push(entries[i].cell);
+                    gapCells.push(entries[i - 1].cell);
+                }
+            }
+        }
+
+        const uniqueGapCells = [...new Set(gapCells)];
+        return { hasGap, gapCells: uniqueGapCells };
+    }
+
+    function positionSelectionToolbar() {
+        const toolbar = document.getElementById('selectionToolbar');
+        if (!toolbar || selectedRoomCells.size === 0) return;
+
+        const rects = [];
+        selectedRoomCells.forEach(cell => {
+            const r = cell.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) rects.push(r);
+        });
+        if (rects.length === 0) return;
+
+        const minTop    = Math.min(...rects.map(r => r.top));
+        const maxBottom = Math.max(...rects.map(r => r.bottom));
+        const minLeft   = Math.min(...rects.map(r => r.left));
+        const maxRight  = Math.max(...rects.map(r => r.right));
+
+        toolbar.style.visibility = 'hidden';
+        toolbar.style.top = '-9999px';
+        toolbar.style.left = '-9999px';
+
+        const tw = toolbar.offsetWidth;
+        const th = toolbar.offsetHeight;
+
+        const margin = 12;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        let posX = maxRight + margin;
+        let posY = minTop;
+        let placement = 'right';
+
+        if (posX + tw > vw - 8) {
+            posX = minLeft - tw - margin;
+            placement = 'left';
+        }
+        if (posX < 8) {
+            posX = Math.max(8, minLeft);
+            posY = maxBottom + margin;
+            placement = 'top';
+        }
+        if (posY + th > vh - 8) {
+            posY = minTop - th - margin;
+            placement = 'bottom';
+        }
+
+        posX = Math.max(8, Math.min(posX, vw - tw - 8));
+        posY = Math.max(8, Math.min(posY, vh - th - 8));
+
+        toolbar.classList.remove('pos-top', 'pos-bottom', 'pos-left', 'pos-right');
+        toolbar.classList.add('pos-' + placement);
+
+        toolbar.style.visibility = '';
+        toolbar.style.top  = posY + 'px';
+        toolbar.style.left = posX + 'px';
+    }
+
+    window.addEventListener('scroll', function() {
+        if (selectedRoomCells.size > 0) positionSelectionToolbar();
+    }, true);
+
+    window.addEventListener('resize', function() {
+        if (selectedRoomCells.size > 0) positionSelectionToolbar();
+    });
+
+    function clearRoomSelection() {
+        selectedRoomCells.forEach(c => c.classList.remove('selected'));
+        selectedRoomCells.clear();
+
+        document.querySelectorAll('.room-empty-cell.gap-warning').forEach(c => {
+            c.classList.remove('gap-warning');
+        });
+
+        updateRoomSelectionToolbar();
+    }
+
+    /* ============================================================
+       BULK ASSIGN MODAL
+       ============================================================ */
+    function openRoomBulkAssign() {
+        if (selectedRoomCells.size === 0) return;
+        if (!currentRoomData) return;
+
+        markModalOpen();
+
+        selectedTeacherId = null; selectedTeacherName = null;
+        const msgEl = document.getElementById('roomBulkMsg');
+        msgEl.className = 'modal-message'; msgEl.textContent = '';
+        renderSelectedCellsChips();
+        if (IS_CHAIRMAN) goToBulkStep1(); else goToBulkStep2();
+        document.getElementById('roomBulkAssignModal').classList.add('open');
+    }
+
+    function renderSelectedCellsChips() {
+        const listEl = document.getElementById('roomBulkCellsList');
+        if (!listEl) return;
+        const chips = [];
+        selectedRoomCells.forEach(c => chips.push(`<span class="chip">${c.dataset.day} ${c.dataset.time}</span>`));
+        listEl.innerHTML = chips.join('');
+    }
+
+    function goToBulkStep1() {
+        document.getElementById('bulkStep1').style.display = 'block';
+        document.getElementById('bulkStep2').style.display = 'none';
+        document.getElementById('bulkStepIndicator').style.display = 'flex';
+        document.getElementById('bulkBackBtn').style.display = 'none';
+        document.getElementById('roomBulkSaveBtn').style.display = 'none';
+        document.getElementById('bulkModalTitle').innerHTML =
+            '<i class="fas fa-user-tie"></i> Step 1 — Select Teacher';
+        document.getElementById('step1Indicator').classList.add('active');
+        document.getElementById('step1Indicator').classList.remove('done');
+        document.getElementById('step2Indicator').classList.remove('active');
+        const searchInput = document.getElementById('teacherSearchInput');
+        if (searchInput) searchInput.value = '';
+        if (allTeachers.length === 0) loadTeachersForPicker();
+        else renderTeacherList(allTeachers);
+    }
+
+    function loadTeachersForPicker() {
+        const wrap = document.getElementById('teacherListWrap');
+        wrap.innerHTML = '<div class="schedule-loading" style="padding: 20px;">' +
+                         '<i class="fas fa-spinner fa-spin"></i> Loading teachers...</div>';
+        fetch('/rooms/teachers-list/')
+            .then(r => r.json())
+            .then(data => { allTeachers = data.teachers || []; renderTeacherList(allTeachers); })
+            .catch(err => {
+                wrap.innerHTML = `<div style="padding:20px;color:#b42318;text-align:center;font-size:13px;">
+                    <i class="fas fa-exclamation-circle"></i> Failed to load teachers.
+                </div>`;
+            });
+    }
+
+    function renderTeacherList(teachers) {
+        const wrap = document.getElementById('teacherListWrap');
+        if (!teachers.length) {
+            wrap.innerHTML = `
+                <div style="padding:24px;text-align:center;color:#64748b;font-size:13px;">
+                    <div style="font-size:28px;opacity:0.4;margin-bottom:6px;">👥</div>
+                    No teachers found.
+                </div>`;
+            return;
+        }
+        wrap.innerHTML = teachers.map(t => {
+            const initials = (t.full_name || '?')
+                .split(/\s+/).slice(0, 2)
+                .map(w => w[0] || '').join('').toUpperCase();
+            const isSelected = String(t.id) === String(selectedTeacherId);
+            return `
+                <div class="teacher-option ${isSelected ? 'selected' : ''}"
+                     data-teacher-id="${escapeHtml(t.id)}"
+                     data-teacher-name="${escapeHtml(t.full_name)}"
+                     onclick="selectTeacherOption(this)">
+                    <div class="to-avatar">${escapeHtml(initials)}</div>
+                    <div class="to-info">
+                        <div class="to-name">${escapeHtml(t.full_name)}</div>
+                        <div class="to-dept">${escapeHtml(t.department || 'No department')}</div>
+                    </div>
+                    <i class="fas fa-check-circle to-check"></i>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectTeacherOption(el) {
+        selectedTeacherId   = el.dataset.teacherId;
+        selectedTeacherName = el.dataset.teacherName;
+        document.querySelectorAll('.teacher-option').forEach(opt => {
+            opt.classList.toggle('selected', opt === el);
+        });
+        setTimeout(() => goToBulkStep2(), 200);
+    }
+
+    function filterTeacherList() {
+        const q = (document.getElementById('teacherSearchInput').value || '').toLowerCase().trim();
+        if (!q) { renderTeacherList(allTeachers); return; }
+        const filtered = allTeachers.filter(t =>
+            (t.full_name || '').toLowerCase().includes(q) ||
+            (t.department || '').toLowerCase().includes(q)
+        );
+        renderTeacherList(filtered);
+    }
+
+    function goToBulkStep2() {
+        document.getElementById('bulkStep1').style.display = 'none';
+        document.getElementById('bulkStep2').style.display = 'block';
+        document.getElementById('bulkBackBtn').style.display = IS_CHAIRMAN ? 'inline-flex' : 'none';
+        document.getElementById('roomBulkSaveBtn').style.display = 'inline-flex';
+        document.getElementById('bulkModalTitle').innerHTML =
+            IS_CHAIRMAN
+                ? '<i class="fas fa-book"></i> Step 2 — Pick Subject'
+                : '<i class="fas fa-edit"></i> Assign Subject to Selected Cells';
+        if (IS_CHAIRMAN) {
+            document.getElementById('step1Indicator').classList.remove('active');
+            document.getElementById('step1Indicator').classList.add('done');
+            document.getElementById('step2Indicator').classList.add('active');
+        }
+        renderSelectedCellsChips();
+        const sel = document.getElementById('roomBulkSubject');
+        sel.innerHTML = '<option value="">— Loading subjects... —</option>';
+        if (IS_CHAIRMAN && selectedTeacherId) fetchTeacherSubjects(selectedTeacherId);
+        else if (!IS_CHAIRMAN) populateSubjects(currentRoomData ? currentRoomData.subjects : []);
+    }
+
+    function fetchTeacherSubjects(teacherId) {
+        const sel = document.getElementById('roomBulkSubject');
+        fetch(`/rooms/${currentRoomId}/schedule-data/?teacher_id=${encodeURIComponent(teacherId)}&only_unscheduled=1`)
+            .then(r => r.json())
+            .then(data => populateSubjects(data.subjects || []))
+            .catch(err => { sel.innerHTML = '<option value="">— Failed to load subjects —</option>'; });
+    }
+
+    function populateSubjects(subjects) {
+        const sel = document.getElementById('roomBulkSubject');
+        sel.innerHTML = '<option value="">— Select Subject —</option>';
+
+        if (!subjects || subjects.length === 0) {
+            const msgEl = document.getElementById('roomBulkMsg');
+            msgEl.className = 'modal-message info';
+            msgEl.textContent = IS_CHAIRMAN
+                ? '✅ All of this teacher’s subjects are fully scheduled. Nothing left to assign.'
+                : 'You have no remaining subjects to schedule.';
+            return;
+        }
+
+        subjects.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+
+            const parts = [];
+            if (s.has_lecture && s.lecture_remaining > 0) {
+                parts.push(`LEC ${s.lecture_remaining}h left`);
+            }
+            if (s.is_laboratory && s.lab_remaining > 0) {
+                parts.push(`LAB ${s.lab_remaining}h left`);
+            }
+            const hoursTxt = parts.length ? ` [${parts.join(' · ')}]` : '';
+
+            opt.textContent = `${s.subject_code} — ${s.subject_description} (${s.section_display})${hoursTxt}`;
+            sel.appendChild(opt);
+        });
+    }
+
+    function closeRoomBulkAssign() {
+        const modal = document.getElementById('roomBulkAssignModal');
+        if (modal) modal.classList.remove('open');
+        selectedTeacherId = null; selectedTeacherName = null;
+        markModalClose();
+    }
+
+    function handleBulkAssignOverlay(e) {
+        if (e.target.id === 'roomBulkAssignModal') closeRoomBulkAssign();
+    }
+
+    function submitRoomBulkAssign() {
+        const subjectId    = document.getElementById('roomBulkSubject').value;
+        const scheduleType = document.getElementById('roomBulkType').value;
+        const msgEl        = document.getElementById('roomBulkMsg');
+        const saveBtn      = document.getElementById('roomBulkSaveBtn');
+
+        if (!subjectId) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please select a subject.';
+            return;
+        }
+        if (IS_CHAIRMAN && !selectedTeacherId) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please select a teacher first.';
+            goToBulkStep1();
+            return;
+        }
+
+        const byDay = {};
+        selectedRoomCells.forEach(cell => {
+            const day  = cell.dataset.day;
+            const time = cell.dataset.time;
+            if (!byDay[day]) byDay[day] = [];
+            byDay[day].push(time);
+        });
+
+        function addThirty(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const total = h * 60 + m + 30;
+            const nh = Math.floor(total / 60) % 24;
+            const nm = total % 60;
+            return String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
+        }
+
+        function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        }
+
+        const gapCheck = detectGaps();
+        if (gapCheck.hasGap) {
+            document.querySelectorAll('.room-empty-cell.gap-warning').forEach(c => c.classList.remove('gap-warning'));
+            gapCheck.gapCells.forEach(cell => cell.classList.add('gap-warning'));
+
+            const gapList = [];
+            const byDay2 = {};
+            selectedRoomCells.forEach(c => {
+                const d = c.dataset.day;
+                if (!byDay2[d]) byDay2[d] = [];
+                byDay2[d].push(c.dataset.time);
+            });
+
+            const dayKeys = Object.keys(byDay2);
+
+            if (dayKeys.length > 1) {
+                gapList.push(
+                    `Multiple days selected: ${dayKeys.map(d => capitalize(d)).join(', ')}. ` +
+                    `Please select slots on only ONE day.`
+                );
+            }
+
+            Object.keys(byDay2).forEach(day => {
+                const times = byDay2[day].sort();
+                for (let i = 1; i < times.length; i++) {
+                    const prevEnd = addThirty(times[i - 1]);
+                    if (times[i] !== prevEnd) {
+                        gapList.push(`${capitalize(day)}: gap between ${times[i - 1]} and ${times[i]}`);
+                    }
+                }
+            });
+
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = '❌ Selection must be on a single day and contiguous. Nothing will be saved.\n'
+                            + gapList.map(g => '• ' + g).join('\n');
+            if (saveBtn) saveBtn.disabled = false;
+            return;
+        }
+
+        const slots = [];
+        Object.keys(byDay).forEach(day => {
+            const times = byDay[day].sort();
+            slots.push({
+                day: day,
+                start_time: times[0],
+                end_time:   addThirty(times[times.length - 1]),
+            });
+        });
+
+        const csrfInput = document.querySelector('#roomBulkForm input[name="csrfmiddlewaretoken"]')
+                    || document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('subject_id', subjectId);
+        fd.append('schedule_type', scheduleType);
+        fd.append('slots', JSON.stringify(slots));
+        if (IS_CHAIRMAN && selectedTeacherId) fd.append('teacher_id', selectedTeacherId);
+
+        if (saveBtn) saveBtn.disabled = true;
+
+        fetch(`/rooms/${currentRoomId}/bulk-assign/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = `✅ Saved! Created ${d.created} schedule(s).`;
+                setTimeout(() => {
+                    closeRoomBulkAssign();
+                    if (currentRoomId) fetchRoomSchedule();
+                }, 900);
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to save.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { if (saveBtn) saveBtn.disabled = false; });
+    }
+
+    /* ============================================================
+       SCHEDULE EDIT MODAL
+       ============================================================ */
+    function openSchedEditModal(cellEl) {
+        if (!IS_CHAIRMAN) return;
+        const schedId = cellEl.dataset.scheduleId;
+        if (!schedId) return;
+
+        markModalOpen();
+
+        currentScheduleCell = cellEl;
+        currentScheduleId   = schedId;
+
+        let sched = null;
+        if (currentRoomData && currentRoomData.schedules) {
+            sched = currentRoomData.schedules.find(s => String(s.schedule_id) === String(schedId));
+        }
+
+        if (!sched) {
+            const subj    = cellEl.querySelector('.subj')?.textContent || '';
+            const section = cellEl.querySelector('.section')?.textContent || '';
+            const faculty = cellEl.querySelector('.faculty')?.textContent || '';
+            const typeTxt = cellEl.querySelector('.sched-type')?.textContent || 'LEC';
+            sched = {
+                subject: subj,
+                section: section,
+                faculty: faculty,
+                schedule_type: typeTxt === 'LAB' ? 'LAB' : 'LECTURE',
+                day: '',
+                time: '',
+            };
+        }
+
+        document.getElementById('schedEditDay').textContent  = sched.day || '—';
+        document.getElementById('schedEditTime').textContent =
+            sched.start_time && sched.end_time
+                ? `${sched.start_time} – ${sched.end_time}`
+                : (sched.time || '—');
+        document.getElementById('schedEditRoom').textContent = currentRoomCode || '—';
+
+        document.getElementById('schedEditType').value =
+            (sched.schedule_type === 'LAB') ? 'LAB' : 'LECTURE';
+
+        const msgEl = document.getElementById('schedEditMsg');
+        msgEl.className = 'modal-message';
+        msgEl.textContent = '';
+
+        loadSchedEditTeachers(sched.faculty_id || null, sched.subject_id || null);
+
+        document.getElementById('schedEditModal').classList.add('open');
+    }
+
+    function closeSchedEditModal() {
+        const modal = document.getElementById('schedEditModal');
+        if (modal) modal.classList.remove('open');
+        currentScheduleCell = null;
+        currentScheduleId = null;
+        markModalClose();
+    }
+
+    function handleSchedEditOverlay(e) {
+        if (e.target.id === 'schedEditModal') closeSchedEditModal();
+    }
+
+    function loadSchedEditTeachers(preselectTeacherId, preselectSubjectId) {
+        const tSel = document.getElementById('schedEditTeacher');
+        const sSel = document.getElementById('schedEditSubject');
+
+        tSel.innerHTML = '<option value="">— Loading teachers... —</option>';
+        sSel.innerHTML = '<option value="">— Pick a teacher first —</option>';
+
+        const fillTeachers = (teachers) => {
+            tSel.innerHTML = '<option value="">— Select Teacher —</option>';
+            teachers.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.full_name} — ${t.department || 'No department'}`;
+                if (preselectTeacherId && String(t.id) === String(preselectTeacherId)) {
+                    opt.selected = true;
+                }
+                tSel.appendChild(opt);
+            });
+            if (preselectTeacherId) {
+                loadSchedEditSubjects(preselectTeacherId, preselectSubjectId);
+            }
+        };
+
+        if (allTeachers && allTeachers.length > 0) {
+            fillTeachers(allTeachers);
+        } else {
+            fetch('/rooms/teachers-list/')
+                .then(r => r.json())
+                .then(data => {
+                    allTeachers = data.teachers || [];
+                    fillTeachers(allTeachers);
+                })
+                .catch(() => {
+                    tSel.innerHTML = '<option value="">— Failed to load teachers —</option>';
+                });
+        }
+    }
+
+    function loadSchedEditSubjects(teacherId, preselectSubjectId) {
+        const sSel = document.getElementById('schedEditSubject');
+        sSel.innerHTML = '<option value="">— Loading subjects... —</option>';
+
+        if (!teacherId) {
+            sSel.innerHTML = '<option value="">— Pick a teacher first —</option>';
+            return;
+        }
+
+        fetch(`/rooms/${currentRoomId}/schedule-data/?teacher_id=${encodeURIComponent(teacherId)}`)
+            .then(r => r.json())
+            .then(data => {
+                const subjects = data.subjects || [];
+                sSel.innerHTML = '<option value="">— Select Subject —</option>';
+                if (!subjects.length) {
+                    sSel.innerHTML = '<option value="">— No subjects for this teacher —</option>';
+                    return;
+                }
+                subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    const status = s.is_fully_scheduled ? ' ✅ done' : '';
+                    opt.textContent = `${s.subject_code} — ${s.subject_description} (${s.section_display})${status}`;
+                    if (preselectSubjectId && String(s.id) === String(preselectSubjectId)) {
+                        opt.selected = true;
+                    }
+                    sSel.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                sSel.innerHTML = '<option value="">— Failed to load subjects —</option>';
+            });
+    }
+
+    function saveScheduleEdit() {
+        if (!IS_CHAIRMAN) return;
+        if (!currentScheduleId) return;
+
+        const teacherId   = document.getElementById('schedEditTeacher').value;
+        const subjectId   = document.getElementById('schedEditSubject').value;
+        const scheduleType = document.getElementById('schedEditType').value;
+        const msgEl = document.getElementById('schedEditMsg');
+        const saveBtn = document.getElementById('schedEditSaveBtn');
+
+        if (!teacherId) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please select a teacher.';
+            return;
+        }
+        if (!subjectId) {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Please select a subject.';
+            return;
+        }
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('teacher_id', teacherId);
+        fd.append('subject_id', subjectId);
+        fd.append('schedule_type', scheduleType);
+
+        saveBtn.disabled = true;
+
+        fetch(`/room-schedule/${currentScheduleId}/update/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = 'Schedule updated!';
+                setTimeout(() => {
+                    closeSchedEditModal();
+                    if (currentRoomId) fetchRoomSchedule();
+                }, 700);
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to update schedule.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { saveBtn.disabled = false; });
+    }
+
+    function deleteCurrentSchedule() {
+        if (!IS_CHAIRMAN) return;
+        if (!currentScheduleId) return;
+        if (!confirm('Delete this schedule? This cannot be undone.')) return;
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+        const msgEl = document.getElementById('schedEditMsg');
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+
+        fetch(`/room-schedule/${currentScheduleId}/delete/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                msgEl.className = 'modal-message success';
+                msgEl.textContent = 'Schedule deleted.';
+                setTimeout(() => {
+                    closeSchedEditModal();
+                    if (currentRoomId) fetchRoomSchedule();
+                }, 600);
+            } else {
+                msgEl.className = 'modal-message error';
+                msgEl.textContent = d.error || 'Failed to delete schedule.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'modal-message error';
+            msgEl.textContent = 'Network error: ' + err;
+        });
+    }
+
+    /* ============================================================
+       ALL FACULTY CLASS PROGRAMS MODAL (ACP)
+       ============================================================ */
+    function openAllClassProgramsModal() {
+        if (!IS_CHAIRMAN) return;
+        const modal = document.getElementById('allClassProgramsModal');
+        if (!modal) return;
+
+        markModalOpen();
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        const bubble = document.getElementById('acpBubbleBtn');
+        if (bubble) bubble.classList.add('bubble-behind');
+
+        acpSelectedId = null;
+        acpActiveTab = 'schedule';
+        const searchInput = document.getElementById('acpSearchInput');
+        if (searchInput) searchInput.value = '';
+        document.getElementById('acpTabs').style.display = 'none';
+
+        if (acpAllFaculty.length === 0) {
+            loadACPFacultyList();
+        } else {
+            renderACPFacultyList(acpAllFaculty);
+        }
+
+        const main = document.getElementById('acpMain');
+        main.innerHTML = `
+            <div class="acp-empty">
+                <span class="acp-empty-icon">👈</span>
+                <h4>Select a faculty member</h4>
+                <p>Pick someone from the list on the left to view their class program.</p>
+            </div>
+        `;
+    }
+
+    function closeAllClassProgramsModal() {
+        const modal = document.getElementById('allClassProgramsModal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+
+        const bubble = document.getElementById('acpBubbleBtn');
+        if (bubble) bubble.classList.remove('bubble-behind');
+
+        markModalClose();
+    }
+
+    function handleACPClick(e) {
+        if (e.target.id === 'allClassProgramsModal') closeAllClassProgramsModal();
+    }
+
+    function loadACPFacultyList() {
+        const listEl = document.getElementById('acpFacultyList');
+        listEl.innerHTML = '<div class="acp-loading"><i class="fas fa-spinner fa-spin"></i> Loading faculty...</div>';
+
+        fetch('/rooms/teachers-list/')
+            .then(r => r.json())
+            .then(data => {
+                acpAllFaculty = data.teachers || [];
+                renderACPFacultyList(acpAllFaculty);
+            })
+            .catch(() => {
+                listEl.innerHTML = `<div class="acp-loading" style="color:#b42318;">
+                    <i class="fas fa-exclamation-circle"></i> Failed to load faculty.
+                </div>`;
+            });
+    }
+
+    function renderACPFacultyList(facultyArr) {
+        const listEl = document.getElementById('acpFacultyList');
+
+        if (!facultyArr || facultyArr.length === 0) {
+            listEl.innerHTML = `
+                <div class="acp-loading" style="padding: 30px 12px; font-size: 13px;">
+                    <div style="font-size: 28px; opacity: 0.4; margin-bottom: 6px;">👥</div>
+                    No faculty found.
+                </div>`;
+            return;
+        }
+
+        listEl.innerHTML = facultyArr.map(f => {
+            const initials = (f.full_name || '?')
+                .split(/\s+/).slice(0, 2)
+                .map(w => w[0] || '').join('').toUpperCase();
+            const isActive = String(f.id) === String(acpSelectedId);
+            return `
+                <div class="acp-sidebar-item ${isActive ? 'active' : ''}"
+                     data-employee-id="${escapeHtml(f.id)}"
+                     onclick="selectACPFaculty('${escapeHtml(f.id)}')">
+                    <div class="acp-avatar">${escapeHtml(initials)}</div>
+                    <div class="acp-item-info">
+                        <div class="acp-item-name">${escapeHtml(f.full_name)}</div>
+                        <div class="acp-item-dept">${escapeHtml(f.department || 'No department')}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function filterACPFaculty() {
+        const q = (document.getElementById('acpSearchInput').value || '').toLowerCase().trim();
+        if (!q) {
+            renderACPFacultyList(acpAllFaculty);
+            return;
+        }
+        const filtered = acpAllFaculty.filter(f =>
+            (f.full_name || '').toLowerCase().includes(q) ||
+            (f.department || '').toLowerCase().includes(q)
+        );
+        renderACPFacultyList(filtered);
+    }
+
+    function switchACPTab(tabName) {
+        acpActiveTab = tabName;
+        document.querySelectorAll('.acp-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        if (acpSelectedId && acpCache[acpSelectedId]) {
+            renderACPSelected(acpCache[acpSelectedId]);
+        }
+    }
+
+    function selectACPFaculty(employeeId) {
+        acpSelectedId = employeeId;
+        acpActiveTab = 'schedule';
+
+        document.querySelectorAll('.acp-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === 'schedule');
+        });
+
+        document.querySelectorAll('.acp-sidebar-item').forEach(item => {
+            item.classList.toggle('active',
+                String(item.dataset.employeeId) === String(employeeId));
+        });
+
+        document.getElementById('acpTabs').style.display = 'flex';
+
+        if (acpCache[employeeId]) {
+            renderACPSelected(acpCache[employeeId]);
+            return;
+        }
+
+        const main = document.getElementById('acpMain');
+        main.innerHTML = `
+            <div class="acp-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading data...
+            </div>
+        `;
+
+        // Fetch both schedule and subject data concurrently
+        Promise.all([
+            fetch(`/class-program-data/${encodeURIComponent(employeeId)}/`).then(r => r.json()),
+            fetch(`/faculty-info-data/${encodeURIComponent(employeeId)}/`).then(r => r.json())
+        ])
+        .then(([scheduleData, subjectData]) => {
+            const combinedData = { schedule: scheduleData, subjects: subjectData };
+            acpCache[employeeId] = combinedData;
+            renderACPSelected(combinedData);
+        })
+        .catch(err => {
+            main.innerHTML = `<div class="acp-loading" style="color:#b42318;">
+                <i class="fas fa-exclamation-circle"></i> Network error: ${escapeHtml(String(err))}
+            </div>`;
+        });
+    }
+
+    function renderACPSelected(data) {
+        if (acpActiveTab === 'schedule') {
+            renderACPClassProgram(data.schedule);
+        } else if (acpActiveTab === 'subjects') {
+            renderACPSubjects(data.subjects);
+        }
+    }
+
+    function renderACPClassProgram(data) {
+        const main = document.getElementById('acpMain');
+        const timeSlots = data.time_slots || [];
+        const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+        let hasAny = false;
+        for (const slot of timeSlots) {
+            if (slot.schedules && Object.keys(slot.schedules).length > 0) {
+                hasAny = true;
+                break;
+            }
+        }
+
+        const initials = (data.faculty_name || '?')
+            .split(/\s+/).slice(0, 2)
+            .map(w => w[0] || '').join('').toUpperCase();
+
+        const infoBar = `
+            <div class="acp-info-bar">
+                <div>
+                    <div class="acp-fac-name">
+                        <span class="acp-avatar-sm">${escapeHtml(initials)}</span>
+                        ${escapeHtml(data.faculty_name || 'Faculty')}
+                    </div>
+                    <div class="acp-fac-dept">
+                        ${escapeHtml(data.employee_id || '')} · ${escapeHtml(data.department || '')}
+                    </div>
+                </div>
+                <div class="acp-fac-stats">
+                    <span class="acp-stat">📚 ${data.schedule_count || 0} classes</span>
+                    <span class="acp-stat">🗓️ ${escapeHtml(data.term || '')}</span>
+                </div>
+            </div>
+        `;
+
+        if (!hasAny) {
+            main.innerHTML = infoBar + `
+                <div class="acp-empty">
+                    <span class="acp-empty-icon">📭</span>
+                    <h4>No class schedules yet</h4>
+                    <p>This faculty member has no classes assigned.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let tableHtml = `
+            <div class="acp-schedule-wrap">
+                <table class="acp-schedule-table">
+                    <thead>
+                        <tr>
+                            <th class="time-col-header">TIME / PERIOD</th>
+                            ${days.map(d => `<th>${d}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        for (const slot of timeSlots) {
+            if (slot.is_noon_break) {
+                tableHtml += `
+                    <tr>
+                        <td class="acp-time-col noon">${slot.display}</td>
+                        <td class="acp-cell noon" colspan="${days.length}">🍱 LUNCH BREAK</td>
+                    </tr>
+                `;
+                continue;
+            }
+
+            tableHtml += `<tr><td class="acp-time-col">${slot.display}</td>`;
+
+            days.forEach(day => {
+                const cellData = slot.schedules && slot.schedules[day] ? slot.schedules[day] : null;
+
+                if (!cellData) {
+                    tableHtml += `<td class="acp-cell"></td>`;
+                    return;
+                }
+
+                if (!cellData.is_start) {
+                    return;
+                }
+
+                const sched = cellData.info;
+                const span = cellData.rowspan || 1;
+                const isLab = !!sched.is_lab;
+                const labClass = isLab ? ' lab' : '';
+
+                tableHtml += `
+                    <td class="acp-cell has-sched${labClass}" rowspan="${span}">
+                        <div class="acp-cell-block${isLab ? ' lab' : ''}">
+                            <span class="acp-subj">${escapeHtml(sched.subject_code || '')}</span>
+                            <span class="acp-desc">${escapeHtml((sched.subject_description || '').substring(0, 22))}</span>
+                            <span class="acp-section">${escapeHtml(sched.section_display || '')}</span>
+                            <span class="acp-type ${isLab ? 'lab' : 'lec'}">
+                                ${isLab ? 'LAB' : 'LEC'}
+                            </span>
+                            <span class="acp-room">🏫 ${escapeHtml(sched.room || '')}</span>
+                        </div>
+                    </td>
+                `;
+            });
+
+            tableHtml += `</tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        main.innerHTML = infoBar + tableHtml;
+    }
+
+    function renderACPSubjects(data) {
+        const main = document.getElementById('acpMain');
+        const subjects = data.subjects || [];
+
+        const initials = (data.full_name || '?')
+            .split(/\s+/).slice(0, 2)
+            .map(w => w[0] || '').join('').toUpperCase();
+
+        const infoBar = `
+            <div class="acp-info-bar">
+                <div>
+                    <div class="acp-fac-name">
+                        <span class="acp-avatar-sm">${escapeHtml(initials)}</span>
+                        ${escapeHtml(data.full_name || 'Faculty')}
+                    </div>
+                    <div class="acp-fac-dept">
+                        ${escapeHtml(data.employee_id || '')} · ${escapeHtml(data.department || '')}
+                    </div>
+                </div>
+                <div class="acp-fac-stats">
+                    <span class="acp-stat">📚 ${subjects.length} subject(s)</span>
+                    <span class="acp-stat">🕒 ${data.total_hours || 0} hrs/week</span>
+                </div>
+            </div>
+        `;
+
+        if (!subjects.length) {
+            main.innerHTML = infoBar + `
+                <div class="acp-empty">
+                    <span class="acp-empty-icon">📭</span>
+                    <h4>No subjects assigned</h4>
+                    <p>This instructor has no active subjects.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const cardsHtml = subjects.map(s => {
+            const lecMax = s.lec_max || 0;
+            const labMax = s.lab_max || 0;
+            const lecUsed = s.lec_used || 0;
+            const labUsed = s.lab_used || 0;
+
+            const totalMax = lecMax + labMax;
+            const totalUsed = lecUsed + labUsed;
+            const lecPct = totalMax > 0 ? (lecUsed / totalMax) * 100 : 0;
+            const labPct = totalMax > 0 ? (labUsed / totalMax) * 100 : 0;
+
+            const pills = [];
+            if (s.section_display) {
+                pills.push(`<span class="subj-pill section">${escapeHtml(s.section_display)}</span>`);
+            }
+            if (s.has_lecture && lecMax > 0) {
+                pills.push(`<span class="subj-pill lec">LEC ${lecUsed}/${lecMax}h</span>`);
+            }
+            if (s.is_laboratory && labMax > 0) {
+                pills.push(`<span class="subj-pill lab">LAB ${labUsed}/${labMax}h</span>`);
+            }
+            if (s.is_fully_scheduled) {
+                pills.push(`<span class="subj-pill students">✅ Done</span>`);
+            }
+
+            return `
+                <div class="subj-card">
+                    <div class="subj-code">${escapeHtml(s.subject_code || '')}</div>
+                    <div class="subj-desc">${escapeHtml(s.subject_description || '')}</div>
+                    <div class="subj-meta">${pills.join('')}</div>
+                    <div class="subj-progress" title="Lecture / Lab progress">
+                        <div class="bar-lec" style="width:${lecPct}%"></div>
+                        <div class="bar-lab" style="width:${labPct}%"></div>
+                    </div>
+                    <div class="subj-progress-label">
+                        <span>${totalUsed.toFixed(1)} / ${totalMax.toFixed(1)} h scheduled</span>
+                        <span>${s.is_fully_scheduled ? 'Complete' : 'In progress'}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        main.innerHTML = infoBar + `<div class="subj-cards">${cardsHtml}</div>`;
+    }
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    /* ============================================================
+       INIT
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomCodeInput = document.getElementById('room_code');
+        if (roomCodeInput) roomCodeInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+
+        const editRoomCodeInput = document.getElementById('edit_room_code');
+        if (editRoomCodeInput) editRoomCodeInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+
+        const editAvailCheckbox = document.getElementById('edit_is_available');
+        if (editAvailCheckbox) {
+            editAvailCheckbox.addEventListener('change', function() {
+                updateEditAvailabilityUI(this.checked);
+                const pill = document.getElementById('editCurrentPill');
+                if (this.checked) { pill.className = 'pill available'; pill.textContent = 'Available'; }
+                else { pill.className = 'pill unavailable'; pill.textContent = 'Unavailable'; }
+            });
+        }
+
+        {% if form_data %}openAddRoomModal();{% endif %}
+
+        const teacherSearch = document.getElementById('teacherSearchInput');
+        if (teacherSearch) teacherSearch.addEventListener('input', filterTeacherList);
+
+        const schedTeacherSel = document.getElementById('schedEditTeacher');
+        if (schedTeacherSel) {
+            schedTeacherSel.addEventListener('change', function() {
+                loadSchedEditSubjects(this.value, null);
+            });
+        }
+
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.opacity = '0';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            }, 5000);
+        });
+    });
+
+    /* ============================================================
+       ESCAPE
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const sigModal = document.getElementById('sigEditModal');
+            if (sigModal && sigModal.classList.contains('open')) { closeSigEditModal(); return; }
+
+            const acpModal = document.getElementById('allClassProgramsModal');
+            if (acpModal && acpModal.classList.contains('open')) { closeAllClassProgramsModal(); return; }
+
+            const schedModal = document.getElementById('schedEditModal');
+            if (schedModal && schedModal.classList.contains('open')) { closeSchedEditModal(); return; }
+            const editModal = document.getElementById('editRoomModal');
+            if (editModal && editModal.classList.contains('open')) { closeEditRoomModal(); return; }
+            const bulkModal = document.getElementById('roomBulkAssignModal');
+            if (bulkModal && bulkModal.classList.contains('open')) { closeRoomBulkAssign(); return; }
+            const addModal = document.getElementById('addRoomModal');
+            if (addModal && addModal.classList.contains('open')) { closeAddRoomModal(); return; }
+            const panel = document.getElementById('schedulePanel');
+            if (panel && panel.classList.contains('open')) { closeSchedulePanel(); }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1230 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Room Utilization | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       TOKENS
+       ============================================ */
+    .ru {
+        --ink:        #0f1b2d;
+        --ink-2:      #3b4a5e;
+        --ink-3:      #6b7a8d;
+        --line:       #e3e8ef;
+        --line-2:     #cfd7e2;
+        --surface:    #ffffff;
+        --surface-2:  #f6f8fb;
+        --accent:     #1d4f91;
+        --accent-2:   #153b6d;
+        --accent-bg:  #e8f0fa;
+        --good:       #1e7a53;  --good-bg:  #e6f4ec;
+        --warn:       #a86400;  --warn-bg:  #fdf2dc;
+        --bad:        #b3261e;  --bad-bg:   #fbe9e7;
+        --radius:     8px;
+        --font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+
+        font-family: var(--font);
+        color: var(--ink);
+        padding: 28px 32px 48px;
+        max-width: 1480px;
+        margin: 0 auto;
+    }
+    .ru *, .ru *::before, .ru *::after { box-sizing: border-box; }
+    .ru .num { font-variant-numeric: tabular-nums; }
+    .ru svg.i { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none;
+                stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .ru .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0;
+        margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .ru :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ============================================
+       PAGE HEADER
+       ============================================ */
+    .ru-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        gap: 16px; flex-wrap: wrap;
+        padding-bottom: 20px; margin-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+    }
+    .ru-header h1 {
+        margin: 0; font-size: 26px; font-weight: 700;
+        letter-spacing: -0.02em; color: var(--ink);
+    }
+    .ru-header p { margin: 6px 0 0; color: var(--ink-3); font-size: 14.5px; }
+    .ru-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    /* ============================================
+       BUTTONS
+       ============================================ */
+    .ru .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 0 14px; height: 36px; border-radius: 6px;
+        font: 500 13.5px/1 var(--font); cursor: pointer;
+        text-decoration: none; border: 1px solid transparent;
+        transition: background-color .15s, border-color .15s, color .15s;
+    }
+    .ru .btn-primary { background: var(--accent); color: #fff; }
+    .ru .btn-primary:hover { background: var(--accent-2); }
+    .ru .btn-outline { background: var(--surface); color: var(--ink); border-color: var(--line-2); }
+    .ru .btn-outline:hover { background: var(--surface-2); border-color: var(--ink-3); }
+    .ru .btn-secondary { background: var(--surface-2); color: var(--ink-2); border-color: var(--line-2); }
+    .ru .btn-secondary:hover { background: var(--line); }
+    .ru .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .ru .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 36px; padding: 0 12px; border-radius: 6px;
+        background: var(--surface-2); border: 1px solid var(--line);
+        font-size: 13px; color: var(--ink-2);
+    }
+    .ru .pill strong { color: var(--ink); font-weight: 700; }
+
+    /* ============================================
+       KPI STRIP
+       ============================================ */
+    .kpi-strip {
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); margin-bottom: 24px;
+        box-shadow: 0 1px 2px rgba(15,27,45,.04);
+    }
+    .kpi { padding: 18px 22px; border-left: 1px solid var(--line); min-width: 0; }
+    .kpi:first-child { border-left: none; }
+    .kpi-label { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+    .kpi-value {
+        margin-top: 6px; font-size: 28px; font-weight: 700;
+        letter-spacing: -0.02em; color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .kpi-value small { font-size: 16px; font-weight: 600; color: var(--ink-3); margin-left: 2px; }
+    .kpi-hint { margin-top: 4px; font-size: 12.5px; color: var(--ink-3); }
+    .kpi .meter { margin-top: 10px; }
+
+    /* ============================================
+       METER
+       ============================================ */
+    .meter { background: #e8edf3; border-radius: 99px; height: 6px; overflow: hidden; }
+    .meter-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+    .meter-fill.low    { background: var(--good); }
+    .meter-fill.medium { background: #d98e0b; }
+    .meter-fill.high   { background: var(--bad); }
+
+    /* ============================================
+       PANELS
+       ============================================ */
+    .panel {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); margin-bottom: 24px;
+        box-shadow: 0 1px 2px rgba(15,27,45,.04);
+    }
+    .panel-head {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; flex-wrap: wrap; padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .panel-head p  { margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
+    .panel-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .panel-body { padding: 20px 22px 6px; }
+
+    /* ============================================
+       TOOLBAR (search / filter)
+       ============================================ */
+    .ru-toolbar {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        align-items: center; margin-bottom: 18px;
+        padding-bottom: 16px; border-bottom: 1px dashed var(--line-2);
+    }
+    .ru-toolbar input[type="search"],
+    .ru-toolbar select {
+        height: 34px; padding: 0 12px; border-radius: 6px;
+        border: 1px solid var(--line-2); background: var(--surface);
+        font: 500 13px/1 var(--font); color: var(--ink);
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .ru-toolbar input[type="search"] { min-width: 220px; flex: 1 1 220px; }
+    .ru-toolbar input[type="search"]:focus,
+    .ru-toolbar select:focus {
+        border-color: var(--accent); outline: none;
+        box-shadow: 0 0 0 3px rgba(29,79,145,.15);
+    }
+    .ru-toolbar .spacer { flex: 1; }
+    .ru-toolbar .count-note {
+        font-size: 12.5px; color: var(--ink-3); white-space: nowrap;
+    }
+    .ru-toolbar .count-note strong { color: var(--ink); }
+
+    /* ============================================
+       LEGEND
+       ============================================ */
+    .legend {
+        display: flex; flex-wrap: wrap; gap: 6px 14px;
+        margin-bottom: 20px; padding-bottom: 16px;
+        border-bottom: 1px dashed var(--line-2);
+    }
+    .legend:empty { display: none; border: none; padding: 0; margin: 0; }
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(15,27,45,.25); }
+
+    /* ============================================
+       ROOM WEEK GRIDS
+       ============================================ */
+    .room-grid-card {
+        border: 1px solid var(--line); border-radius: var(--radius);
+        margin-bottom: 18px; overflow: hidden; background: var(--surface);
+        break-inside: avoid; page-break-inside: avoid;
+    }
+    .room-grid-card[hidden] { display: none; }
+    .room-grid-header {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 10px; flex-wrap: wrap; padding: 12px 16px;
+        background: var(--surface-2); border-bottom: 1px solid var(--line);
+    }
+    .rg-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .rg-title h3 { margin: 0; font-size: 15px; font-weight: 700; }
+    .rg-code {
+        background: var(--accent-bg); color: var(--accent);
+        padding: 2px 9px; border-radius: 4px;
+        font-size: 12px; font-weight: 700; letter-spacing: .02em;
+    }
+    .rg-meta { display: inline-flex; gap: 14px; font-size: 12.5px; color: var(--ink-3); flex-wrap: wrap; }
+    .rg-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .rg-count { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+
+    .ru .toggle-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 28px; padding: 0 10px; border-radius: 6px;
+        background: var(--surface); border: 1px solid var(--line-2);
+        color: var(--ink-2); font: 500 12.5px/1 var(--font); cursor: pointer;
+    }
+    .ru .toggle-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .ru .toggle-btn svg { width: 14px; height: 14px; transition: transform .2s; }
+    .ru .toggle-btn[aria-expanded="false"] svg.chev { transform: rotate(-90deg); }
+
+    .ru .mode-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 28px; padding: 0 10px; border-radius: 6px;
+        background: var(--surface); border: 1px solid var(--line-2);
+        color: var(--ink-2); font: 500 12px/1 var(--font); cursor: pointer;
+    }
+    .ru .mode-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .ru .mode-btn[aria-pressed="true"] {
+        background: var(--accent-bg); color: var(--accent); border-color: var(--accent);
+    }
+
+    .room-grid-scroll { overflow-x: auto; }
+    .room-grid-scroll[hidden] { display: none; }
+
+    .week-grid { width: 100%; border-collapse: collapse; min-width: 820px; font-size: 11px; table-layout: fixed; }
+    .week-grid th, .week-grid td {
+        border: 1px solid var(--line); text-align: center;
+        vertical-align: middle; padding: 2px;
+    }
+    .week-grid thead th {
+        background: #eef2f8; font-weight: 700; font-size: 12px;
+        color: var(--ink-2); padding: 8px 4px; letter-spacing: .02em;
+    }
+    .week-grid thead th:first-child,
+    .week-grid td.time-col { width: 115px; }
+    .week-grid td.time-col {
+        background: var(--surface-2); color: var(--ink-3);
+        font-weight: 600; font-size: 10.5px; 
+        white-space: nowrap; /* Keeps it on one line */
+        text-align: center;
+        padding: 4px 2px; 
+        vertical-align: middle;
+        overflow: hidden; /* Ensures it doesn't bleed out */
+        text-overflow: clip;
+    }
+
+    .week-grid td.lunch-cell {
+        background: repeating-linear-gradient(135deg, #fbf3df, #fbf3df 6px, #f8ecce 6px, #f8ecce 12px);
+        color: var(--warn); 
+        font-weight: 600; 
+        font-size: 10.5px; 
+        letter-spacing: .08em;
+        text-align: center;
+    }
+    .week-grid td.sched-cell { padding: 1px; height: 24px; border-color: rgba(15,27,45,.18); }
+    .week-grid td.empty-cell,
+    .week-grid td.skip-cell  { background: var(--surface); height: 24px; }
+
+    .mini-block {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        height: 100%; width: 100%; padding: 2px; line-height: 1.15;
+    }
+    .mini-block .m-subj {
+        font-weight: 700; font-size: 10.5px; color: var(--ink);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .mini-block .m-room {
+        font-size: 9.5px; font-weight: 500; color: var(--ink-2);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .mini-block .m-meta {
+        display: none;
+        font-size: 9px; font-style: italic; color: var(--ink-3);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .room-grid-card.mode-detailed .mini-block .m-meta { display: block; }
+
+    /* Subject colors (muted, print-friendly) */
+    .color-0 { background: #cfe6cf; }
+    .color-1 { background: #f8c9c9; }
+    .color-2 { background: #fbe5c1; }
+    .color-3 { background: #e3cdb0; }
+    .color-4 { background: #cfe0f3; }
+    .color-5 { background: #f5d5dc; }
+    .color-6 { background: #d9d4ee; }
+    .color-7 { background: #fff2b3; }
+    .color-8 { background: #d2e6ea; }
+    .color-9 { background: #f4d2a1; }
+
+    /* ============================================
+       DATA TABLE
+       ============================================ */
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 70vh;
+        overflow-y: auto;
+        border-top: 1px solid var(--line);
+    }
+    .ru table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+    .ru table.data thead th {
+        position: sticky; top: 0; z-index: 2;
+        text-align: left; padding: 11px 16px; white-space: nowrap;
+        font-size: 12.5px; font-weight: 600; color: var(--ink-3);
+        background: var(--surface-2); border-bottom: 1px solid var(--line);
+        box-shadow: inset 0 -1px 0 var(--line);
+    }
+    .ru table.data th.right, .ru table.data td.right { text-align: right; }
+    .ru table.data tbody td {
+        padding: 13px 16px; border-bottom: 1px solid var(--line);
+        vertical-align: middle; color: var(--ink);
+        background: var(--surface);
+    }
+    .ru table.data tbody tr:last-child td { border-bottom: none; }
+    .ru table.data tbody tr:hover td { background: #fafbfd; }
+    .ru table.data tbody tr[hidden] { display: none; }
+
+    .room-cell { display: flex; flex-direction: column; gap: 2px; }
+    .room-name { font-weight: 600; }
+    .room-meta { font-size: 12.5px; color: var(--ink-3); }
+
+    .util-cell { display: flex; align-items: center; gap: 12px; min-width: 190px; }
+    .util-pct { font-weight: 700; min-width: 48px; font-variant-numeric: tabular-nums; }
+    .util-cell .meter { flex: 1; }
+
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 3px 10px; border-radius: 99px;
+        font-size: 12px; font-weight: 600;
+    }
+    .status-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-badge.high   { background: var(--bad-bg);  color: var(--bad); }
+    .status-badge.medium { background: var(--warn-bg); color: var(--warn); }
+    .status-badge.low    { background: var(--good-bg); color: var(--good); }
+
+    .action-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 30px; padding: 0 12px; border-radius: 6px;
+        background: var(--surface); border: 1px solid var(--line-2);
+        color: var(--accent); font: 500 13px/1 var(--font);
+        cursor: pointer; text-decoration: none;
+    }
+    .action-btn:hover { background: var(--accent-bg); border-color: var(--accent); }
+
+    /* ============================================
+       EMPTY STATE
+       ============================================ */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--ink-3); }
+    .empty-state svg.i { width: 36px; height: 36px; color: var(--line-2); margin-bottom: 10px; stroke-width: 1.5; }
+    .empty-state h4 { margin: 0 0 4px; color: var(--ink); font-size: 16px; }
+    .empty-state p  { margin: 0; font-size: 14px; }
+    .empty-state.filtered { display: none; }
+    .empty-state.filtered.is-visible { display: block; }
+
+    /* ============================================
+       MODAL
+       ============================================ */
+    .modal-overlay {
+        display: none; position: fixed; inset: 0; z-index: 1000;
+        background: rgba(15,27,45,.55); backdrop-filter: blur(2px);
+        align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+        background: var(--surface); border-radius: 10px; width: 100%;
+        max-width: 1080px; max-height: 90vh; overflow: hidden;
+        box-shadow: 0 24px 64px rgba(15,27,45,.35);
+        display: flex; flex-direction: column;
+        font-family: var(--font); color: var(--ink);
+    }
+    .modal *, .modal *::before, .modal *::after { box-sizing: border-box; }
+    .modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 24px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+    }
+    .modal-header h2 { margin: 0; font-size: 17px; font-weight: 700; }
+    .modal-header h2 span { color: var(--accent); }
+    .close-modal {
+        width: 32px; height: 32px; border-radius: 6px; border: none;
+        background: transparent; color: var(--ink-3); cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .close-modal:hover { background: var(--surface-2); color: var(--ink); }
+    .close-modal svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 14px 24px; border-top: 1px solid var(--line); background: var(--surface-2);
+    }
+    .modal .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 0 14px; height: 36px; border-radius: 6px;
+        font: 500 13.5px/1 var(--font); cursor: pointer; border: 1px solid transparent;
+    }
+    .modal .btn-primary { background: var(--accent); color: #fff; }
+    .modal .btn-primary:hover { background: var(--accent-2); }
+    .modal .btn-secondary { background: var(--surface); color: var(--ink-2); border-color: var(--line-2); }
+    .modal .btn-secondary:hover { background: var(--line); }
+    .modal svg.i { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .modal-msg { text-align: center; color: var(--ink-3); padding: 24px 0; }
+    .modal-msg.error { color: var(--bad); }
+
+    /* Official form header inside modal */
+    .form-head { text-align: center; padding: 6px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 14px; }
+    .form-head .republic { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+    .form-head .school   { font-size: 17px; font-weight: 800; letter-spacing: .08em; margin-top: 2px; }
+    .form-head .place    { font-size: 12px; color: var(--ink-3); }
+    .form-head .college  { font-size: 13px; font-weight: 700; color: var(--accent); margin-top: 10px; text-transform: uppercase; }
+    .form-head .title    { font-size: 14px; font-weight: 700; margin-top: 4px; }
+    .form-meta {
+        display: grid; grid-template-columns: 1fr auto auto;
+        border: 2px solid var(--ink); border-bottom: none; font-size: 13.5px;
+    }
+    .form-meta > div { padding: 8px 14px; }
+    .form-meta .lbl { font-weight: 800; background: #eef2f8; border-left: 2px solid var(--ink); }
+    .form-meta .val { font-weight: 800; background: var(--accent-bg); border-left: 2px solid var(--ink); letter-spacing: .06em; padding: 8px 24px; }
+
+    .schedule-table-wrap { overflow-x: auto; border: 2px solid var(--ink); }
+    .schedule-table { width: 100%; border-collapse: collapse; min-width: 820px; font-size: 11.5px; background: #fff; table-layout: fixed; }
+    .schedule-table th, .schedule-table td {
+        border: 1px solid #7b8794; padding: 4px; text-align: center; vertical-align: middle; height: 26px;
+    }
+    .schedule-table thead th {
+        background: #dfe8df; font-weight: 800; font-size: 11px;
+        letter-spacing: .08em; padding: 8px 4px; text-transform: uppercase;
+    }
+    .schedule-table thead th:first-child,
+    .schedule-table td.time-col { width: 84px; }
+    .schedule-table td.time-col {
+        background: var(--surface-2); font-weight: 700; font-size: 10px;
+        color: var(--ink-2); white-space: nowrap;
+    }
+    .cell-block {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 2px; padding: 4px 3px; min-height: 40px;
+    }
+    .cell-block .subj    { font-weight: 800; font-size: 11.5px; color: var(--ink); line-height: 1.15; }
+    .cell-block .section { font-size: 10px; font-weight: 600; color: var(--ink-2); line-height: 1.15; }
+    .cell-block .faculty { font-size: 10px; font-style: italic; color: var(--ink-3); line-height: 1.15; }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 960px) {
+        .kpi-strip { grid-template-columns: 1fr 1fr; }
+        .kpi:nth-child(3) { border-left: none; }
+        .kpi:nth-child(n+3) { border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 640px) {
+        .ru { padding: 18px 14px 36px; }
+        .ru-header h1 { font-size: 22px; }
+        .panel-head, .panel-body { padding-left: 14px; padding-right: 14px; }
+        .ru-toolbar input[type="search"] { min-width: 0; width: 100%; }
+        .week-grid { min-width: 640px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ru *, .modal * { transition: none !important; }
+    }
+
+    /* ============================================
+       PRINT
+       ============================================ */
+    @media print {
+        .ru { padding: 0; max-width: none; }
+        .ru-header-actions, .panel-tools, .toggle-btn, .mode-btn, .ru-toolbar,
+        .action-btn, .modal-footer, .close-modal, .no-print { display: none !important; }
+
+        /* Always show grids on print, regardless of collapsed state */
+        .room-grid-scroll[hidden] { display: block !important; }
+        .room-grid-card[hidden]   { display: block !important; }
+
+        .panel, .kpi-strip, .room-grid-card { box-shadow: none; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        /* When the schedule modal is open, print only the modal */
+        body.modal-open .ru-page { display: none !important; }
+        body.modal-open .modal-overlay {
+            position: static; display: block; background: none; padding: 0; backdrop-filter: none;
+        }
+        body.modal-open .modal { max-height: none; box-shadow: none; max-width: none; }
+        body.modal-open .modal-body { overflow: visible; padding: 0; }
+    }
+    /* ============================================
+       REFINED ROOM UTILIZATION PRESENTATION
+       ============================================ */
+    .ru {
+        padding: 24px clamp(16px, 2.5vw, 34px) 48px;
+        max-width: 1600px;
+    }
+    .ru-header {
+        align-items: center;
+        padding: 4px 0 22px;
+        margin-bottom: 22px;
+    }
+    .ru-header h1 { font-size: clamp(23px, 2vw, 29px); }
+    .ru-header p { font-size: 14px; line-height: 1.55; }
+    .ru .pill { background: #f4f7fb; border-color: #e1e8f0; }
+    .kpi-strip, .panel, .room-grid-card {
+        border-color: #dfe6ef;
+        border-radius: 11px;
+        box-shadow: 0 2px 8px rgba(15, 27, 45, .045);
+    }
+    .kpi { padding: 20px 22px; }
+    .kpi-value { font-size: 30px; }
+    .panel { overflow: hidden; }
+    .panel-head { padding: 19px 22px; background: #fff; }
+    .panel-head h2 { font-size: 17px; }
+    .panel-head p { line-height: 1.5; }
+    .panel-body { padding: 20px 22px 8px; }
+    .ru .btn, .ru .mode-btn, .ru .toggle-btn, .ru .action-btn {
+        border-radius: 7px;
+        transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .ru .btn-primary { box-shadow: 0 2px 4px rgba(29, 79, 145, .16); }
+    .ru .btn:focus-visible, .ru .mode-btn:focus-visible,
+    .ru .toggle-btn:focus-visible, .ru .action-btn:focus-visible {
+        outline: 3px solid rgba(29, 79, 145, .22); outline-offset: 2px;
+    }
+    .ru-toolbar { gap: 12px; }
+    .ru-toolbar input[type="search"], .ru-toolbar select {
+        min-height: 38px; border-radius: 7px; background-color: #fff;
+    }
+    .room-grid-card { margin-bottom: 16px; }
+    .room-grid-header {
+        padding: 13px 17px;
+        background: linear-gradient(180deg, #f8fafd 0%, #f2f6fb 100%);
+    }
+    .rg-title { gap: 10px; }
+    .rg-title h3 { font-size: 14px; letter-spacing: -.01em; }
+    .rg-code { padding: 4px 9px; border-radius: 5px; }
+    .rg-meta { gap: 8px 13px; color: #63748a; }
+    .rg-count { color: #34465e; }
+    .room-grid-scroll { width: 100%; }
+    .week-grid {
+        width: 100%; min-width: 820px; table-layout: fixed;
+        border-collapse: collapse; font-size: 11.5px;
+    }
+    .week-grid th, .week-grid td {
+        border-color: #e2e8f0;
+        padding: 2px 3px;
+    }
+    .week-grid thead th {
+        height: 35px; background: #edf2f8; color: #34465e;
+        font-size: 11px; font-weight: 750; letter-spacing: .055em;
+    }
+    .week-grid thead th:first-child, .week-grid td.time-col { width: 112px; }
+    .week-grid td.time-col {
+        background: #f8fafc; color: #65758b;
+        font-size: 10.5px; font-weight: 600;
+    }
+    .week-grid td.empty-cell, .week-grid td.skip-cell, .week-grid td.sched-cell {
+        height: 25px;
+    }
+    .week-grid td.sched-cell {
+        padding: 2px; border-color: rgba(64, 82, 108, .2);
+    }
+    .mini-block { padding: 3px 4px; gap: 2px; }
+    .mini-block .m-subj { font-size: 11px; line-height: 1.2; }
+    .mini-block .m-room { font-size: 9.5px; line-height: 1.2; }
+    .mini-block .m-meta { font-size: 9px; }
+    .week-grid td.lunch-cell {
+        font-size: 10px; letter-spacing: .1em;
+        background: repeating-linear-gradient(135deg, #fff8e8, #fff8e8 7px, #fff1d6 7px, #fff1d6 14px);
+    }
+    .legend { gap: 9px 16px; padding-bottom: 17px; }
+    .legend-item { font-size: 12px; }
+    .legend-swatch { width: 13px; height: 13px; border-radius: 4px; }
+    .ru table.data tbody td { padding: 14px 16px; }
+    .status-badge { padding: 5px 10px; }
+    .empty-state { padding: 54px 20px; }
+
+    @media (max-width: 760px) {
+        .ru { padding: 18px 12px 32px; }
+        .ru-header { align-items: flex-start; }
+        .ru-header-actions { width: 100%; }
+        .kpi { padding: 15px; }
+        .kpi-value { font-size: 25px; }
+        .panel-head { align-items: flex-start; padding: 16px; }
+        .panel-body { padding: 16px 12px 6px; }
+        .panel-tools { width: 100%; }
+        .panel-tools .btn { flex: 1 1 auto; justify-content: center; }
+        .room-grid-header { align-items: flex-start; padding: 12px; }
+        .rg-actions { width: 100%; justify-content: flex-start; }
+        .ru-toolbar { align-items: stretch; }
+        .ru-toolbar input[type="search"], .ru-toolbar select {
+            min-width: 100%; width: 100%; flex: 1 1 100%;
+        }
+        .ru-toolbar .spacer { display: none; }
+    }
+    @media (max-width: 420px) {
+        .kpi-strip { grid-template-columns: 1fr 1fr; }
+        .kpi-label { font-size: 11.5px; }
+        .kpi-hint { font-size: 11px; }
+        .rg-meta { font-size: 11.5px; }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 7h3M8 11h3M8 15h3"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v7H7z"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></symbol>
+    <symbol id="i-collapse" viewBox="0 0 24 24"><path d="m7 20 5-5 5 5M7 4l5 5 5-5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 6-10 6L2 8l10-6zM2 16l10 6 10-6M2 12l10 6 10-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+</svg>
+
+<div class="ru ru-page-wrap">
+  <div class="ru-page">
+
+    <!-- Header -->
+    <header class="ru-header">
+        <div>
+            <h1>Room utilization</h1>
+            <p>How often each room is scheduled this semester.</p>
+        </div>
+        <div class="ru-header-actions">
+            <span class="pill"><strong class="num">{{ total_rooms }}</strong> rooms</span>
+            <a href="{% url 'room_list' %}" class="btn btn-outline">
+                <svg class="i"><use href="#i-building"/></svg> View rooms
+            </a>
+        </div>
+    </header>
+
+    <!-- Summary -->
+    <section class="kpi-strip" aria-label="Utilization summary">
+        <div class="kpi">
+            <div class="kpi-label">Overall utilization</div>
+            <div class="kpi-value">{{ overall_pct }}<small>%</small></div>
+            <div class="meter" role="progressbar"
+                 aria-valuenow="{{ overall_pct }}" aria-valuemin="0" aria-valuemax="100"
+                 aria-label="Overall utilization {{ overall_pct }} percent">
+                <div class="meter-fill {% if overall_pct >= 70 %}high{% elif overall_pct >= 40 %}medium{% else %}low{% endif %}"
+                     style="width: {{ overall_pct }}%;"></div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Hours scheduled</div>
+            <div class="kpi-value">{{ total_used }}</div>
+            <div class="kpi-hint">This semester</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Hours available</div>
+            <div class="kpi-value">{{ total_available }}</div>
+            <div class="kpi-hint">8 hrs × 5 days × 18 weeks, per room</div>
+        </div>
+                <div class="kpi">
+            <div class="kpi-label">Total rooms</div>
+            <div class="kpi-value">{{ total_rooms }}</div>
+            <div class="kpi-hint">Across all buildings</div>
+        </div>
+    </section>
+
+    <!-- Weekly overview: all rooms -->
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Weekly schedule by room</h2>
+                <p>Each room's week at a glance. Hover a class for subject, description and faculty.</p>
+            </div>
+            <div class="panel-tools">
+                <button type="button" class="btn btn-outline" onclick="expandAllRooms()">
+                    <svg class="i"><use href="#i-expand"/></svg> Expand all
+                </button>
+                <button type="button" class="btn btn-outline" onclick="collapseAllRooms()">
+                    <svg class="i"><use href="#i-collapse"/></svg> Collapse all
+                </button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <svg class="i"><use href="#i-print"/></svg> Print
+                </button>
+            </div>
+        </div>
+
+        <div class="panel-body">
+            {% if room_grids %}
+                <!-- Search and filter -->
+                <div class="ru-toolbar" role="search">
+                    <input type="search" id="roomSearch" placeholder="Search by room, code or building"
+                           aria-label="Search rooms" oninput="debouncedApplyRoomFilter()">
+                    <select id="programFilter" aria-label="Filter by program" onchange="applyRoomFilter()">
+                        <option value="">All programs</option>
+                    </select>
+                    <button type="button" class="mode-btn" id="allModesBtn"
+                            data-mode="compact" aria-pressed="false"
+                            onclick="toggleAllModes(this)">
+                        <svg class="i"><use href="#i-layers"/></svg>
+                        <span class="mode-label">Show faculty</span>
+                    </button>
+                    <span class="spacer"></span>
+                    <span class="count-note" aria-live="polite">
+                        Showing <strong id="roomShown" class="num">{{ room_grids|length }}</strong>
+                        of <strong class="num">{{ room_grids|length }}</strong> rooms
+                    </span>
+                </div>
+            {% endif %}
+
+            <div class="legend" id="subjectLegend" aria-label="Subject color legend">
+                {% for code, color in subject_colors.items %}
+                    <span class="legend-item">
+                        <span class="legend-swatch {{ color }}" aria-hidden="true"></span>{{ code }}
+                    </span>
+                {% empty %}
+                    <span class="room-meta">No scheduled subjects.</span>
+                {% endfor %}
+            </div>
+
+            {% if room_grids %}
+                <div id="roomCardsContainer">
+                {% for grid in room_grids %}
+                    <article class="room-grid-card"
+                             data-search="{{ grid.room.room_name|lower }} {{ grid.room.room_code|lower }} {{ grid.room.building_name|lower }}"
+                             data-program="{{ grid.room.get_program_display }}">
+                        <div class="room-grid-header">
+                            <div class="rg-title">
+                                <h3>{{ grid.room.room_name }}</h3>
+                                <span class="rg-code">{{ grid.room.room_code }}</span>
+                                <span class="rg-meta">
+                                    <span>{{ grid.room.building_name }}</span>
+                                    <span>Floor {{ grid.room.floor_number }}</span>
+                                    <span>{{ grid.room.get_program_display }}</span>
+                                </span>
+                            </div>
+                            <div class="rg-actions">
+                                <span class="rg-count num">{{ grid.schedule_count }} classes</span>
+                                <button type="button" class="mode-btn" data-mode="compact"
+                                        aria-pressed="false"
+                                        onclick="toggleRoomMode(this)"
+                                        aria-label="Toggle faculty details for {{ grid.room.room_code }}">
+                                    <svg class="i"><use href="#i-layers"/></svg>
+                                    <span class="mode-label">Show faculty</span>
+                                </button>
+                                <button type="button" class="toggle-btn" aria-expanded="true"
+                                        onclick="toggleRoomGrid(this)"
+                                        aria-label="Toggle schedule grid for {{ grid.room.room_code }}">
+                                    <svg class="i chev"><use href="#i-chevron"/></svg>
+                                    <span class="toggle-label">Hide</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="room-grid-scroll" role="region"
+                             aria-label="Weekly schedule for {{ grid.room.room_code }}">
+                            <table class="week-grid">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Time</th>
+                                        {% for day in days %}
+                                            <th scope="col">{{ day|slice:":3" }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in grid.rows %}
+                                        <tr>
+                                            <td class="time-col">{{ row.time.display }}</td>
+                                            
+                                            {% if row.time.is_lunch %}
+                                                <!-- 🍽️ Single row spanning all days -->
+                                                <td colspan="{{ days|length }}" class="lunch-cell" style="font-weight: 800; letter-spacing: 1px;">
+                                                    🍽️ LUNCH BREAK
+                                                </td>
+                                            {% else %}
+                                                <!-- Normal schedule columns -->
+                                                {% for cell in row.cells %}
+                                                    {% if cell.type == 'skip' %}
+                                                        {# Intentionally render nothing: this slot is covered by a prior rowspan. #}
+                                                    {% elif cell.type == 'sched' %}
+                                                        <td class="sched-cell {{ cell.block.color }}"
+                                                            rowspan="{{ cell.span }}"
+                                                            title="{{ cell.block.subject }} — {{ cell.block.description }} · {{ cell.block.faculty }}">
+                                                            <div class="mini-block">
+                                                                <span class="m-subj">{{ cell.block.subject }}</span>
+                                                                <span class="m-room">{{ cell.block.section }}</span>
+                                                                <span class="m-meta">{{ cell.block.faculty }}</span>
+                                                            </div>
+                                                        </td>
+                                                    {% else %}
+                                                        <td class="empty-cell"></td>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                {% endfor %}
+                </div>
+
+                <div class="empty-state filtered" id="roomFilterEmpty">
+                    <svg class="i"><use href="#i-search"/></svg>
+                    <h4>No rooms match your search</h4>
+                    <p>Try a different room name, code or building, or clear the program filter.</p>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <svg class="i"><use href="#i-calendar"/></svg>
+                    <h4>No room schedules yet</h4>
+                    <p>Assign schedules to rooms to see the weekly overview here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+   
+</div>
+
+  
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    // Ensure this matches your Django routing
+    const SCHEDULE_URL = (window.ROOM_SCHEDULE_URL_TEMPLATE || '/rooms/{id}/schedule-data/');
+
+    /* ============================================
+       UTILITIES
+       ============================================ */
+    function debounce(fn, wait) {
+        let t;
+        return function (...args) {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    }
+
+    function setVisible(el, visible) {
+        if (!el) return;
+        el.classList.toggle('is-visible', visible);
+    }
+
+    /* ============================================
+       WEEKLY OVERVIEW: expand / collapse
+       ============================================ */
+    function setRoomGrid(card, open) {
+        const scroll = card.querySelector('.room-grid-scroll');
+        const btn    = card.querySelector('.toggle-btn');
+        if (!scroll || !btn) return;
+        scroll.hidden = !open;
+        btn.setAttribute('aria-expanded', String(open));
+        const label = btn.querySelector('.toggle-label');
+        if (label) label.textContent = open ? 'Hide' : 'Show';
+    }
+
+    function toggleRoomGrid(btn) {
+        const card = btn.closest('.room-grid-card');
+        if (!card) return;
+        setRoomGrid(card, card.querySelector('.room-grid-scroll').hidden);
+    }
+
+    function expandAllRooms() {
+        document.querySelectorAll('.room-grid-card').forEach(c => {
+            c.hidden = false;
+            setRoomGrid(c, true);
+        });
+    }
+
+    function collapseAllRooms() {
+        document.querySelectorAll('.room-grid-card').forEach(c => setRoomGrid(c, false));
+    }
+
+    /* ============================================
+       WEEKLY OVERVIEW: compact / detailed mode
+       ============================================ */
+    function setRoomMode(card, detailed) {
+        const btn = card.querySelector('.mode-btn');
+        if (!btn) return;
+        card.classList.toggle('mode-detailed', detailed);
+        btn.dataset.mode = detailed ? 'detailed' : 'compact';
+        btn.setAttribute('aria-pressed', String(detailed));
+        const label = btn.querySelector('.mode-label');
+        if (label) label.textContent = detailed ? 'Hide faculty' : 'Show faculty';
+    }
+
+    function toggleRoomMode(btn) {
+        const card = btn.closest('.room-grid-card');
+        if (!card) return;
+        setRoomMode(card, !card.classList.contains('mode-detailed'));
+    }
+
+    function toggleAllModes(btn) {
+        const detailed = btn.dataset.mode !== 'detailed';
+        btn.dataset.mode = detailed ? 'detailed' : 'compact';
+        btn.setAttribute('aria-pressed', String(detailed));
+        const label = btn.querySelector('.mode-label');
+        if (label) label.textContent = detailed ? 'Hide faculty' : 'Show faculty';
+        document.querySelectorAll('.room-grid-card').forEach(c => setRoomMode(c, detailed));
+    }
+
+    /* ============================================
+       SEARCH AND FILTER
+       ============================================ */
+    function applyRoomFilter() {
+        const qInput = document.getElementById('roomSearch');
+        const pInput = document.getElementById('programFilter');
+        if (!qInput || !pInput) return;
+
+        const q    = qInput.value.trim().toLowerCase();
+        const prog = pInput.value;
+        const cards = document.querySelectorAll('.room-grid-card');
+        let shown = 0;
+
+        cards.forEach(card => {
+            const hay  = (card.dataset.search || '').toLowerCase();
+            const progKey = card.dataset.program || '';
+            const matchText = !q || hay.includes(q);
+            const matchProg = !prog || progKey === prog;
+            const match = matchText && matchProg;
+            card.hidden = !match;
+            if (match) shown++;
+        });
+
+        const counter = document.getElementById('roomShown');
+        if (counter) counter.textContent = shown;
+
+        setVisible(document.getElementById('roomFilterEmpty'),
+                   cards.length > 0 && shown === 0);
+    }
+
+    function applyTableFilter() {
+        const qInput = document.getElementById('tableSearch');
+        const sInput = document.getElementById('statusFilter');
+        if (!qInput || !sInput) return;
+
+        const q      = qInput.value.trim().toLowerCase();
+        const status = sInput.value;
+        const rows   = document.querySelectorAll('#utilTable tbody tr.room-row');
+        let shown = 0;
+
+        rows.forEach(row => {
+            const hay = (row.dataset.search || '').toLowerCase();
+            const matchText   = !q || hay.includes(q);
+            const matchStatus = !status || row.dataset.status === status;
+            const match = matchText && matchStatus;
+            row.hidden = !match;
+            if (match) shown++;
+        });
+
+        const counter = document.getElementById('tableShown');
+        if (counter) counter.textContent = shown;
+
+        setVisible(document.getElementById('tableFilterEmpty'),
+                   rows.length > 0 && shown === 0);
+    }
+
+    const debouncedApplyRoomFilter  = debounce(applyRoomFilter, 150);
+    const debouncedApplyTableFilter = debounce(applyTableFilter, 150);
+
+    function buildProgramOptions() {
+        const select = document.getElementById('programFilter');
+        if (!select) return;
+        const existing = new Set(
+            Array.from(select.options).map(o => o.value).filter(Boolean)
+        );
+        const programs = new Set();
+        document.querySelectorAll('.room-grid-card').forEach(c => {
+            if (c.dataset.program) programs.add(c.dataset.program);
+        });
+        [...programs].sort().forEach(p => {
+            if (existing.has(p)) return;
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            select.appendChild(opt);
+        });
+    }
+
+    /* ============================================
+       PER-ROOM MODAL
+       ============================================ */
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => (
+            {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+        ));
+    }
+
+    function buildScheduleUrl(roomId) {
+        return SCHEDULE_URL.replace('{id}', encodeURIComponent(roomId));
+    }
+
+    function openUtilSchedule(btn) {
+        const roomId   = btn.dataset.roomId;
+        const roomCode = btn.dataset.roomCode || '—';
+
+        document.getElementById('modalRoomCode').textContent = roomCode;
+        document.getElementById('scheduleModalBody').innerHTML =
+            '<p class="modal-msg">Loading schedule…</p>';
+        document.getElementById('roomScheduleModal').classList.add('open');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+
+        fetch(buildScheduleUrl(roomId), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('scheduleModalBody').innerHTML =
+                        `<p class="modal-msg error">${esc(data.error)}</p>`;
+                    return;
+                }
+                renderUtilSchedule(data);
+            })
+            .catch(err => {
+                console.error('Schedule fetch failed:', err);
+                document.getElementById('scheduleModalBody').innerHTML =
+                    '<p class="modal-msg error">Could not load the schedule. Close this window and try again.</p>';
+            });
+    }
+
+    function closeUtilSchedule() {
+        document.getElementById('roomScheduleModal').classList.remove('open');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+    }
+
+    function handleScheduleOverlay(e) {
+        if (e.target.id === 'roomScheduleModal') closeUtilSchedule();
+    }
+
+    /* ============================================
+       SCHEDULE GRID RENDERING (MATRIX FIX)
+       --------------------------------------------
+       We use a strict 2D grid mapping to prevent
+       table rowspan bleeding into phantom columns.
+       ============================================ */
+    function parseTimeToMinutes(str) {
+        if (!str) return null;
+        // Handle both "1:30 PM" and "13:30"
+        let m = String(str).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (m) {
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            const ap = m[3].toUpperCase();
+            if (ap === 'PM' && h !== 12) h += 12;
+            if (ap === 'AM' && h === 12) h = 0;
+            return h * 60 + min;
+        }
+        m = String(str).match(/^(\d{1,2}):(\d{2})$/);
+        if (m) {
+            return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+        }
+        return null;
+    }
+
+    function renderUtilSchedule(data) {
+        const days      = data.days || [];
+        const timeRows  = data.time_rows || [];
+        const schedules = data.schedules || [];
+
+        // Build color map
+        const palette = ['color-0','color-1','color-2','color-3','color-4',
+                         'color-5','color-6','color-7','color-8','color-9'];
+        const colorMap = {};
+        let colorIdx = 0;
+        schedules.forEach(s => {
+            if (!s.subject) return;
+            if (!(s.subject in colorMap)) {
+                colorMap[s.subject] = palette[colorIdx % palette.length];
+                colorIdx++;
+            }
+        });
+
+        // 1. Initialize an empty matrix (rows x cols)
+        const numRows = timeRows.length;
+        const numCols = days.length;
+        const matrix = Array.from({ length: numRows }, () => Array(numCols).fill(null));
+
+        // Helper: Find row index that matches a time string
+        function parseTimeToMinutes(str) {
+            if (!str) return null;
+            let m = String(str).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            if (m) {
+                let h = parseInt(m[1], 10);
+                const min = parseInt(m[2], 10);
+                const ap = m[3].toUpperCase();
+                if (ap === 'PM' && h !== 12) h += 12;
+                if (ap === 'AM' && h === 12) h = 0;
+                return h * 60 + min;
+            }
+            m = String(str).match(/^(\d{1,2}):(\d{2})$/);
+            if (m) {
+                return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+            }
+            return null;
+        }
+
+        function findRowIndex(timeStr) {
+            const targetMin = parseTimeToMinutes(timeStr);
+            if (targetMin === null) return -1;
+            for (let i = 0; i < numRows; i++) {
+                const rowMin = parseTimeToMinutes(timeRows[i].key);
+                if (rowMin === targetMin) return i;
+            }
+            return -1;
+        }
+
+        // 2. Place schedules into the matrix
+        schedules.forEach(sched => {
+            const colIdx = days.indexOf(sched.day);
+            if (colIdx === -1) return;
+
+            const startIdx = findRowIndex(sched.start_time);
+            const endIdx   = findRowIndex(sched.end_time);
+
+            if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+                for (let r = startIdx; r < endIdx; r++) {
+                    matrix[r][colIdx] = sched;
+                }
+            }
+        });
+
+        // 3. Generate Table HTML
+        let html = `
+            <div class="form-head">
+                <div class="republic">Republic of the Philippines</div>
+                <div class="school">PALOMPON INSTITUTE OF TECHNOLOGY</div>
+                <div class="place">Palompon, Leyte</div>
+                <div class="college">${esc(data.college || '')}</div>
+                <div class="title">Room Utilization, A.Y. 2026-2027, First Semester</div>
+            </div>
+            <div class="form-meta">
+                <div><strong>Department:</strong> ${esc(data.department || '')}</div>
+                <div class="lbl">ROOM:</div>
+                <div class="val">${esc(data.room?.code || '')}</div>
+            </div>
+            <div class="schedule-table-wrap">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            ${days.map(d => `<th>${esc(d)}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+                for (let r = 0; r < numRows; r++) {
+            // 🍽️ LUNCH BREAK ROW
+            if (timeRows[r].is_lunch) {
+                html += `
+                    <tr class="lunch-row">
+                        <td class="time-col" style="font-weight:700;">${esc(timeRows[r].display)}</td>
+                        <td colspan="${numCols}" style="background: repeating-linear-gradient(135deg, #fbf3df, #fbf3df 6px, #f8ecce 6px, #f8ecce 12px); color: #a86400; font-weight: 800; letter-spacing: 1px; text-align: center; text-transform: uppercase;">
+                            🍽️ LUNCH BREAK
+                        </td>
+                    </tr>
+                `;
+                continue;
+            }
+            
+            html += `<tr><td class="time-col">${esc(timeRows[r].display)}</td>`;
+            
+            for (let c = 0; c < numCols; c++) {
+                const currentBlock = matrix[r][c];
+                
+                if (currentBlock === null) {
+                    html += `<td></td>`;
+                } else {
+                    const isStart = (r === 0) || (matrix[r - 1][c] !== currentBlock);
+                    
+                    if (isStart) {
+                        let span = 1;
+                        for (let nextR = r + 1; nextR < numRows; nextR++) {
+                            if (matrix[nextR][c] === currentBlock) {
+                                span++;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        const color = colorMap[currentBlock.subject] || 'color-0';
+                        html += `
+                            <td rowspan="${span}" class="${color}">
+                                <div class="cell-block">
+                                    <div class="subj">${esc(currentBlock.subject)}</div>
+                                    <div class="section">${esc(currentBlock.section || '')}</div>
+                                    <div class="faculty">${esc(currentBlock.faculty || '')}</div>
+                                </div>
+                            </td>
+                        `;
+                    }
+                }
+            }
+            html += `</tr>`;
+        }
+
+        html += `</tbody></table></div>`;
+        document.getElementById('scheduleModalBody').innerHTML = html;
+    }
+
+    /* ============================================
+       KEYBOARD
+       ============================================ */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeUtilSchedule();
+    });
+
+    /* ============================================
+       INIT & EXPOSE TO WINDOW
+       ============================================ */
+    document.addEventListener('DOMContentLoaded', function () {
+        buildProgramOptions();
+        applyRoomFilter();
+        applyTableFilter();
+    });
+
+    window.expandAllRooms            = expandAllRooms;
+    window.collapseAllRooms          = collapseAllRooms;
+    window.toggleRoomGrid            = toggleRoomGrid;
+    window.toggleRoomMode            = toggleRoomMode;
+    window.toggleAllModes            = toggleAllModes;
+    window.applyRoomFilter           = applyRoomFilter;
+    window.applyTableFilter          = applyTableFilter;
+    window.debouncedApplyRoomFilter  = debouncedApplyRoomFilter;
+    window.debouncedApplyTableFilter = debouncedApplyTableFilter;
+    window.openUtilSchedule          = openUtilSchedule;
+    window.closeUtilSchedule         = closeUtilSchedule;
+    window.handleScheduleOverlay     = handleScheduleOverlay;
+})();
+</script>
+{% endblock %}

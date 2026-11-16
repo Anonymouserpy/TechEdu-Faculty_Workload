@@ -1,0 +1,644 @@
+{% extends 'base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}Class List | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* GLOBAL & RESET */
+    body {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f3f4f6;
+        margin: 0;
+        padding: 20px;
+        color: #1f2937;
+    }
+
+    /* =========================================
+       PROFESSIONAL TOP CONTROLS
+       ========================================= */
+    .top-controls {
+        max-width: 1200px;
+        margin: 0 auto 24px auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        background: #ffffff;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e5e7eb;
+        gap: 20px;
+    }
+
+    /* Control Groups (Dropdowns) */
+    .control-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .control-group label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* Modern Custom Select */
+    .custom-select-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .control-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: #f9fafb;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 10px 36px 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        outline: none;
+        min-width: 160px;
+    }
+    .control-group select:hover {
+        border-color: #9ca3af;
+        background-color: #f3f4f6;
+    }
+    .control-group select:focus {
+        border-color: #2563eb;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    
+    /* Custom Dropdown Arrow */
+    .custom-select-wrapper::after {
+        content: "";
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 6px;
+        background-color: #6b7280;
+        clip-path: polygon(100% 0, 0 0, 50% 100%);
+        pointer-events: none;
+        transition: background-color 0.2s;
+    }
+    .control-group select:focus + .custom-select-wrapper::after,
+    .custom-select-wrapper:hover::after {
+        background-color: #2563eb;
+    }
+
+    /* Right Side: Year & Section Segmented Control */
+    .section-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-left: auto;
+    }
+    .section-buttons {
+        display: flex;
+        background-color: #f3f4f6;
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .section-btn {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .section-btn:hover {
+        background-color: #e5e7eb;
+        color: #111827;
+    }
+    .section-btn.active {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* =========================================
+       OFFICIAL DOCUMENT
+       ========================================= */
+    .print-container {
+        background: white; max-width: 1200px; margin: 0 auto;
+        padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    /* HEADER DESIGN */
+    .header-wrapper {
+        display: grid;
+        grid-template-columns: 160px 1fr 240px;
+        grid-template-rows: auto auto;
+        border: 2px solid #000;
+        margin-bottom: 0;
+    }
+    .header-logos-container {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-right: 1px solid #000;
+    }
+    .header-logos { display: flex; gap: 10px; }
+    .logo-box {
+        width: 45px; height: 45px; border-radius: 50%;
+        background-color: #f1f5f9; border: 1px solid #cbd5e1;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 8px; color: #666; text-align: center;
+    }
+    .header-center-top {
+        grid-column: 2; grid-row: 1;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        text-align: center; padding: 8px;
+        border-right: 1px solid #000; border-bottom: 1px solid #000;
+        font-size: 11px; line-height: 1.3;
+    }
+    .header-center-top strong { font-size: 14px; font-weight: bold; margin: 2px 0; text-transform: uppercase; }
+    .header-center-top .college-name { font-size: 11.5px; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
+    .header-center-bottom {
+        grid-column: 2; grid-row: 2;
+        text-align: center; padding: 6px; font-size: 14px; font-weight: bold;
+        text-transform: uppercase; display: flex; align-items: center; justify-content: center;
+        border-right: 1px solid #000;
+    }
+    .header-center-bottom .highlight { background-color: #d1d5db; padding: 0 4px; }
+    .header-right-box {
+        grid-column: 3; grid-row: 1 / 3;
+        display: flex; flex-direction: column;
+    }
+    .right-codes-container { display: flex; flex-direction: column; border-bottom: 1px solid #000; }
+    .right-codes-container > div { padding: 4px 8px; font-size: 9.5px; border-bottom: 1px solid #000; }
+    .right-codes-container > div:last-child { border-bottom: none; }
+    .right-tuv-container {
+        flex: 1; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; padding: 10px 5px; text-align: center;
+    }
+    .tuv-logo { font-size: 16px; font-weight: bold; color: #3b82f6; margin-bottom: 2px; letter-spacing: 0.5px; }
+    .tuv-text { font-size: 9px; line-height: 1.2; }
+
+    /* INFO SECTION */
+    .info-section {
+        border: 2px solid #000; border-top: none;
+        display: flex; flex-wrap: wrap; font-size: 12px; font-weight: bold;
+    }
+    .info-row { display: flex; width: 100%; border-bottom: 1px solid #000; }
+    .info-row:last-child { border-bottom: none; }
+    .info-item {
+        flex: 1; padding: 8px; border-right: 1px solid #000;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .info-item:last-child { border-right: none; }
+    .info-item label { font-weight: bold; font-size: 11px; color: #333; margin-right: 4px; }
+
+    table.schedule-table {
+        width: 100%; border-collapse: collapse; font-size: 11px;
+        text-align: center; border: 2px solid #000; table-layout: fixed;
+    }
+    table.schedule-table th, table.schedule-table td {
+        border: 1px solid #000; padding: 4px; vertical-align: middle;
+    }
+    table.schedule-table th {
+        background-color: #a0d468; font-weight: bold;
+        text-transform: uppercase; color: #000; height: 30px;
+    }
+    .time-col { width: 85px; font-weight: bold; background-color: #f9f9f9; font-size: 10px; }
+
+    .class-block {
+        font-weight: bold; font-size: 11px; padding: 4px;
+        line-height: 1.2; height: 100%;
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+    }
+    .class-block .subject-code { font-size: 11px; color: #000; margin-bottom: 2px; }
+    .class-block .faculty { font-size: 10px; font-weight: normal; }
+    .class-block .room { font-size: 10px; font-weight: normal; }
+
+    .bg-blue { background-color: #b0d8f0; }
+    .bg-pink { background-color: #f7b7ce; }
+    .bg-green { background-color: #b4e3ab; }
+    .bg-yellow { background-color: #ffff00; }
+    .bg-purple { background-color: #d9bdf5; }
+    .bg-orange { background-color: #ffcc99; }
+    .bg-teal { background-color: #99e6e6; }
+
+    .footer {
+        border: 2px solid #000; border-top: none;
+        display: flex; font-size: 11px; margin-top: 0;
+    }
+    .footer > div {
+        flex: 1; padding: 10px; border-right: 1px solid #000; text-align: center;
+    }
+    .footer > div:last-child { border-right: none; }
+    .footer .name { font-weight: bold; margin-top: 15px; }
+    .footer .title { font-size: 10px; }
+
+    @media print {
+        body { background: white; padding: 0; margin: 0; }
+        .top-controls { display: none !important; }
+        .print-container { box-shadow: none; padding: 0; max-width: 100%; }
+        .no-print { display: none; }
+        table.schedule-table th { background-color: #a0d468 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .bg-blue, .bg-pink, .bg-green, .bg-yellow, .bg-purple, .bg-orange, .bg-teal { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .header-center-bottom .highlight { background-color: #d1d5db !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- PROFESSIONAL TOP CONTROL BAR -->
+<div class="top-controls no-print">
+    
+    <!-- Left Side: Dropdowns -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div class="control-group">
+            <label>Course</label>
+            <div class="custom-select-wrapper">
+                <select id="courseDropdown">
+                    {% for code in course_list %}
+                        <option value="{{ code }}" {% if section and code == section.course_code %}selected{% endif %}>
+                            {{ code }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Major</label>
+            <div class="custom-select-wrapper">
+                <select id="majorDropdown">
+                    <option value="">None</option>
+                    {% for m in major_list %}
+                        <option value="{{ m }}" {% if section and m == section.major %}selected{% endif %}>
+                            {{ m }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Year & Section -->
+    <div class="section-controls">
+        <label style="font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.5px; text-transform: uppercase;">Year & Section</label>
+        <div class="section-buttons">
+            {% for s in year_section_list %}
+                <a href="#" 
+                   onclick="navigateToSection('{{ s.year_level }}', '{{ s.section }}'); return false;"
+                   class="section-btn {% if section and s.year_level == section.year_level and s.section == section.section %}active{% endif %}">
+                    {{ s.year_level }}-{{ s.section }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- OFFICIAL DOCUMENT -->
+<div class="print-container">
+    
+    <!-- HEADER -->
+    <div class="header-wrapper">
+        <div class="header-logos-container">
+            <div class="header-logos">
+                <div class="logo-box">Logo 1</div>
+                <div class="logo-box">Logo 2</div>
+            </div>
+        </div>
+        <div class="header-center-top">
+            <div>Republic of the Philippines</div>
+            <strong>Palompon Institute of Technology</strong>
+            <div>Palompon, Leyte</div>
+            <div class="college-name">COLLEGE OF TECHNOLOGY AND ENGINEERING</div>
+        </div>
+        <div class="header-center-bottom">
+            STUDENT'S CLASS <span class="highlight">PROGRAM</span> S.Y. 2026-2027
+        </div>
+        <div class="header-right-box">
+            <div class="right-codes-container">
+                <div>Ref. Code : PIT-COTE-FOR-3-2-06</div>
+                <div>Rev. No. : 00</div>
+            </div>
+            <div class="right-tuv-container">
+                <div class="tuv-logo">TUV NORD</div>
+                <div class="tuv-text">
+                    PIT is ISO 9001:2015 certified by<br>
+                    TUV NORD Philippines, Inc.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <div class="info-item" style="flex: 2;">
+                <label>COURSE:</label> <span>{{ course_code|default:"—" }}</span>
+            </div>
+            <div class="info-item" style="flex: 1;">
+                <label>YEAR &amp; SECTION:</label>
+                <span>{{ year_level|default:"—" }}-{{ section_name|default:"—" }}</span>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-item" style="flex: 2;">
+                <label>DEPARTMENT:</label> DEPARTMENT OF INFORMATION TECHNOLOGY
+            </div>
+            <div class="info-item" style="flex: 1;">
+                <label>MAJOR:</label> <span>{{ major|default:"None" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th class="time-col">TIME</th>
+                <th>MONDAY</th>
+                <th>TUESDAY</th>
+                <th>WEDNESDAY</th>
+                <th>THURSDAY</th>
+                <th>FRIDAY</th>
+                <th>SATURDAY</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in time_slots %}
+                {% if slot.is_lunch %}
+                    <tr>
+                        <td class="time-col">{{ slot.display }}</td>
+                        <td colspan="6"></td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td class="time-col">{{ slot.display }}</td>
+
+                        {# MONDAY #}
+                        {% if slot.monday and slot.monday.is_start %}
+                            <td rowspan="{{ slot.monday.rowspan }}" class="{{ slot.monday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.monday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.monday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.monday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.monday and not slot.monday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+
+                        {# TUESDAY #}
+                        {% if slot.tuesday and slot.tuesday.is_start %}
+                            <td rowspan="{{ slot.tuesday.rowspan }}" class="{{ slot.tuesday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.tuesday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.tuesday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.tuesday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.tuesday and not slot.tuesday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+
+                        {# WEDNESDAY #}
+                        {% if slot.wednesday and slot.wednesday.is_start %}
+                            <td rowspan="{{ slot.wednesday.rowspan }}" class="{{ slot.wednesday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.wednesday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.wednesday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.wednesday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.wednesday and not slot.wednesday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+
+                        {# THURSDAY #}
+                        {% if slot.thursday and slot.thursday.is_start %}
+                            <td rowspan="{{ slot.thursday.rowspan }}" class="{{ slot.thursday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.thursday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.thursday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.thursday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.thursday and not slot.thursday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+
+                        {# FRIDAY #}
+                        {% if slot.friday and slot.friday.is_start %}
+                            <td rowspan="{{ slot.friday.rowspan }}" class="{{ slot.friday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.friday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.friday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.friday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.friday and not slot.friday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+
+                        {# SATURDAY #}
+                        {% if slot.saturday and slot.saturday.is_start %}
+                            <td rowspan="{{ slot.saturday.rowspan }}" class="{{ slot.saturday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.saturday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.saturday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.saturday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.saturday and not slot.saturday.is_start %}
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <td class="time-col">7:00 - 7:30</td>
+                    <td colspan="6" style="color:#999;font-style:italic;text-align:center;padding:20px;">
+                        No sections found. Create Year &amp; Section records first.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div>
+            <div>Prepared by:</div>
+            <div class="name">HAIDE D. SELAPA, PhD</div>
+            <div class="title">Chairman</div>
+        </div>
+        <div>
+            <div>Reviewed by:</div>
+            <div class="name">RONALD B. LACABA, REE, MSME</div>
+            <div class="title">Dean</div>
+        </div>
+        <div>
+            <div>Approved by:</div>
+            <div class="name">NELSON E. ENAGE, PhD, EdD</div>
+            <div class="title">VP-Academic Affairs</div>
+        </div>
+    </div>
+</div>
+
+<div class="no-print" style="text-align: center; margin-top: 24px;">
+    <button onclick="window.print()"
+            style="padding: 12px 24px; font-size: 15px; font-weight: 600; cursor: pointer;
+                   background: #2563eb; color: white; border: none; border-radius: 8px;
+                   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); transition: all 0.2s ease;">
+        🖨️ Print Schedule
+    </button>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const courseDropdown = document.getElementById('courseDropdown');
+        const majorDropdown  = document.getElementById('majorDropdown');
+
+        // All sections (used for navigation)
+        const SECTIONS = [
+            {% for s in sections %}
+            {
+                id: {{ s.id }},
+                course: "{{ s.course_code|escapejs }}",
+                year: "{{ s.year_level|escapejs }}",
+                section: "{{ s.section|escapejs }}",
+                major: "{{ s.major|default:''|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // Define which majors are allowed for which courses
+        const COURSE_MAJORS = {
+            'BTLED': [
+                'HOME ECONOMICS'
+            ],
+            'BTVTED': [
+                'Food and Service Management', 
+                'Garments Fashion and Design'
+            ]
+        };
+
+        function filterMajors() {
+            const selectedCourse = courseDropdown.value;
+            const allowedMajors = COURSE_MAJORS[selectedCourse] || [];
+            
+            // Get all options in the major dropdown
+            const options = majorDropdown.options;
+            let validOptionSelected = false;
+            
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                
+                // Keep the "None" option visible and enabled always
+                if (opt.value === "") continue; 
+                
+                // If the major is allowed for this course, show/enable it
+                if (allowedMajors.includes(opt.value)) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    if (opt.selected) validOptionSelected = true;
+                } else {
+                    // Otherwise hide and disable it
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            }
+
+            // If the currently selected major is not valid for the new course, auto-select the first valid one
+            if (!validOptionSelected && allowedMajors.length > 0) {
+                majorDropdown.value = allowedMajors[0];
+            }
+        }
+
+        // Run the filter immediately on page load to hide the invalid ones
+        filterMajors();
+
+        // When Course changes, filter the majors and find the first matching section
+        courseDropdown.addEventListener('change', function () {
+            filterMajors(); // Update the options immediately
+
+            const selectedMajor = majorDropdown.value;
+            
+            // Try to find a section that matches BOTH the new course and the selected major
+            let match = SECTIONS.find(s => s.course === this.value && s.major === selectedMajor);
+            
+            // If none found, just find the first section for this new course
+            if (!match) {
+                match = SECTIONS.find(s => s.course === this.value);
+            }
+
+            if (match) {
+                setTimeout(() => {
+                    window.location.href = '?section=' + match.id;
+                }, 150);
+            }
+        });
+
+        // When Major changes, find the section that matches the course and major
+        majorDropdown.addEventListener('change', function () {
+            if (!this.value) return;
+            
+            const match = SECTIONS.find(s =>
+                s.course === courseDropdown.value &&
+                s.major === this.value
+            );
+            
+            if (match) window.location.href = '?section=' + match.id;
+        });
+
+        // Function to handle Year & Section button clicks while keeping the selected Course and Major
+        window.navigateToSection = function(yearLevel, sectionName) {
+            const selectedCourse = courseDropdown.value;
+            const selectedMajor = majorDropdown.value;
+            
+            // Find the exact section ID that matches the chosen course, major, year, and section
+            const match = SECTIONS.find(s => 
+                s.course === selectedCourse && 
+                s.major === selectedMajor && 
+                s.year === yearLevel && 
+                s.section === sectionName
+            );
+            
+            if (match) {
+                window.location.href = '?section=' + match.id;
+            } else {
+                alert("This section does not exist for the currently selected Course and Major.");
+            }
+        };
+    });
+</script>
+{% endblock %}
