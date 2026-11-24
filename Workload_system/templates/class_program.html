@@ -1,0 +1,2803 @@
+{% extends 'base_with_sidebar.html' %}
+{% load custom_filters %}
+
+{% block title %}Class Program | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════════════════════════════════════════════════════════
+       DESIGN TOKENS
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+        --cp-primary: #1e3a8a;
+        --cp-primary-light: #3b5bc4;
+        --cp-primary-soft: #eef2ff;
+        --cp-accent: #0891b2;
+        --cp-surface: #ffffff;
+        --cp-bg: #f4f6fb;
+        --cp-border: #e2e8f0;
+        --cp-border-strong: #cbd5e1;
+        --cp-text: #0f172a;
+        --cp-text-muted: #64748b;
+        --cp-text-soft: #94a3b8;
+        --cp-success: #059669;
+        --cp-danger: #dc2626;
+        --cp-radius: 16px;
+        --cp-radius-sm: 10px;
+        --cp-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --cp-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        --cp-shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+        --cp-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PAGE LAYOUT
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+        --glass-fill-strong: linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%);
+        --glass-fill-soft: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 100%);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(255, 255, 255, 0.35);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.20);
+        --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.28);
+        --glass-blur: blur(22px) saturate(180%);
+        --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    .main-content {
+        padding: 32px 40px 64px;
+        background:
+            radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+            radial-gradient(circle at 92% 4%, rgba(14, 165, 233, 0.22) 0%, transparent 40%),
+            radial-gradient(circle at 82% 94%, rgba(16, 185, 129, 0.20) 0%, transparent 46%),
+            radial-gradient(circle at 8% 88%, rgba(236, 72, 153, 0.14) 0%, transparent 42%),
+            linear-gradient(160deg, #eef2ff 0%, #f8fafc 48%, #ecfeff 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .page-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 1.3px; text-transform: uppercase;
+        color: #1d4ed8;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        padding: 5px 12px; border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        margin-bottom: 12px;
+    }
+
+    /* ─── Page header ─────────────────────────────────────────── */
+    .page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .page-header-left h1 {
+        font-size: 26px;
+        color: var(--cp-text);
+        margin: 0 0 6px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header-left p {
+        color: var(--cp-text-muted);
+        font-size: 14px;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* ─── Semester selector ───────────────────────────────────── */
+    .semester-selector-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: var(--cp-radius-sm);
+        padding: 8px 12px 8px 14px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
+        transition: var(--cp-transition);
+    }
+    .semester-selector-wrap:hover {
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+    }
+    .semester-selector-wrap label {
+        font-size: 11.5px;
+        font-weight: 800;
+        color: var(--cp-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    .semester-select {
+        padding: 8px 36px 8px 12px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--cp-primary);
+        background: var(--cp-primary-soft);
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        transition: var(--cp-transition);
+    }
+    .semester-select:hover {
+        background-color: #dbe4ff;
+    }
+    .semester-select:focus {
+        outline: none;
+        border-color: var(--cp-primary-light);
+        box-shadow: 0 0 0 3px rgba(59, 91, 196, 0.2);
+    }
+
+    /* ─── Action buttons ──────────────────────────────────────── */
+    .print-actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    .btn {
+        padding: 10px 20px;
+        border-radius: var(--cp-radius-sm);
+        border: 1px solid transparent;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--cp-transition);
+        letter-spacing: 0.2px;
+    }
+    .btn svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cp-primary) 0%, var(--cp-primary-light) 100%);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+    }
+    .btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+        transform: translateY(-2px);
+    }
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+    }
+    .btn-secondary {
+        background: var(--cp-surface);
+        color: #334155;
+        border-color: var(--cp-border);
+        box-shadow: var(--cp-shadow-sm);
+    }
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: var(--cp-border-strong);
+        color: var(--cp-text);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       OFFICIAL FORM CONTAINER (FLOATING CARD)
+       ══════════════════════════════════════════════════════════════ */
+    .form-container {
+        background: var(--cp-surface);
+        padding: 28px 32px;
+        border: 1px solid var(--cp-border);
+        border-radius: var(--cp-radius);
+        box-shadow: var(--cp-shadow-lg);
+        font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+        color: var(--cp-text);
+        font-size: 12px;
+        max-width: 1180px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* ─── TOP HEADER ────────────────────────────────────────── */
+    .form-header {
+        display: grid;
+        grid-template-columns: 200px 1fr 220px;
+        border: 1.5px solid var(--cp-primary);
+        border-radius: var(--cp-radius-sm);
+        align-items: stretch;
+        margin-bottom: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(30, 58, 138, 0.08);
+    }
+    .form-header .logo-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 14px 10px;
+        border-right: 1.5px solid var(--cp-primary);
+        background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .form-header .logo-box .logo-placeholder {
+        width: 52px;
+        height: 52px;
+        border: 1.5px solid var(--cp-border-strong);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: var(--cp-text-muted);
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        text-align: center;
+        line-height: 1.2;
+        box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.06);
+    }
+    .form-header .school-block {
+        text-align: center;
+        padding: 12px 16px;
+        line-height: 1.4;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .form-header .school-block .rep {
+        font-size: 11px;
+        color: var(--cp-text-muted);
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    .form-header .school-block .school-name {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--cp-primary);
+        letter-spacing: 1px;
+        margin-top: 2px;
+    }
+    .form-header .school-block .school-sub {
+        font-size: 11.5px;
+        color: var(--cp-text-muted);
+        font-style: italic;
+        font-weight: 500;
+    }
+    .form-header .school-block .college {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--cp-primary-light);
+        letter-spacing: 0.6px;
+        margin-top: 6px;
+        text-transform: uppercase;
+    }
+    .form-header .school-block .doc-title {
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--cp-text);
+        letter-spacing: 1.2px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1.5px solid var(--cp-border);
+        text-transform: uppercase;
+    }
+    .form-header .ref-box {
+        border-left: 1.5px solid var(--cp-primary);
+        padding: 12px 14px;
+        font-size: 10.5px;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .form-header .ref-box .row-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 600;
+    }
+    .form-header .ref-box .row-line .ref-label {
+        color: var(--cp-text-muted);
+    }
+    .form-header .ref-box .row-line .ref-value {
+        color: var(--cp-text);
+        font-weight: 800;
+    }
+    .form-header .ref-box .tuv {
+        text-align: center;
+        padding: 10px 4px 4px;
+        border-top: 1px dashed var(--cp-border-strong);
+        margin-top: 8px;
+    }
+    .form-header .ref-box .tuv .tuv-label {
+        font-weight: 900;
+        color: var(--cp-primary);
+        font-size: 14px;
+        letter-spacing: 1.2px;
+        margin-bottom: 4px;
+    }
+    .form-header .ref-box .tuv .tuv-sub {
+        font-size: 9px;
+        line-height: 1.4;
+        color: var(--cp-text-muted);
+    }
+
+    /* ─── FACULTY INFO TABLE ───────────────────────────────── */
+    .faculty-info-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 18px;
+        font-size: 12px;
+        border: 1px solid var(--cp-border);
+        border-radius: var(--cp-radius-sm);
+        overflow: hidden;
+        box-shadow: var(--cp-shadow-sm);
+    }
+    .faculty-info-table td {
+        border-bottom: 1px solid var(--cp-border);
+        border-right: 1px solid var(--cp-border);
+        padding: 10px 14px;
+        vertical-align: middle;
+    }
+    .faculty-info-table tr:last-child td { border-bottom: none; }
+    .faculty-info-table td:last-child { border-right: none; }
+    .faculty-info-table .label {
+        font-weight: 800;
+        color: var(--cp-text-muted);
+        width: 140px;
+        background: #f8fafc;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .faculty-info-table .value {
+        font-weight: 600;
+        color: var(--cp-text);
+    }
+
+    /* ─── SCHEDULE TABLE ────────────────────────────────────── */
+    .schedule-table-wrap {
+        border: 1.5px solid var(--cp-primary);
+        overflow-x: auto;
+        margin-bottom: 20px;
+        border-radius: var(--cp-radius-sm);
+        box-shadow: var(--cp-shadow-sm);
+    }
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 11px;
+        min-width: 880px;
+    }
+    .schedule-table th,
+    .schedule-table td {
+        border: 1px solid var(--cp-border-strong);
+        padding: 4px;
+        text-align: center;
+        vertical-align: middle;
+        height: 32px;
+        word-wrap: break-word;
+    }
+    .schedule-table thead th {
+        background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: 1px;
+        padding: 10px 4px;
+        color: var(--cp-primary);
+        text-transform: uppercase;
+        border-color: var(--cp-border-strong);
+    }
+    .schedule-table th.time-head {
+        width: 92px;
+        background: linear-gradient(180deg, var(--cp-primary) 0%, var(--cp-primary-light) 100%);
+        color: #fff;
+        border-color: var(--cp-primary);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .schedule-table td.time-col {
+        font-size: 10.5px;
+        background: #f8fafc;
+        font-weight: 700;
+        white-space: nowrap;
+        width: 92px;
+        padding: 4px 8px;
+        color: #334155;
+        border-color: var(--cp-border-strong);
+    }
+
+    /* Lunch row */
+    .schedule-table tr.lunch-row td {
+        background: repeating-linear-gradient(
+            45deg,
+            #fef9e7,
+            #fef9e7 10px,
+            #fdf2d0 10px,
+            #fdf2d0 20px
+        );
+        color: #92400e;
+        font-weight: 900;
+        font-size: 10px;
+        letter-spacing: 4px;
+        height: 24px;
+        padding: 4px;
+        text-transform: uppercase;
+        border-top: 1.5px solid #f59e0b;
+        border-bottom: 1.5px solid #f59e0b;
+    }
+    .schedule-table tr.lunch-row td.time-col {
+        background: #fde68a;
+        color: #78350f;
+        border-color: #f59e0b;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SCHEDULED CELLS
+       ══════════════════════════════════════════════════════════════ */
+    .schedule-table td.sched-cell {
+        padding: 0;
+        vertical-align: middle;
+        position: relative;
+        transition: var(--cp-transition);
+    }
+    .schedule-table td.sched-cell.lecture   { background: linear-gradient(180deg, #fef9c3 0%, #fde047 100%); }
+    .schedule-table td.sched-cell.lab       { background: linear-gradient(180deg, #ffedd5 0%, #fb923c 100%); }
+    .schedule-table td.sched-cell.office    { background: linear-gradient(180deg, #fbcfe8 0%, #ec4899 100%); color: #fff; }
+    .schedule-table td.sched-cell.adviser   { background: linear-gradient(180deg, #e0f2fe 0%, #38bdf8 100%); }
+    .schedule-table td.sched-cell.research  { background: linear-gradient(180deg, #dcfce7 0%, #4ade80 100%); }
+    .schedule-table td.sched-cell.extension { background: linear-gradient(180deg, #e0e7ff 0%, #818cf8 100%); }
+
+    .schedule-table td.sched-cell:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15), inset 0 0 0 2px var(--cp-primary);
+        cursor: pointer;
+        z-index: 10;
+        border-radius: 4px;
+    }
+
+    .cell-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 6px 4px;
+        min-height: 100%;
+        height: 100%;
+        line-height: 1.3;
+        text-align: center;
+        position: relative;
+    }
+    
+    /* Optional Dot Indicator for Quick Reading */
+    .cell-block::before {
+        content: '';
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.2);
+    }
+    .schedule-table td.sched-cell.lecture .cell-block::before { background: #ca8a04; }
+    .schedule-table td.sched-cell.lab .cell-block::before { background: #ea580c; }
+    .schedule-table td.sched-cell.office .cell-block::before { background: rgba(255,255,255,0.8); }
+
+    .cell-block .subj {
+        font-weight: 800;
+        font-size: 11.5px;
+        letter-spacing: -0.2px;
+        line-height: 1.15;
+        color: var(--cp-text);
+    }
+    .cell-block .section {
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.15;
+        color: #334155;
+    }
+    .cell-block .oa-subject-title {
+        font-weight: 800;
+        font-size: 10px;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+    }
+    .cell-block .oa-type {
+        font-size: 8.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.75;
+    }
+    .cell-block .room-tag {
+        font-size: 9.5px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 1px 8px;
+        border-radius: 10px;
+        margin-top: 2px;
+        display: inline-block;
+        color: #1e293b;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .schedule-table td.sched-cell.office .room-tag {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ─── WORKLOAD TABLE SPLIT LAYOUT ───────────────────────── */
+    .workload-container {
+        display: flex;
+        width: 100%;
+        margin-bottom: 20px;
+        align-items: stretch;
+        font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+        font-size: 11.5px;
+        border-radius: var(--cp-radius-sm);
+        overflow: hidden;
+        box-shadow: var(--cp-shadow-sm);
+    }
+    .workload-table-left {
+        border-collapse: collapse;
+        flex: 1;
+        border: 1.5px solid var(--cp-primary);
+        border-right: none;
+    }
+    .workload-table-right {
+        border-collapse: collapse;
+        width: 38%;
+        border: 1.5px solid var(--cp-primary);
+    }
+    .workload-table-right th {
+        height: 65px !important;
+        text-align: center;
+        vertical-align: middle;
+        letter-spacing: 1px;
+        padding: 12px;
+        background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        color: var(--cp-primary);
+        font-weight: 800;
+        font-size: 12px;
+    }
+    .workload-container th,
+    .workload-container td {
+        border: 1px solid var(--cp-border-strong);
+        padding: 8px 10px;
+        vertical-align: top;
+        height: 28px;
+    }
+    .workload-container thead th {
+        font-weight: 800;
+        text-align: center;
+        font-size: 11.5px;
+        color: var(--cp-primary);
+        text-transform: uppercase;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        vertical-align: middle;
+        letter-spacing: 0.6px;
+    }
+    .workload-container td {
+        text-align: center;
+        font-weight: 700;
+        color: var(--cp-text);
+    }
+    .workload-container td.left { text-align: left; }
+    .workload-container .section-header td {
+        background: linear-gradient(90deg, var(--cp-primary-soft) 0%, #ffffff 100%);
+        font-weight: 800;
+        text-align: left;
+        color: var(--cp-primary);
+        font-size: 12px;
+        padding: 8px 12px;
+        vertical-align: middle;
+        letter-spacing: 0.4px;
+    }
+    .workload-container tr.subtotal td {
+        font-weight: 700;
+        background: #f8fafc;
+        font-style: italic;
+        color: #334155;
+    }
+    .workload-container tr.grand-total td {
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--cp-primary-soft) 0%, #ffffff 100%);
+        color: var(--cp-primary);
+        font-size: 13px;
+        border-top: 2px solid var(--cp-primary);
+        vertical-align: middle;
+        padding: 10px 12px;
+    }
+    .workload-container tr.grand-total td:last-child { font-size: 15px; }
+
+    .editable-cell {
+        cursor: pointer;
+        transition: var(--cp-transition);
+        border-radius: 4px;
+    }
+    .editable-cell:hover {
+        background: var(--cp-primary-soft);
+        box-shadow: 0 0 0 2px var(--cp-primary-light);
+    }
+
+    /* Right table inner */
+    .workload-table-right td { padding: 0 !important; }
+    .remarks-grid {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100%;
+    }
+    .remark-section {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--cp-border-strong);
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+    .remark-section.grow { flex-grow: 1; }
+    .remark-label {
+        font-weight: 800;
+        font-size: 11.5px;
+        margin-bottom: 2px;
+        color: var(--cp-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-align: left;
+    }
+    .remark-input {
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--cp-primary);
+        outline: none;
+        padding: 2px 8px;
+        border-bottom: 2px dashed var(--cp-border-strong);
+        width: 80px;
+        border-radius: 4px;
+        transition: var(--cp-transition);
+    }
+    .remark-input:focus {
+        background: var(--cp-primary-soft);
+        border-bottom-color: var(--cp-primary);
+        box-shadow: 0 2px 0 var(--cp-primary);
+    }
+    .remark-textarea {
+        width: 100%;
+        border: 1px solid transparent;
+        background: transparent;
+        font-family: inherit;
+        font-size: 11.5px;
+        color: var(--cp-text);
+        resize: none;
+        outline: none;
+        overflow: hidden;
+        line-height: 1.5;
+        padding: 6px;
+        border-radius: 6px;
+        transition: var(--cp-transition);
+    }
+    .remark-textarea:focus {
+        background: #f8fafc;
+        border-color: var(--cp-border);
+        box-shadow: 0 0 0 3px rgba(59, 91, 196, 0.1);
+    }
+
+    .print-only-text, .print-only-inline { display: none; }
+
+    .remark-total-row {
+        display: flex;
+        border-top: 1.5px solid var(--cp-primary);
+        background: #fff;
+        min-height: 40px;
+    }
+    .remark-total-label {
+        flex: 1;
+        padding: 10px 12px;
+        font-weight: 800;
+        font-size: 11.5px;
+        border-right: 1px solid var(--cp-border-strong);
+        display: flex;
+        align-items: center;
+        text-align: left;
+    }
+    .remark-total-value {
+        width: 85px;
+        padding: 10px;
+        font-weight: 800;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--cp-primary);
+    }
+
+    /* ─── STUDENT COUNT TABLE ────────────────────────────────── */
+    .student-table-wrap {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-top: 1.5px solid var(--cp-primary);
+    }
+    .student-table-row {
+        display: flex;
+        width: 100%;
+        border-bottom: 1px solid var(--cp-border-strong);
+        font-size: 11.5px;
+    }
+    .student-table-row.header-row {
+        background: linear-gradient(90deg, var(--cp-primary-soft) 0%, #ffffff 100%);
+        font-weight: 800;
+    }
+    .student-table-row.empty-row {
+        justify-content: center;
+        color: var(--cp-text-muted);
+        font-style: italic;
+        padding: 8px;
+    }
+    .student-col-left {
+        flex: 1;
+        padding: 8px 12px;
+        border-right: 1px solid var(--cp-border-strong);
+        text-align: left;
+        display: flex;
+        align-items: center;
+        line-height: 1.4;
+    }
+    .student-col-right {
+        width: 80px;
+        padding: 8px 10px;
+        text-align: center;
+        font-weight: 800;
+        color: var(--cp-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    /* ─── ACTION TABLE ──────────────────────────────────────── */
+    .action-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 11.5px;
+        border: 1.5px solid var(--cp-primary);
+        border-radius: var(--cp-radius-sm);
+        overflow: hidden;
+        box-shadow: var(--cp-shadow-sm);
+    }
+    .action-table th,
+    .action-table td {
+        border-bottom: 1px solid var(--cp-border-strong);
+        border-right: 1px solid var(--cp-border-strong);
+        padding: 10px 12px;
+        vertical-align: middle;
+    }
+    .action-table tr:last-child td { border-bottom: none; }
+    .action-table th:last-child, .action-table td:last-child { border-right: none; }
+    .action-table thead th {
+        background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        font-weight: 800;
+        text-align: center;
+        font-size: 11px;
+        color: var(--cp-primary);
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+    .action-table thead tr.title-row th {
+        background: linear-gradient(135deg, var(--cp-primary) 0%, var(--cp-primary-light) 100%);
+        color: #fff;
+        text-align: left;
+        font-size: 11.5px;
+        letter-spacing: 1.2px;
+        padding: 12px 14px;
+        border-bottom: none;
+    }
+    .action-table td.label-cell {
+        text-align: left;
+        font-weight: 800;
+        color: var(--cp-primary);
+        background: #f8fafc;
+        font-size: 11.5px;
+    }
+    .action-table td.sig-name {
+        text-align: center;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 11.5px;
+        color: var(--cp-text);
+        letter-spacing: 0.4px;
+    }
+    .action-table td.sig-role {
+        text-align: center;
+        font-size: 11.5px;
+        color: #334155;
+        font-weight: 500;
+    }
+    .action-table td.sig-space {
+        height: 50px;
+        background: linear-gradient(180deg, transparent 60%, #f8fafc 100%);
+        position: relative;
+    }
+    .action-table td.sig-space::after {
+        content: '';
+        position: absolute;
+        left: 15%;
+        right: 15%;
+        bottom: 12px;
+        border-bottom: 1.5px solid var(--cp-text-soft);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       OTHER FUNCTIONS / DESIGNATION
+       ══════════════════════════════════════════════════════════════ */
+    .oa-add-btn {
+        background: linear-gradient(135deg, var(--cp-primary) 0%, var(--cp-primary-light) 100%);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 4px 14px;
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: var(--cp-transition);
+        box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);
+    }
+    .oa-add-btn:hover {
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        transform: translateY(-1px);
+    }
+    .oa-actions {
+        display: inline-flex;
+        gap: 6px;
+        vertical-align: middle;
+    }
+    .oa-edit-btn, .oa-del-btn {
+        border: 1px solid var(--cp-border);
+        background: #fff;
+        border-radius: 6px;
+        font-size: 11px;
+        line-height: 1;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: var(--cp-transition);
+        color: #334155;
+    }
+    .oa-edit-btn:hover {
+        background: var(--cp-primary-soft);
+        border-color: var(--cp-primary);
+        color: var(--cp-primary);
+        transform: scale(1.05);
+    }
+    .oa-del-btn:hover {
+        background: #fef2f2;
+        border-color: var(--cp-danger);
+        color: var(--cp-danger);
+        transform: scale(1.05);
+    }
+
+    /* ─── Modals ─────────────────────────────────────────────── */
+    .oa-modal-overlay,
+    .sched-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .oa-modal-overlay.open,
+    .sched-modal-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    .oa-modal,
+    .sched-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.5), 0 10px 30px -10px rgba(15, 23, 42, 0.2);
+        transform: translateY(24px) scale(0.95);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sched-modal { max-width: 500px; }
+    .oa-modal-overlay.open .oa-modal,
+    .sched-modal-overlay.open .sched-modal {
+        transform: translateY(0) scale(1);
+    }
+    .oa-modal-header,
+    .sched-modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--cp-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, var(--cp-primary-soft) 0%, #ffffff 100%);
+    }
+    .sched-modal-header.lab {
+        background: linear-gradient(135deg, #fed7aa 0%, #ffffff 100%);
+    }
+    .oa-modal-header h3,
+    .sched-modal-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--cp-text);
+        letter-spacing: -0.2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sched-modal-header h3 .modal-icon { font-size: 20px; }
+    .sched-modal-close {
+        background: rgba(15, 23, 42, 0.06);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--cp-text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--cp-transition);
+    }
+    .sched-modal-close:hover {
+        background: rgba(15, 23, 42, 0.14);
+        color: var(--cp-text);
+        transform: scale(1.05);
+    }
+    .oa-modal-body,
+    .sched-modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    .oa-modal-footer,
+    .sched-modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--cp-border);
+        background: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .oa-lbl {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--cp-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 14px 0 6px;
+    }
+    .oa-lbl:first-of-type { margin-top: 0; }
+    .oa-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--cp-border-strong);
+        border-radius: var(--cp-radius-sm);
+        font-size: 14px;
+        font-family: inherit;
+        color: var(--cp-text);
+        background: #fff;
+        box-sizing: border-box;
+        transition: var(--cp-transition);
+    }
+    .oa-input:focus {
+        outline: none;
+        border-color: var(--cp-primary-light);
+        box-shadow: 0 0 0 4px rgba(59, 91, 196, 0.15);
+    }
+    .oa-msg {
+        margin-top: 16px;
+        font-size: 13px;
+        padding: 10px 14px;
+        border-radius: var(--cp-radius-sm);
+        display: none;
+        line-height: 1.5;
+        font-weight: 600;
+    }
+    .oa-msg.error {
+        display: block;
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+    .oa-msg.success {
+        display: block;
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    /* Schedule detail modal specifics */
+    .sched-modal-subject {
+        text-align: center;
+        padding: 20px 16px 24px;
+        border-bottom: 1px dashed var(--cp-border-strong);
+        margin-bottom: 20px;
+    }
+    .sched-modal-subject .subj-code {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--cp-primary);
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+    }
+    .sched-modal-subject .subj-title {
+        font-size: 13px;
+        color: var(--cp-text-muted);
+        margin-top: 6px;
+        font-weight: 600;
+    }
+    .sched-modal-subject .subj-type {
+        display: inline-block;
+        margin-top: 12px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        padding: 5px 16px;
+        border-radius: 20px;
+    }
+    .sched-modal-subject .subj-type.lec {
+        background: #fef3c7;
+        color: #78350f;
+    }
+    .sched-modal-subject .subj-type.lab {
+        background: #fed7aa;
+        color: #7c2d12;
+    }
+    .sched-modal-row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 8px 16px;
+        padding: 12px 0;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .sched-modal-row:last-child { border-bottom: none; }
+    .sched-modal-row .label {
+        color: var(--cp-text-muted);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+    }
+    .sched-modal-row .value {
+        color: var(--cp-text);
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────── */
+    @media (max-width: 900px) {
+        .main-content { padding: 20px; }
+        .form-container { padding: 18px; }
+        .form-header { grid-template-columns: 1fr; }
+        .form-header .logo-box,
+        .form-header .ref-box {
+            border: none;
+            border-bottom: 1.5px solid var(--cp-primary);
+        }
+        .schedule-table {
+            font-size: 10px;
+            min-width: 720px;
+        }
+        .workload-container { flex-direction: column; }
+        .workload-table-left,
+        .workload-table-right {
+            width: 100%;
+            border: 1.5px solid var(--cp-primary);
+        }
+        .workload-table-right { border-top: none; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PRINT — Folio 8.5in × 13in
+       ══════════════════════════════════════════════════════════════ */
+    @page {
+        size: 8.5in 13in;
+        margin: 0.3in;
+    }
+
+    @media print {
+        *, *::before, *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            font-size: 8pt !important;
+        }
+
+        .sidebar, .sidebar-toggle, .sidebar-overlay, .topbar,
+        .print-actions, .no-print, .messages, .page-header,
+        .sched-modal-overlay, .oa-modal-overlay {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        .main-content {
+            height: auto !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+
+        #classProgram, .form-container {
+            display: block !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .form-header {
+            grid-template-columns: 150px 1fr 170px !important;
+            border: 1.5px solid #000 !important;
+            margin-bottom: 4px !important;
+            border-radius: 0 !important;
+        }
+        .form-header .logo-box {
+            border-right: 1.5px solid #000 !important;
+            padding: 4px !important;
+            background: #fff !important;
+        }
+        .form-header .logo-box .logo-placeholder {
+            width: 35px !important;
+            height: 35px !important;
+            font-size: 6pt !important;
+            border-color: #000 !important;
+        }
+        .form-header .school-block { padding: 4px 8px !important; }
+        .form-header .school-block .rep         { font-size: 7.5pt !important; }
+        .form-header .school-block .school-name { font-size: 10pt  !important; color: #000 !important; }
+        .form-header .school-block .school-sub  { font-size: 7.5pt !important; }
+        .form-header .school-block .college     { font-size: 8pt   !important; color: #000 !important; }
+        .form-header .school-block .doc-title {
+            font-size: 9pt !important;
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+            border-top: 1px solid #000 !important;
+        }
+        .form-header .ref-box {
+            border-left: 1.5px solid #000 !important;
+            padding: 4px 6px !important;
+            font-size: 6.5pt !important;
+            background: #fff !important;
+        }
+        .form-header .ref-box .tuv {
+            padding: 2px 0 0 !important;
+            margin-top: 2px !important;
+            border-top: 1px dashed #000 !important;
+        }
+        .form-header .ref-box .tuv .tuv-label {
+            font-size: 7pt !important;
+            color: #000 !important;
+        }
+        .form-header .ref-box .tuv .tuv-sub {
+            font-size: 6pt !important;
+        }
+
+        .faculty-info-table {
+            font-size: 8pt !important;
+            margin: 3px 0 !important;
+            border: 1px solid #000 !important;
+            border-radius: 0 !important;
+        }
+        .faculty-info-table td {
+            padding: 2px 4px !important;
+            border: 1px solid #000 !important;
+        }
+        .faculty-info-table .label {
+            width: 85px !important;
+            font-size: 8pt !important;
+            background: #f8fafc !important;
+            color: #000 !important;
+        }
+        .faculty-info-table .value {
+            font-size: 8pt !important;
+        }
+
+        .schedule-table-wrap {
+            border: 1px solid #000 !important;
+            margin: 3px 0 !important;
+            border-radius: 0 !important;
+        }
+        .schedule-table {
+            min-width: 0 !important;
+            width: 100% !important;
+            font-size: 7.5pt !important;
+            table-layout: fixed !important;
+        }
+        .schedule-table th,
+        .schedule-table td {
+            padding: 2px !important;
+            height: 16px !important;
+            font-size: 7.5pt !important;
+            border: 1px solid #000 !important;
+            line-height: 1.1 !important;
+        }
+        .schedule-table thead th {
+            padding: 2px !important;
+            font-size: 8pt !important;
+            height: 20px !important;
+            background: #e2e8f0 !important;
+            color: #000 !important;
+        }
+        .schedule-table th.time-head,
+        .schedule-table td.time-col {
+            width: 50px !important;
+            font-size: 7pt !important;
+            background: #e2e8f0 !important;
+            color: #000 !important;
+        }
+        .schedule-table tr.lunch-row td {
+            height: 16px !important;
+            font-size: 7.5pt !important;
+            background: #fef3c7 !important;
+        }
+        .cell-block { padding: 1px !important; gap: 1px !important; }
+        .cell-block .subj              { font-size: 7.5pt !important; }
+        .cell-block .section           { font-size: 7pt   !important; }
+        .cell-block .room-tag {
+            font-size: 6pt !important;
+            padding: 0 2px !important;
+            background: rgba(255,255,255,0.5) !important;
+        }
+        .cell-block .oa-subject-title {
+            font-size: 7pt !important;
+            line-height: 1.05 !important;
+        }
+        .cell-block .oa-type {
+            font-size: 5.5pt !important;
+        }
+
+        .schedule-table td.sched-cell.lecture   { background: #fde047 !important; }
+        .schedule-table td.sched-cell.lab       { background: #fb923c !important; }
+        .schedule-table td.sched-cell.office    { background: #ec4899 !important; color: #fff !important; }
+        .schedule-table td.sched-cell.adviser   { background: #7dd3fc !important; }
+        .schedule-table td.sched-cell.research  { background: #86efac !important; }
+        .schedule-table td.sched-cell.extension { background: #a5b4fc !important; }
+        .schedule-table td.sched-cell:hover     { box-shadow: none !important; }
+
+        .workload-container {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            margin-top: 4px !important;
+            align-items: stretch !important;
+            box-sizing: border-box !important;
+            box-shadow: none !important;
+        }
+        .workload-table-left {
+            width: 62% !important;
+            border: 1.5px solid #000 !important;
+            border-right: none !important;
+            border-collapse: collapse !important;
+            box-sizing: border-box !important;
+        }
+        .workload-table-right {
+            width: 38% !important;
+            border: 1.5px solid #000 !important;
+            border-left: 1.5px solid #000 !important;
+            border-collapse: collapse !important;
+            box-sizing: border-box !important;
+        }
+        .workload-table-right thead tr {
+            height: 50px !important;
+        }
+        .workload-table-right th {
+            text-align: center;
+            vertical-align: middle;
+            letter-spacing: 0.5px;
+            padding: 10px;
+            background: #e2e8f0 !important;
+            color: #000 !important;
+        }
+        .workload-container th,
+        .workload-container td {
+            padding: 3px 4px !important;
+            font-size: 7.5pt !important;
+            border: 1px solid #000 !important;
+            height: 18px !important;
+            vertical-align: middle !important;
+            line-height: 1.1 !important;
+            box-sizing: border-box !important;
+        }
+        .workload-container thead th {
+            font-size: 8pt !important;
+            padding: 3px !important;
+            background: #f1f5f9 !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            color: #000 !important;
+        }
+        .workload-container tr.grand-total td {
+            font-size: 8.5pt !important;
+            border-top: 1.5px solid #000 !important;
+            padding: 3px !important;
+            background: #f1f5f9 !important;
+            color: #000 !important;
+        }
+        .workload-container .section-header td {
+            background: #fff !important;
+            text-align: left !important;
+            color: #000 !important;
+        }
+        .workload-table-right td { padding: 0 !important; }
+        .remarks-grid { display: block !important; height: auto !important; }
+        .remark-section {
+            padding: 5px 6px !important;
+            border-bottom: 1px solid #000 !important;
+            display: block !important;
+        }
+        .remark-section.grow { flex-grow: 0 !important; }
+        .remark-label, .remark-total-label {
+            font-size: 7.5pt !important;
+            font-weight: 800 !important;
+            margin-bottom: 2px !important;
+        }
+        .remark-total-row {
+            display: flex !important;
+            min-height: 20px !important;
+            border-top: 1px solid #000 !important;
+        }
+        .remark-total-value {
+            font-size: 8pt !important;
+            width: 60px !important;
+        }
+
+        input.remark-input,
+        #input_overload,
+        #input_service_credits {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        span.print-only-inline,
+        #print_overload,
+        #print_service_credits {
+            display: inline !important;
+            visibility: visible !important;
+            font-size: 8pt !important;
+            font-weight: 800 !important;
+            margin-left: 4px !important;
+        }
+        span.print-only-inline:empty::before {
+            content: '—';
+        }
+        .remark-textarea {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        .print-only-text {
+            display: block !important;
+            visibility: visible !important;
+            font-size: 7.5pt !important;
+            line-height: 1.2 !important;
+            color: #0f172a !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            min-height: 15px !important;
+        }
+
+        .student-table-wrap { border-top: 1px solid #000 !important; }
+        .student-table-row { border-bottom: 1px solid #000 !important; }
+        .student-col-left {
+            font-size: 7.5pt !important;
+            padding: 2px 4px !important;
+            border-right: 1px solid #000 !important;
+        }
+        .student-col-right {
+            font-size: 7.5pt !important;
+            padding: 2px 4px !important;
+            width: 50px !important;
+        }
+
+        .action-table {
+            font-size: 7.5pt !important;
+            margin-top: 4px !important;
+            border: 1px solid #000 !important;
+            border-radius: 0 !important;
+        }
+        .action-table th,
+        .action-table td {
+            padding: 3px 5px !important;
+            border: 1px solid #000 !important;
+        }
+        .action-table thead th {
+            font-size: 8pt !important;
+            background: #f1f5f9 !important;
+            color: #000 !important;
+        }
+        .action-table thead tr.title-row th {
+            font-size: 8.5pt !important;
+            background: #1e40af !important;
+            color: #fff !important;
+        }
+        .action-table td.label-cell {
+            background: #f8fafc !important;
+            color: #000 !important;
+        }
+        .action-table td.sig-name { font-size: 7.5pt !important; }
+        .action-table td.sig-role { font-size: 7.5pt !important; }
+        .action-table td.sig-space { height: 28px !important; }
+
+        .oa-add-btn, .oa-actions, .oa-edit-btn, .oa-del-btn {
+            display: none !important;
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FACULTY DESIGN SYSTEM — shared glassmorphism layer
+       ══════════════════════════════════════════════════════════ */
+    .page-header-left h1 {
+        font-size: 28px; font-weight: 750;
+        letter-spacing: -0.5px; margin: 0 0 6px;
+    }
+    .page-header-left p {
+        color: #475569; font-size: 13.5px;
+        line-height: 1.55; font-weight: 400;
+    }
+
+    .form-container {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow-lg), var(--glass-inset);
+    }
+
+    .semester-selector-wrap {
+        background: var(--glass-fill-strong);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        box-shadow: var(--glass-shadow), var(--glass-inset);
+    }
+    .semester-select {
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 8px;
+        box-shadow: var(--glass-inset);
+    }
+
+    .btn { border-radius: 10px; font-size: 13.5px; font-weight: 600; }
+    .btn-primary {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 6px 18px rgba(37, 99, 235, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, rgba(29, 78, 216, 1), rgba(30, 58, 138, 1));
+        box-shadow:
+            0 10px 24px rgba(37, 99, 235, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+    .btn-secondary {
+        background: var(--glass-fill-soft);
+        color: #334155;
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(37, 99, 235, 0.45);
+    }
+
+    .sched-modal-overlay {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+    .sched-modal {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35), var(--glass-inset);
+    }
+    .sched-modal-header { border-bottom: 1px solid rgba(255, 255, 255, 0.45); }
+    .sched-modal-footer {
+        background: rgba(255, 255, 255, 0.25);
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(8px);
+    }
+
+    /* Printed class programs must stay flat and ink-friendly */
+    @media print {
+        .form-container, .sched-modal {
+            background: #fff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script>
+      window.CP = {
+        employeeId: "{{ viewing_faculty.employee_id }}",
+        semesterId: "{% if active_semester %}{{ active_semester.id }}{% endif %}",
+        canEditTeaching: {% if faculty.is_chairman %}true{% else %}false{% endif %},
+        canEditOther: {% if can_edit_other %}true{% else %}false{% endif %},
+        canEditStudents: {% if faculty.is_chairman or viewing_faculty.employee_id == faculty.employee_id %}true{% else %}false{% endif %},
+        urls: {
+            list:       "{% url 'other_assignment_list' viewing_faculty.employee_id %}",
+            create:     "{% url 'other_assignment_create' viewing_faculty.employee_id %}",
+            updateBase: "/faculty/{{ viewing_faculty.employee_id }}/other-assignments/",
+            updateEffectiveDate: "/faculty/{{ viewing_faculty.employee_id }}/update-effective-date/",
+            updateSubjectStudents: "/faculty/{{ viewing_faculty.employee_id }}/subject/__ID__/students/",
+            updateTotalStudents:   "/faculty/{{ viewing_faculty.employee_id }}/total-students/",
+            updateRemarks:         "/faculty/{{ viewing_faculty.employee_id }}/update-remarks/"
+        },
+        rooms: [
+            {% for r in rooms %}{id: {{ r.id }}, code: "{{ r.room_code|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+        ]
+      };
+    </script>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <span class="page-eyebrow">📅 Teaching Schedule</span>
+            <h1>Instructor's Class Program</h1>
+            <p>Official teaching schedule and workload summary for the selected semester.</p>
+        </div>
+        {% if all_semesters %}
+        <div class="semester-selector-wrap">
+            <label for="cpSemesterSelect">Semester</label>
+            <select id="cpSemesterSelect"
+                    class="semester-select"
+                    onchange="window.location.href='?semester=' + this.value;">
+                {% for sem in all_semesters %}
+                    <option value="{{ sem.id }}"
+                        {% if active_semester and active_semester.id == sem.id %}selected{% endif %}>
+                        {% if sem.academic_year %}
+                            {{ sem.academic_year.year_label }} — Sem {{ sem.semester }}
+                        {% else %}
+                            {{ sem }}
+                        {% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+            <div class="semester-empty-note">
+                No semesters configured. Add a First/Second Semester (with an Academic Year) in the admin to enable the semester selector.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="print-actions no-print">
+        <button onclick="prepareAndPrint()" class="btn btn-primary">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/>
+            </svg>
+            Print Class Program
+        </button>
+        {% if faculty.is_chairman %}
+            <a href="{% url 'all_class_programs' %}" class="btn btn-secondary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>
+                </svg>
+                All Class Programs
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="form-container" id="classProgram">
+
+        <!-- ═══════════ TOP HEADER ═══════════ -->
+        <div class="form-header">
+            <div class="logo-box">
+                <div class="logo-placeholder">PIT<br>LOGO</div>
+                <div class="logo-placeholder">CTE<br>LOGO</div>
+            </div>
+
+            <div class="school-block">
+                <div class="rep">Republic of the Philippines</div>
+                <div class="school-name">PALOMPON INSTITUTE OF TECHNOLOGY</div>
+                <div class="school-sub">Palompon, Leyte</div>
+                <div class="college">{{ viewing_faculty.department|default:"COLLEGE OF TEACHER EDUCATION" }}</div>
+                <div class="doc-title">INSTRUCTOR'S CLASS PROGRAM</div>
+            </div>
+
+            <div class="ref-box">
+                <div>
+                    <div class="row-line">
+                        <span class="ref-label">Ref. Code:</span>
+                        <span class="ref-value">PIT-CTE-FOR-3-2-01B</span>
+                    </div>
+                    <div class="row-line">
+                        <span class="ref-label">Rev. No:</span>
+                        <span class="ref-value">02</span>
+                    </div>
+                </div>
+                <div class="tuv">
+                    <div class="tuv-label">TUV NORD</div>
+                    <div class="tuv-sub">
+                        PIT is ISO 9001:2015 certified by<br>
+                        TUV NORD Philippines, Inc.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ FACULTY INFO ═══════════ -->
+        <table class="faculty-info-table">
+            <tr>
+                <td class="label">Faculty:</td>
+                <td class="value">{{ viewing_faculty.full_name }}</td>
+                <td class="label">Term:</td>
+                <td class="value">{{ term|default:"First Semester 2026-2027" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Academic Rank:</td>
+                <td class="value">{{ viewing_faculty.academic_rank|default:"" }}</td>
+                <td class="label">Department:</td>
+                <td class="value">{{ viewing_faculty.department|default:"Technology Teacher Education" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Effective Date:</td>
+                <td class="value">{{ effective_date|default:"August 3, 2026" }}</td>
+                <td class="label">College:</td>
+                <td class="value">{{ college|default:"College of Teacher Education" }}</td>
+            </tr>
+        </table>
+
+        <!-- ═══════════ SCHEDULE GRID ═══════════ -->
+        <div class="schedule-table-wrap">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th class="time-head">TIME</th>
+                        <th>MONDAY</th>
+                        <th>TUESDAY</th>
+                        <th>WEDNESDAY</th>
+                        <th>THURSDAY</th>
+                        <th>FRIDAY</th>
+                        <th>SATURDAY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for time_slot in time_slots %}
+                        {% if time_slot.is_lunch %}
+                            <tr class="lunch-row">
+                                <td class="time-col">{{ time_slot.display }}</td>
+                                <td colspan="6">LUNCH BREAK</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td class="time-col">{{ time_slot.display }}</td>
+
+                                {# MONDAY #}
+                                {% if time_slot.monday %}
+                                    {% if time_slot.monday.is_start %}
+                                        <td class="sched-cell {% if time_slot.monday.info.schedule_type == 'OTHER' %}office{% elif time_slot.monday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.monday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.monday.info.id }}"
+                                            data-subject-code="{{ time_slot.monday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.monday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.monday.info.section_display }}"
+                                            data-room="{{ time_slot.monday.info.room }}"
+                                            data-faculty="{{ time_slot.monday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.monday.info.schedule_type }}"
+                                            data-day="MONDAY"
+                                            data-start="{{ time_slot.monday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.monday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.monday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.monday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.monday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.monday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.monday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.monday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# TUESDAY #}
+                                {% if time_slot.tuesday %}
+                                    {% if time_slot.tuesday.is_start %}
+                                        <td class="sched-cell {% if time_slot.tuesday.info.schedule_type == 'OTHER' %}office{% elif time_slot.tuesday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.tuesday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.tuesday.info.id }}"
+                                            data-subject-code="{{ time_slot.tuesday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.tuesday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.tuesday.info.section_display }}"
+                                            data-room="{{ time_slot.tuesday.info.room }}"
+                                            data-faculty="{{ time_slot.tuesday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.tuesday.info.schedule_type }}"
+                                            data-day="TUESDAY"
+                                            data-start="{{ time_slot.tuesday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.tuesday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.tuesday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.tuesday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.tuesday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.tuesday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.tuesday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.tuesday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# WEDNESDAY #}
+                                {% if time_slot.wednesday %}
+                                    {% if time_slot.wednesday.is_start %}
+                                        <td class="sched-cell {% if time_slot.wednesday.info.schedule_type == 'OTHER' %}office{% elif time_slot.wednesday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.wednesday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.wednesday.info.id }}"
+                                            data-subject-code="{{ time_slot.wednesday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.wednesday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.wednesday.info.section_display }}"
+                                            data-room="{{ time_slot.wednesday.info.room }}"
+                                            data-faculty="{{ time_slot.wednesday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.wednesday.info.schedule_type }}"
+                                            data-day="WEDNESDAY"
+                                            data-start="{{ time_slot.wednesday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.wednesday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.wednesday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.wednesday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.wednesday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.wednesday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.wednesday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.wednesday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# THURSDAY #}
+                                {% if time_slot.thursday %}
+                                    {% if time_slot.thursday.is_start %}
+                                        <td class="sched-cell {% if time_slot.thursday.info.schedule_type == 'OTHER' %}office{% elif time_slot.thursday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.thursday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.thursday.info.id }}"
+                                            data-subject-code="{{ time_slot.thursday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.thursday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.thursday.info.section_display }}"
+                                            data-room="{{ time_slot.thursday.info.room }}"
+                                            data-faculty="{{ time_slot.thursday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.thursday.info.schedule_type }}"
+                                            data-day="THURSDAY"
+                                            data-start="{{ time_slot.thursday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.thursday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.thursday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.thursday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.thursday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.thursday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.thursday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.thursday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# FRIDAY #}
+                                {% if time_slot.friday %}
+                                    {% if time_slot.friday.is_start %}
+                                        <td class="sched-cell {% if time_slot.friday.info.schedule_type == 'OTHER' %}office{% elif time_slot.friday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.friday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.friday.info.id }}"
+                                            data-subject-code="{{ time_slot.friday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.friday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.friday.info.section_display }}"
+                                            data-room="{{ time_slot.friday.info.room }}"
+                                            data-faculty="{{ time_slot.friday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.friday.info.schedule_type }}"
+                                            data-day="FRIDAY"
+                                            data-start="{{ time_slot.friday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.friday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.friday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.friday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.friday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.friday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.friday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.friday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+
+                                {# SATURDAY #}
+                                {% if time_slot.saturday %}
+                                    {% if time_slot.saturday.is_start %}
+                                        <td class="sched-cell {% if time_slot.saturday.info.schedule_type == 'OTHER' %}office{% elif time_slot.saturday.info.is_lab %}lab{% else %}lecture{% endif %}"
+                                            rowspan="{{ time_slot.saturday.rowspan }}"
+                                            data-schedule-id="{{ time_slot.saturday.info.id }}"
+                                            data-subject-code="{{ time_slot.saturday.info.subject_code }}"
+                                            data-subject-title="{{ time_slot.saturday.info.subject_title|default:'' }}"
+                                            data-section="{{ time_slot.saturday.info.section_display }}"
+                                            data-room="{{ time_slot.saturday.info.room }}"
+                                            data-faculty="{{ time_slot.saturday.info.faculty_name|default:viewing_faculty.full_name }}"
+                                            data-type="{{ time_slot.saturday.info.schedule_type }}"
+                                            data-day="SATURDAY"
+                                            data-start="{{ time_slot.saturday.info.start_time_raw }}"
+                                            data-end="{{ time_slot.saturday.info.end_time_raw }}">
+                                            <div class="cell-block">
+                                                {% if time_slot.saturday.info.schedule_type == 'OTHER' %}
+                                                    <span class="oa-subject-title">{{ time_slot.saturday.info.subject_description }}</span>
+                                                    <span class="oa-type">{{ time_slot.saturday.info.subject_code }}</span>
+                                                {% else %}
+                                                    <span class="subj">{{ time_slot.saturday.info.subject_code }}</span>
+                                                    <span class="section">{{ time_slot.saturday.info.section_short }}</span>
+                                                {% endif %}
+                                                <span class="room-tag">{{ time_slot.saturday.info.room }}</span>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════ WORKLOAD TABLE (SPLIT LAYOUT) ═══════════ -->
+        <div class="workload-container">
+
+            <!-- LEFT TABLE -->
+            <table class="workload-table-left">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 160px;">WORKLOAD</th>
+                        <th colspan="2">HOURS PER WEEK</th>
+                        <th rowspan="2" style="width: 90px;">TOTAL HOURS</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 70px; font-size: 10px;">LEC.<br>HRS/WK</th>
+                        <th style="width: 70px; font-size: 10px;">LAB.<br>HRS/WK</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="section-header">
+                        <td colspan="3">Teaching Load/s:</td>
+                        <td></td>
+                    </tr>
+
+                    {% for row in workload_rows %}
+                    <tr>
+                        <td class="left">{{ row.section_display }}</td>
+                        <td>{% if row.lec_hours > 0 %}{{ row.lec_hours|floatformat:"-1" }}{% endif %}</td>
+                        <td>
+                            {% if row.lab_hours > 0 %}
+                                {{ row.lab_hours|floatformat:"-1" }} ({{ row.lab_hours_effective|floatformat:"-1" }})
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="total-hours" style="display:block; font-size:13px; font-weight:800; color:var(--cp-primary);">
+                                {{ row.weighted_hours|floatformat:"-1" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--cp-text-muted); font-style: italic; padding: 16px;">
+                            No scheduled subjects yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ total_lec|floatformat:"-1" }}</td>
+                        <td>
+                            {{ total_lab_raw|floatformat:"-1" }}
+                            {% if total_lab_raw > 0 %}({{ total_lab|floatformat:"-1" }}){% endif %}
+                        </td>
+                        <td>
+                            <span style="display:block; font-size:13px; font-weight:800; color:var(--cp-primary);">
+                                {{ total_weighted|floatformat:"-1" }}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr class="section-header">
+                        <td colspan="3">
+                            Other Functions:
+                            {% if can_edit_other %}
+                                <button type="button" class="oa-add-btn no-print"
+                                        onclick="openOAModal('OTHER_FUNCTION', null)"
+                                        style="margin-left: 10px;">+ Add</button>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% for a in other_assignments_other %}
+                        <tr class="oa-row" data-id="{{ a.id }}">
+                            <td class="left oa-title">{{ a.title }}</td>
+                            <td>{% if a.hours_per_week %}{{ a.hours_per_week|floatformat:"-1" }}{% endif %}</td>
+                            <td></td>
+                            <td class="left oa-meta" style="text-align: center;">
+                                {% if can_edit_other %}
+                                <span class="oa-actions">
+                                    <button type="button" class="oa-edit-btn" data-id="{{ a.id }}" data-category="OTHER_FUNCTION" title="Edit">✎</button>
+                                    <button type="button" class="oa-del-btn"  data-id="{{ a.id }}" title="Delete">✕</button>
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ other_hours_total|floatformat:"-1" }}</td>
+                        <td></td>
+                        <td>{{ other_hours_total|floatformat:"-1" }}</td>
+                    </tr>
+
+                    <tr class="section-header">
+                        <td colspan="3">
+                            Designation:
+                            {% if can_edit_other %}
+                                <button type="button" class="oa-add-btn no-print"
+                                        onclick="openOAModal('DESIGNATION', null)"
+                                        style="margin-left: 10px;">+ Add</button>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% for a in other_assignments_desig %}
+                        <tr class="oa-row" data-id="{{ a.id }}">
+                            <td class="left oa-title">{{ a.title }}</td>
+                            <td>{% if a.hours_per_week %}{{ a.hours_per_week|floatformat:"-1" }}{% endif %}</td>
+                            <td></td>
+                            <td class="left oa-meta" style="text-align: center;">
+                                {% if can_edit_other %}
+                                <span class="oa-actions">
+                                    <button type="button" class="oa-edit-btn" data-id="{{ a.id }}" data-category="DESIGNATION" title="Edit">✎</button>
+                                    <button type="button" class="oa-del-btn"  data-id="{{ a.id }}" title="Delete">✕</button>
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="subtotal">
+                        <td class="left">Sub Total</td>
+                        <td>{{ desig_hours_total|floatformat:"-1" }}</td>
+                        <td></td>
+                        <td>{{ desig_hours_total|floatformat:"-1" }}</td>
+                    </tr>
+
+                    <tr class="grand-total">
+                        <td class="left" colspan="3">Grand Total</td>
+                        <td colspan="1" style="text-align: center;">{{ grand_total_hours|floatformat:"-1" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- RIGHT TABLE: Remarks -->
+            <table class="workload-table-right">
+                <thead>
+                    <tr>
+                       <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="vertical-align: top; height: 100%; padding: 0 !important;">
+                            <div class="remarks-grid" style="display: flex; flex-direction: column; height: 100%;">
+
+                                <div class="remark-section" style="border-bottom: 1px solid var(--cp-border-strong);">
+                                    <div class="remark-label">
+                                        No. of Preparations:
+                                        <span id="auto_preparations">{{ no_preparations }}</span>
+                                    </div>
+                                </div>
+                                <div class="remark-section" style="border-bottom: 1px solid var(--cp-border-strong);">
+                                    <div class="remark-label" style="margin-top: 4px;">
+                                        Overload:
+                                        <input type="text" id="input_overload" class="remark-input" placeholder="0.0"
+                                            value="{{ overload_hours }}"
+                                            onblur="saveRemarksToDB()">
+                                        <span class="print-only-inline" id="print_overload">{{ overload_hours|default:"" }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="remark-section" style="border-bottom: 1px solid var(--cp-border-strong);">
+                                    <textarea id="remarks_overload_subjects" class="remark-textarea auto-expand" style="min-height: 50px;"
+                                            placeholder="e.g., HE 2 BTLED-HE III (W 1:00-2:30 PM)&#10;FSM 312 (TH 10:00 AM-12:00 PM)">{{ overload_subjects }}</textarea>
+                                    <div class="print-only-text">{{ overload_subjects|default:"" }}</div>
+                                </div>
+
+                                <div class="remark-section" style="border-bottom: 1px solid var(--cp-border-strong);">
+                                    <div class="remark-label">
+                                        Service Credits:
+                                        <input type="text" id="input_service_credits" class="remark-input" placeholder="0"
+                                            value="{{ service_credits }}"
+                                            onblur="saveRemarksToDB()">
+                                        <span class="print-only-inline" id="print_service_credits">{{ service_credits|default:"" }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="remark-section grow" style="border-bottom: 1px solid var(--cp-border-strong);">
+                                    <textarea id="remarks_adviser_notes" class="remark-textarea auto-expand" style="min-height: 80px;"
+                                            placeholder="e.g., Adviser, TechEdO&#10;Monday 9:00 AM-12:00 PM&#10;Tuesday 2:00-4:00 PM">{{ adviser_notes }}</textarea>
+                                    <div class="print-only-text">{{ adviser_notes|default:"" }}</div>
+                                </div>
+
+                                <div class="student-table-wrap">
+
+                                    <div class="student-table-row header-row">
+                                        <div class="student-col-left">Total Number of Students:</div>
+                                        <div class="student-col-right editable-cell"
+                                             id="right_total_students"
+                                             {% if can_edit_other %}onclick="editTotalStudents(this)" title="Click to edit"{% endif %}>
+                                            {{ total_students }}
+                                        </div>
+                                    </div>
+
+                                    {% for row in workload_rows %}
+                                    <div class="student-table-row">
+                                        <div class="student-col-left">
+                                            {{ row.section_display }}
+                                        </div>
+                                        <div class="student-col-right editable-cell"
+                                             data-subject-id="{{ row.subject_id }}"
+                                             onclick="editStudentCount(this)"
+                                             title="Click to edit">
+                                            {{ row.students|default:"0" }}
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="student-table-row empty-row">
+                                        No scheduled subjects.
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════ ACTION TABLE ═══════════ -->
+        <table class="action-table">
+            <thead>
+                <tr class="title-row">
+                    <th colspan="4">ACTIONS TAKEN</th>
+                </tr>
+                <tr>
+                    <th style="width: 140px;">Action</th>
+                    <th>Name</th>
+                    <th style="width: 140px;">Position</th>
+                    <th style="width: 200px;">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="label-cell">Prepared by:</td>
+                    <td class="sig-name">
+                        {% if actions.prepared.name %}{{ actions.prepared.name }}{% else %}{{ viewing_faculty.full_name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.prepared.position %}{{ actions.prepared.position }}{% else %}Faculty{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Reviewed by:</td>
+                    <td class="sig-name">
+                        {% if actions.reviewed.name %}{{ actions.reviewed.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.reviewed.position %}{{ actions.reviewed.position }}{% else %}Dept. Chair{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Verified by:</td>
+                    <td class="sig-name">
+                        {% if actions.verified.name %}{{ actions.verified.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.verified.position %}{{ actions.verified.position }}{% else %}Dean{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Approved by:</td>
+                    <td class="sig-name">
+                        {% if actions.approved.name %}{{ actions.approved.name }}{% endif %}
+                    </td>
+                    <td class="sig-role">
+                        {% if actions.approved.position %}{{ actions.approved.position }}{% else %}VPAA{% endif %}
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- ═══════════ OTHER FUNCTIONS / DESIGNATION MODAL ═══════════ -->
+    <div class="oa-modal-overlay no-print" id="oaModal"
+         onclick="if(event.target.id==='oaModal')closeOAModal()">
+        <div class="oa-modal" role="dialog" aria-modal="true">
+            <div class="oa-modal-header">
+                <h3 id="oaModalTitle">Add Other Function</h3>
+                <button type="button" class="sched-modal-close" onclick="closeOAModal()">✕</button>
+            </div>
+            <div class="oa-modal-body">
+                <input type="hidden" id="oaId">
+                <input type="hidden" id="oaCategory">
+
+                <label class="oa-lbl">Work Type <span style="color:var(--cp-danger);">*</span></label>
+                <select id="oaWorkType" class="oa-input">
+                    <option value="RESEARCH">Research</option>
+                    <option value="EXTENSION">Extension</option>
+                    <option value="CHAIR">Chair / Coordinator</option>
+                    <option value="LESSON_PREP">Lesson Preparation</option>
+                    <option value="ADVISER">Adviser</option>
+                    <option value="OTHER">Other</option>
+                </select>
+
+                <label class="oa-lbl">Title / Description <span style="color:var(--cp-danger);">*</span></label>
+                <input id="oaTitle" class="oa-input" placeholder="e.g. Chair, TTEd / Research on X">
+
+                <label class="oa-lbl">Hours per Week</label>
+                <input id="oaHours" type="number" step="0.5" min="0" class="oa-input" placeholder="0">
+
+                <label class="oa-lbl">Room (optional)</label>
+                <select id="oaRoom" class="oa-input">
+                    <option value="">— No room —</option>
+                    {% for r in rooms %}
+                        <option value="{{ r.id }}">{{ r.room_code }} — {{ r.room_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px;">
+                    <div>
+                        <label class="oa-lbl">Day</label>
+                        <select id="oaDay" class="oa-input">
+                            <option value="">—</option>
+                            <option value="MONDAY">Monday</option>
+                            <option value="TUESDAY">Tuesday</option>
+                            <option value="WEDNESDAY">Wednesday</option>
+                            <option value="THURSDAY">Thursday</option>
+                            <option value="FRIDAY">Friday</option>
+                            <option value="SATURDAY">Saturday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="oa-lbl">Start</label>
+                        <input id="oaStart" type="time" class="oa-input">
+                    </div>
+                    <div>
+                        <label class="oa-lbl">End</label>
+                        <input id="oaEnd" type="time" class="oa-input">
+                    </div>
+                </div>
+
+                <label class="oa-lbl">Remarks</label>
+                <input id="oaRemarks" class="oa-input" placeholder="Optional notes">
+
+                <div class="oa-msg" id="oaMsg"></div>
+            </div>
+            <div class="oa-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeOAModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="oaSaveBtn" onclick="saveOA()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ SCHEDULE DETAIL MODAL ═══════════ -->
+    <div class="sched-modal-overlay no-print" id="schedDetailModal" onclick="handleSchedModalOverlay(event)">
+        <div class="sched-modal" role="dialog" aria-modal="true">
+            <div class="sched-modal-header" id="schedModalHeader">
+                <h3><span class="modal-icon">📚</span><span>Class Details</span></h3>
+                <button type="button" class="sched-modal-close" onclick="closeSchedModal()">✕</button>
+            </div>
+            <div class="sched-modal-body">
+                <div class="sched-modal-subject">
+                    <div class="subj-code" id="schedModalCode">—</div>
+                    <div class="subj-title" id="schedModalTitle2"></div>
+                    <span class="subj-type lec" id="schedModalType">LEC</span>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Section</div>
+                    <div class="value" id="schedModalSection">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Day</div>
+                    <div class="value" id="schedModalDay">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Time</div>
+                    <div class="value" id="schedModalTime">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Room</div>
+                    <div class="value" id="schedModalRoom">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Faculty</div>
+                    <div class="value" id="schedModalFaculty">—</div>
+                </div>
+                <div class="sched-modal-row">
+                    <div class="label">Type</div>
+                    <div class="value" id="schedModalTypeRow">—</div>
+                </div>
+            </div>
+            <div class="sched-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSchedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+    function getOACsrf() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        return m ? m.content : '';
+    }
+
+    function capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    /* ============================================================
+       SCHEDULE DETAIL MODAL
+       ============================================================ */
+    function openSchedModal(cell) {
+        const ds = cell.dataset;
+        const rawType = (ds.type || 'LECTURE').toUpperCase();
+        const isLab = rawType === 'LAB' || rawType === 'LABORATORY';
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            const [hour, minute] = timeStr.split(':');
+            const d = new Date();
+            d.setHours(parseInt(hour, 10), parseInt(minute, 10), 0);
+            return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        if (rawType === 'OTHER') {
+            document.getElementById('schedModalCode').textContent = ds.subjectTitle || ds.subjectCode || '—';
+            document.getElementById('schedModalTitle2').textContent = ds.section || '';
+        } else {
+            document.getElementById('schedModalCode').textContent = ds.subjectCode || '—';
+            document.getElementById('schedModalTitle2').textContent = ds.subjectTitle || '';
+        }
+
+        const badge = document.getElementById('schedModalType');
+        badge.textContent = isLab ? 'LAB' : 'LEC';
+        badge.className = 'subj-type ' + (isLab ? 'lab' : 'lec');
+
+        document.getElementById('schedModalSection').textContent = rawType === 'OTHER' ? '—' : (ds.section || '—');
+        document.getElementById('schedModalDay').textContent = capitalize(ds.day || '—');
+
+        document.getElementById('schedModalTime').textContent =
+            (ds.start && ds.end) ? `${formatTime(ds.start)} – ${formatTime(ds.end)}` : '—';
+
+        document.getElementById('schedModalRoom').textContent = ds.room || '—';
+        document.getElementById('schedModalFaculty').textContent = ds.faculty || '—';
+        document.getElementById('schedModalTypeRow').textContent = isLab ? 'LABORATORY' : 'LECTURE';
+
+        document.getElementById('schedModalHeader').classList.toggle('lab', isLab);
+        document.getElementById('schedDetailModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSchedModal() {
+        document.getElementById('schedDetailModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleSchedModalOverlay(event) {
+        if (event.target.id === 'schedDetailModal') closeSchedModal();
+    }
+
+    /* ============================================================
+       OTHER FUNCTIONS / DESIGNATION — CRUD
+       ============================================================ */
+    function openOAModal(category, record) {
+        const msg = document.getElementById('oaMsg');
+        msg.className = 'oa-msg';
+        msg.textContent = '';
+
+        document.getElementById('oaModalTitle').textContent =
+            (record ? 'Edit ' : 'Add ') +
+            (category === 'DESIGNATION' ? 'Designation' : 'Other Function');
+
+        document.getElementById('oaCategory').value = category;
+        document.getElementById('oaId').value       = record ? record.id : '';
+        document.getElementById('oaWorkType').value =
+            record ? record.work_type :
+            (category === 'DESIGNATION' ? 'CHAIR' : 'RESEARCH');
+        document.getElementById('oaTitle').value    = record ? record.title : '';
+        document.getElementById('oaHours').value    = record ? (record.hours_per_week || '') : '';
+        document.getElementById('oaRoom').value     = record ? (record.room_id || '') : '';
+        document.getElementById('oaDay').value      = record ? (record.day || '') : '';
+        document.getElementById('oaStart').value    = record ? (record.start_time || '') : '';
+        document.getElementById('oaEnd').value      = record ? (record.end_time   || '') : '';
+        document.getElementById('oaRemarks').value  = record ? (record.remarks || '') : '';
+
+        document.getElementById('oaModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOAModal() {
+        document.getElementById('oaModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function saveOA() {
+        const id       = document.getElementById('oaId').value;
+        const category = document.getElementById('oaCategory').value;
+        const msg      = document.getElementById('oaMsg');
+        const btn      = document.getElementById('oaSaveBtn');
+
+        const payload = new FormData();
+        payload.append('csrfmiddlewaretoken', getOACsrf());
+        payload.append('category',       category);
+        payload.append('work_type',      document.getElementById('oaWorkType').value);
+        payload.append('title',          document.getElementById('oaTitle').value);
+        payload.append('hours_per_week', document.getElementById('oaHours').value || 0);
+        payload.append('room_id',        document.getElementById('oaRoom').value);
+        payload.append('day',            document.getElementById('oaDay').value);
+        payload.append('start_time',     document.getElementById('oaStart').value);
+        payload.append('end_time',       document.getElementById('oaEnd').value);
+        payload.append('remarks',        document.getElementById('oaRemarks').value);
+        if (window.CP.semesterId) payload.append('semester', window.CP.semesterId);
+
+        const url = id
+            ? `${CP.urls.updateBase}${id}/update/`
+            : CP.urls.create;
+
+        btn.disabled = true;
+
+        fetch(url, {
+            method: 'POST',
+            body: payload,
+            headers: { 'X-CSRFToken': getOACsrf() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ d }) => {
+            if (d.success) {
+                msg.className = 'oa-msg success';
+                msg.textContent = 'Saved successfully.';
+                setTimeout(() => {
+                    closeOAModal();
+                    window.location.reload();
+                }, 500);
+            } else {
+                msg.className = 'oa-msg error';
+                msg.innerText = d.error || 'Failed to save.';
+                msg.style.whiteSpace = 'pre-wrap';
+            }
+        })
+        .catch(err => {
+            msg.className = 'oa-msg error';
+            msg.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { btn.disabled = false; });
+    }
+
+    /* ============================================================
+       STUDENT COUNTS
+       ============================================================ */
+    function syncTotalDisplays(total) {
+        ['total_students_display', 'grand_total_students', 'right_total_students']
+            .forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = total;
+            });
+    }
+
+    function editStudentCount(cellElement) {
+        if (!window.CP.canEditStudents) {
+            alert('You do not have permission to edit student counts.');
+            return;
+        }
+
+        const subjectId = cellElement.dataset.subjectId;
+        if (!subjectId) return;
+
+        let currentVal = cellElement.textContent.trim();
+        if (currentVal === '—' || currentVal === '0') currentVal = '';
+
+        const newVal = prompt("Enter number of students:", currentVal);
+        if (newVal === null) return;
+
+        const parsed = parseInt(newVal, 10);
+        if (isNaN(parsed) || parsed < 0) {
+            alert('Please enter a non-negative whole number.');
+            return;
+        }
+
+        const url = window.CP.urls.updateSubjectStudents.replace('__ID__', subjectId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ students: parsed }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Failed to save.');
+                return;
+            }
+            cellElement.textContent = data.subject_students || '0';
+            syncTotalDisplays(data.total_students);
+        })
+        .catch(err => alert('Network error: ' + err));
+    }
+
+    function editTotalStudents(cellElement) {
+        if (!window.CP.canEditStudents) {
+            alert('You do not have permission to edit student counts.');
+            return;
+        }
+
+        let currentVal = cellElement ? cellElement.textContent.trim() : '0';
+        if (currentVal === '—' || currentVal === '') currentVal = '0';
+
+        const newVal = prompt(
+            "Enter Total Number of Students (this will be redistributed across the subjects):",
+            currentVal
+        );
+        if (newVal === null) return;
+
+        const parsed = parseInt(newVal, 10);
+        if (isNaN(parsed) || parsed < 0) {
+            alert('Please enter a non-negative whole number.');
+            return;
+        }
+
+        fetch(window.CP.urls.updateTotalStudents, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ total: parsed }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Failed to save.');
+                return;
+            }
+            window.location.reload();
+        })
+        .catch(err => alert('Network error: ' + err));
+    }
+
+    /* ============================================================
+       SAVE REMARKS & LIVE SYNC
+       ============================================================ */
+    let saveTimeout = null;
+
+    function syncPrintText(textarea, printDiv) {
+        if (textarea && printDiv) {
+            printDiv.textContent = textarea.value;
+        }
+    }
+
+    function syncPrintInline(input, span) {
+        if (input && span) span.textContent = input.value;
+    }
+
+    function saveRemarksToDB() {
+        if (!window.CP.canEditStudents) return;
+
+        const payload = new URLSearchParams();
+        payload.append('csrfmiddlewaretoken', getOACsrf());
+        payload.append('overload_hours',    document.getElementById('input_overload').value);
+        payload.append('overload_subjects', document.getElementById('remarks_overload_subjects').value);
+        payload.append('service_credits',   document.getElementById('input_service_credits').value);
+        payload.append('adviser_notes',     document.getElementById('remarks_adviser_notes').value);
+
+        fetch(window.CP.urls.updateRemarks, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getOACsrf(),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: payload.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to save remarks:', data.error);
+            }
+        })
+        .catch(err => console.error('Network error saving remarks:', err));
+    }
+
+    function prepareAndPrint() {
+        const overloadTA = document.getElementById('remarks_overload_subjects');
+        if (overloadTA) {
+            const printDiv = overloadTA.nextElementSibling;
+            if (printDiv && printDiv.classList.contains('print-only-text')) {
+                printDiv.textContent = overloadTA.value;
+            }
+        }
+
+        const adviserTA = document.getElementById('remarks_adviser_notes');
+        if (adviserTA) {
+            const printDiv = adviserTA.nextElementSibling;
+            if (printDiv && printDiv.classList.contains('print-only-text')) {
+                printDiv.textContent = adviserTA.value;
+            }
+        }
+
+        const overloadInput = document.getElementById('input_overload');
+        const overloadSpan = document.getElementById('print_overload');
+        if (overloadInput && overloadSpan) {
+            overloadSpan.textContent = overloadInput.value;
+        }
+
+        const serviceInput = document.getElementById('input_service_credits');
+        const serviceSpan = document.getElementById('print_service_credits');
+        if (serviceInput && serviceSpan) {
+            serviceSpan.textContent = serviceInput.value;
+        }
+
+        window.print();
+    }
+
+    /* ============================================================
+       EVENT BINDINGS
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.schedule-table td.sched-cell').forEach(function(cell) {
+            cell.addEventListener('click', function () {
+                openSchedModal(this);
+            });
+        });
+
+        document.querySelectorAll('.oa-add-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openOAModal(btn.dataset.category, null);
+            });
+        });
+
+        document.querySelectorAll('.oa-edit-btn').forEach(btn => {
+            if (btn.getAttribute('onclick')) return;
+
+            btn.addEventListener('click', () => {
+                let category = btn.dataset.category || 'OTHER_FUNCTION';
+
+                if (!btn.dataset.category) {
+                    const row = btn.closest('tr');
+                    let cursor = row ? row.previousElementSibling : null;
+                    while (cursor) {
+                        if (cursor.classList.contains('section-header')) {
+                            const text = cursor.textContent || '';
+                            category = text.includes('Designation') ? 'DESIGNATION' : 'OTHER_FUNCTION';
+                            break;
+                        }
+                        cursor = cursor.previousElementSibling;
+                    }
+                }
+
+                const listUrl = window.CP.semesterId
+                    ? `${CP.urls.list}?semester=${encodeURIComponent(window.CP.semesterId)}`
+                    : CP.urls.list;
+                fetch(listUrl)
+                    .then(r => r.json())
+                    .then(data => {
+                        const rec = (data.assignments || []).find(
+                            x => String(x.id) === String(btn.dataset.id)
+                        );
+                        if (rec) openOAModal(category, rec);
+                    })
+                    .catch(err => alert('Failed to load entry: ' + err));
+            });
+        });
+
+        document.querySelectorAll('.oa-del-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!confirm('Delete this entry? This cannot be undone.')) return;
+                const url = `${CP.urls.updateBase}${btn.dataset.id}/delete/`;
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getOACsrf() },
+                    body: new URLSearchParams({ csrfmiddlewaretoken: getOACsrf() })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) window.location.reload();
+                    else alert(d.error || 'Delete failed.');
+                })
+                .catch(err => alert('Network error: ' + err));
+            });
+        });
+
+        document.querySelectorAll('.message').forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            }, 5000);
+        });
+
+        const overloadTA = document.getElementById('remarks_overload_subjects');
+        const overloadPrintDiv = overloadTA ? overloadTA.nextElementSibling : null;
+
+        const adviserTA = document.getElementById('remarks_adviser_notes');
+        const adviserPrintDiv = adviserTA ? adviserTA.nextElementSibling : null;
+
+        if (overloadTA && overloadPrintDiv) {
+            syncPrintText(overloadTA, overloadPrintDiv);
+            overloadTA.style.height = 'auto';
+            overloadTA.style.height = (overloadTA.scrollHeight) + 'px';
+        }
+
+        if (adviserTA && adviserPrintDiv) {
+            syncPrintText(adviserTA, adviserPrintDiv);
+            adviserTA.style.height = 'auto';
+            adviserTA.style.height = (adviserTA.scrollHeight) + 'px';
+        }
+
+        function handleTextareaInput(textarea, printDiv) {
+            syncPrintText(textarea, printDiv);
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveRemarksToDB();
+            }, 1000);
+        }
+
+        if (overloadTA) {
+            overloadTA.addEventListener('input', () => handleTextareaInput(overloadTA, overloadPrintDiv));
+        }
+        if (adviserTA) {
+            adviserTA.addEventListener('input', () => handleTextareaInput(adviserTA, adviserPrintDiv));
+        }
+
+        const overloadInput = document.getElementById('input_overload');
+        if (overloadInput) {
+            overloadInput.addEventListener('input', () => {
+                syncPrintInline(overloadInput, document.getElementById('print_overload'));
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveRemarksToDB, 1000);
+            });
+            overloadInput.addEventListener('change', saveRemarksToDB);
+        }
+
+        const serviceCreditsInput = document.getElementById('input_service_credits');
+        if (serviceCreditsInput) {
+            serviceCreditsInput.addEventListener('input', () => {
+                syncPrintInline(serviceCreditsInput, document.getElementById('print_service_credits'));
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveRemarksToDB, 1000);
+            });
+            serviceCreditsInput.addEventListener('change', saveRemarksToDB);
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const oa = document.getElementById('oaModal');
+            if (oa && oa.classList.contains('open')) { closeOAModal(); return; }
+
+            const sd = document.getElementById('schedDetailModal');
+            if (sd && sd.classList.contains('open')) { closeSchedModal(); }
+        }
+    });
+</script>
+{% endblock %}

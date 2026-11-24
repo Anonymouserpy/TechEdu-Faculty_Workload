@@ -1,0 +1,1306 @@
+{% extends 'base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}Class List | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════════════════════════════════════════════════════
+       GLASSMORPHISM DESIGN SYSTEM
+       ══════════════════════════════════════════════════════════ */
+    :root {
+        --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 100%);
+        --glass-fill-strong: linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%);
+        --glass-fill-soft: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 100%);
+        --glass-bg: rgba(255, 255, 255, 0.55);
+        --glass-bg-strong: rgba(255, 255, 255, 0.72);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(255, 255, 255, 0.35);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.20);
+        --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.35);
+        --glass-blur: blur(22px) saturate(180%);
+        --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        --glass-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.90);
+        --accent: #2563eb;
+        --accent-deep: #1d4ed8;
+        --text-primary: #0f172a;
+        --text-muted: #475569;
+    }
+
+    .main-content {
+        padding: 28px 32px 44px;
+        min-height: 100vh;
+        position: relative;
+        /* NOTE: no `isolation`/`z-index` here — it would trap the fixed modal
+           overlays in this stacking context, painting them behind the sidebar. */
+        background:
+            radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+            radial-gradient(circle at 92% 4%, rgba(14, 165, 233, 0.22) 0%, transparent 40%),
+            radial-gradient(circle at 82% 94%, rgba(16, 185, 129, 0.20) 0%, transparent 46%),
+            radial-gradient(circle at 8% 88%, rgba(236, 72, 153, 0.14) 0%, transparent 42%),
+            linear-gradient(160deg, #eef2ff 0%, #f8fafc 48%, #ecfeff 100%);
+        background-attachment: fixed;
+    }
+
+    /* ── PAGE HEADER ──────────────────────────────────────── */
+    .page-header {
+        max-width: 1200px;
+        margin: 0 auto 22px auto;
+        display: flex; justify-content: space-between; align-items: flex-end;
+        gap: 18px; flex-wrap: wrap;
+    }
+    .page-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 1.3px; text-transform: uppercase;
+        color: var(--accent-deep);
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        padding: 5px 12px; border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        margin-bottom: 10px;
+    }
+    .page-header h1 {
+        font-size: 28px; color: var(--text-primary);
+        margin: 0 0 6px; font-weight: 750; letter-spacing: -0.5px;
+    }
+    .page-header p {
+        color: var(--text-muted); font-size: 13.5px;
+        margin: 0; max-width: 620px; line-height: 1.55;
+    }
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+        padding: 10px 18px; border-radius: 10px; border: 1px solid transparent;
+        font-size: 13.5px; font-weight: 600; cursor: pointer;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 8px; transition: all 0.2s ease;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 6px 18px rgba(37, 99, 235, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(8px);
+    }
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 10px 24px rgba(37, 99, 235, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        background: linear-gradient(135deg, rgba(29, 78, 216, 1), rgba(30, 58, 138, 1));
+    }
+
+    /* ── TOP CONTROLS ─────────────────────────────────────── */
+    .top-controls {
+        max-width: 1200px;
+        margin: 0 auto 24px auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-radius: 20px;
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-inset);
+        gap: 20px;
+    }
+
+    .controls-left {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .control-group label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .custom-select-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .control-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 10px;
+        padding: 9px 34px 9px 14px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.22s ease;
+        outline: none;
+        min-width: 140px;
+        box-shadow: var(--glass-inset);
+    }
+
+    .control-group select:hover {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(37, 99, 235, 0.4);
+    }
+
+    .control-group select:focus {
+        background: rgba(255, 255, 255, 0.92);
+        border-color: var(--accent);
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.22),
+            var(--glass-inset);
+    }
+
+    .custom-select-wrapper::after {
+        content: "";
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 5px;
+        background-color: var(--text-muted);
+        clip-path: polygon(100% 0, 0 0, 50% 100%);
+        pointer-events: none;
+    }
+
+    .section-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .section-controls > label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+
+    .section-buttons {
+        display: flex;
+        padding: 5px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        flex-wrap: wrap;
+        gap: 3px;
+        box-shadow: inset 0 1px 3px rgba(255,255,255,0.5);
+    }
+
+    .section-btn {
+        padding: 7px 15px;
+        border: 1px solid transparent;
+        background: transparent;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.18s ease;
+    }
+
+    .section-btn:hover {
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text-primary);
+    }
+
+    .section-btn.active {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 0.95));
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+        font-weight: 700;
+    }
+
+    .section-btn.active:hover {
+        background: linear-gradient(135deg, rgba(29, 78, 216, 1), rgba(30, 58, 138, 1));
+    }
+
+    /* ── OFFICIAL DOCUMENT (GLASS) ───────────────────────── */
+    .print-container {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 22px;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow-lg), var(--glass-inset-strong);
+    }
+
+    /* Header wrapper — keep structural borders but soften */
+    .header-wrapper {
+        display: grid;
+        grid-template-columns: 160px 1fr 240px;
+        grid-template-rows: auto auto;
+        border: 1px solid rgba(15, 23, 42, 0.55);
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    .header-logos-container {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-right: 1px solid rgba(15, 23, 42, 0.45);
+    }
+
+    .header-logos { display: flex; gap: 10px; }
+
+    .logo-box {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        color: #555;
+        text-align: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .header-center-top {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 8px;
+        border-right: 1px solid rgba(15, 23, 42, 0.45);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.45);
+        font-size: 11px;
+        line-height: 1.3;
+    }
+
+    .header-center-top strong {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 2px 0;
+        text-transform: uppercase;
+    }
+
+    .header-center-top .college-name {
+        font-size: 11.5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 5px;
+    }
+
+    .header-center-bottom {
+        grid-column: 2;
+        grid-row: 2;
+        text-align: center;
+        padding: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid rgba(15, 23, 42, 0.45);
+    }
+
+    .header-center-bottom .highlight {
+        background: rgba(209, 213, 219, 0.75);
+        padding: 0 4px;
+        border-radius: 3px;
+    }
+
+    .header-right-box {
+        grid-column: 3;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .right-codes-container {
+        display: flex;
+        flex-direction: column;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.45);
+    }
+
+    .right-codes-container > div {
+        padding: 4px 8px;
+        font-size: 9.5px;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.25);
+    }
+
+    .right-codes-container > div:last-child { border-bottom: none; }
+
+    .right-tuv-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 5px;
+        text-align: center;
+    }
+
+    .tuv-logo {
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 2px;
+        letter-spacing: 0.5px;
+    }
+
+    .tuv-text { font-size: 9px; line-height: 1.2; }
+
+    /* Info section */
+    .info-section {
+        margin-top: 0;
+        border: 1px solid rgba(15, 23, 42, 0.55);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 12px;
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+    }
+
+    .info-row { display: flex; width: 100%; border-bottom: 1px solid rgba(15, 23, 42, 0.35); }
+    .info-row:last-child { border-bottom: none; }
+
+    .info-item {
+        flex: 1;
+        padding: 9px;
+        border-right: 1px solid rgba(15, 23, 42, 0.35);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-item:last-child { border-right: none; }
+
+    .info-item label {
+        font-weight: bold;
+        font-size: 11px;
+        color: #1e293b;
+        margin-right: 4px;
+    }
+
+    /* Schedule table */
+    table.schedule-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 11px;
+        text-align: center;
+        table-layout: fixed;
+        margin-top: 6px;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.55);
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    table.schedule-table th,
+    table.schedule-table td {
+        border: 1px solid rgba(15, 23, 42, 0.35);
+        padding: 4px;
+        vertical-align: middle;
+    }
+
+    table.schedule-table th {
+        background: linear-gradient(135deg, rgba(160, 212, 104, 0.85), rgba(120, 190, 70, 0.85));
+        backdrop-filter: blur(6px);
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #0f2410;
+        height: 30px;
+    }
+
+    .time-col {
+        width: 85px;
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.5);
+        font-size: 10px;
+    }
+
+    .class-block {
+        font-weight: bold;
+        font-size: 11px;
+        padding: 4px;
+        line-height: 1.2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .class-block .subject-code { font-size: 11px; color: #000; margin-bottom: 2px; }
+    .class-block .faculty { font-size: 10px; font-weight: normal; }
+    .class-block .room { font-size: 10px; font-weight: normal; }
+
+    /* Class colors — slightly translucent to blend with glass */
+    .bg-blue   { background-color: rgba(176, 216, 240, 0.85); }
+    .bg-pink   { background-color: rgba(247, 183, 206, 0.85); }
+    .bg-green  { background-color: rgba(180, 227, 171, 0.85); }
+    .bg-yellow { background-color: rgba(255, 255, 0, 0.75); }
+    .bg-purple { background-color: rgba(217, 189, 245, 0.85); }
+    .bg-orange { background-color: rgba(255, 204, 153, 0.85); }
+    .bg-teal   { background-color: rgba(153, 230, 230, 0.85); }
+
+    /* Footer */
+    .footer {
+        margin-top: 6px;
+        border: 1px solid rgba(15, 23, 42, 0.55);
+        border-radius: 12px;
+        display: flex;
+        font-size: 11px;
+        background: rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+    }
+
+    .footer > .sig-block {
+        flex: 1;
+        padding: 10px;
+        border-right: 1px solid rgba(15, 23, 42, 0.35);
+        text-align: center;
+    }
+
+    .footer > .sig-block:last-child { border-right: none; }
+
+    .footer .sig-label { font-size: 11px; color: #333; margin-bottom: 15px; }
+
+    .footer .sig-name {
+        font-weight: bold;
+        font-size: 11px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .footer .sig-title { font-size: 10px; color: #333; margin-top: 2px; }
+
+    .sig-name.sig-editable,
+    .sig-title.sig-editable {
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: 0 -4px;
+    }
+
+    .sig-name.sig-editable:hover,
+    .sig-title.sig-editable:hover {
+        background: rgba(239, 246, 255, 0.8);
+        box-shadow: inset 0 0 0 1px rgba(30, 64, 175, 0.25);
+    }
+
+    .sig-name.sig-editable::after {
+        content: ' ✏️';
+        font-size: 9px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .sig-name.sig-editable:hover::after { opacity: 0.7; }
+
+    /* ══════════════════════════════════════════════════════════
+       SIGNATURE EDIT MODAL — GLASS STYLE
+       ══════════════════════════════════════════════════════════ */
+    .sig-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1150;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+
+    .sig-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .sig-modal {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border-radius: 18px;
+        width: 100%;
+        max-width: 460px;
+        box-shadow: var(--glass-shadow-lg), var(--glass-inset);
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
+    }
+
+    .sig-modal-overlay.open .sig-modal { transform: translateY(0) scale(1); }
+
+    .sig-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .sig-modal-header .sig-eyebrow {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        color: var(--accent-deep);
+        text-transform: uppercase;
+    }
+
+    .sig-modal-header h2 {
+        font-size: 16px;
+        color: var(--text-primary);
+        margin: 2px 0 0;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sig-modal-body { padding: 16px 22px 6px; }
+
+    .sig-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 12px 22px;
+        border-top: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(248, 250, 252, 0.5);
+    }
+
+    .sig-modal-close {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+
+    .sig-modal-close:hover { background: rgba(255, 255, 255, 0.9); color: var(--text-primary); }
+
+    .sig-form-group { margin-bottom: 14px; }
+
+    .sig-form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 6px;
+    }
+
+    .sig-form-group input {
+        width: 100%;
+        padding: 10px 13px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-family: inherit;
+        box-sizing: border-box;
+        outline: none;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(6px);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .sig-form-group input:focus {
+        border-color: var(--accent-deep);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+    }
+
+    .sig-msg {
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 14px;
+        display: none;
+        border-left: 3px solid transparent;
+        white-space: pre-line;
+        line-height: 1.5;
+    }
+
+    .sig-msg.error {
+        background: rgba(254, 242, 242, 0.85);
+        color: #b42318;
+        border: 1px solid rgba(254, 202, 202, 0.9);
+        border-left: 3px solid #dc2626;
+        display: block;
+    }
+
+    .sig-msg.success {
+        background: rgba(236, 253, 245, 0.85);
+        color: #065f46;
+        border: 1px solid rgba(167, 243, 208, 0.9);
+        border-left: 3px solid #10b981;
+        display: block;
+    }
+
+    .sig-btn {
+        padding: 9px 18px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+
+    .sig-btn.secondary {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        color: #334155;
+    }
+
+    .sig-btn.secondary:hover { background: rgba(255, 255, 255, 0.95); }
+
+    .sig-btn.primary {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .sig-btn.primary:hover { background: linear-gradient(135deg, #1d4ed8, #1e3a8a); }
+    .sig-btn.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── ENTRANCE ANIMATION ── */
+    @keyframes riseIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .page-header, .top-controls, .print-container {
+        animation: riseIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .top-controls { animation-delay: 0.05s; }
+    .print-container { animation-delay: 0.1s; }
+    @media (prefers-reduced-motion: reduce) {
+        .page-header, .top-controls, .print-container { animation: none; }
+    }
+
+    @media (max-width: 640px) {
+        .main-content { padding: 16px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .page-header h1 { font-size: 23px; }
+        .top-controls { padding: 16px; }
+        .section-controls { align-items: stretch; width: 100%; }
+        .print-container { padding: 14px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRINT STYLES (solid, no glass — for clean output)
+       ══════════════════════════════════════════════════════════ */
+    @media print {
+        body * { visibility: hidden; }
+        .print-container, .print-container * { visibility: visible; }
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+            background: #fff;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        body { background: white; margin: 0; padding: 0; }
+        .main-content {
+            padding: 0 !important;
+            background: #fff !important;
+            position: static !important;
+        }
+        .top-controls, .no-print { display: none !important; }
+        table.schedule-table th {
+            background-color: #a0d468 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .bg-blue, .bg-pink, .bg-green, .bg-yellow, .bg-purple, .bg-orange, .bg-teal {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .header-center-bottom .highlight {
+            background-color: #d1d5db !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .sig-name.sig-editable::after { display: none !important; }
+        .sig-name.sig-editable, .sig-title.sig-editable {
+            box-shadow: none !important;
+            background: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            cursor: default !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+<form id="csrfHolder" style="display:none;">{% csrf_token %}</form>
+
+<!-- PAGE HEADER -->
+<div class="page-header no-print">
+    <div>
+        <span class="page-eyebrow">📅 Class Scheduling</span>
+        <h1>Student's Class Program</h1>
+        <p>Review the weekly class schedule by course, major, semester and section, then print the official class program.</p>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Print Schedule</button>
+    </div>
+</div>
+
+<!-- TOP CONTROL BAR -->
+<div class="top-controls no-print">
+    <div class="controls-left">
+        <div class="control-group">
+            <label>Course</label>
+            <div class="custom-select-wrapper">
+                <select id="courseDropdown">
+                    {% for code in course_list %}
+                        <option value="{{ code }}" {% if course_q == code %}selected{% endif %}>{{ code }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Major</label>
+            <div class="custom-select-wrapper">
+                <select id="majorDropdown">
+                    <option value="">None</option>
+                    {% for m in major_list %}
+                        <option value="{{ m }}" {% if major_q == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Semester</label>
+            <div class="custom-select-wrapper">
+                <select id="semesterDropdown">
+                    {% for sem in clean_semesters %}
+                        <option value="{{ sem.id }}" {% if active_semester and active_semester.id == sem.id %}selected{% endif %}>
+                            {{ sem.short_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-controls">
+        <label>Year &amp; Section</label>
+        <div class="section-buttons">
+            <a href="#" onclick="navigateToSection('1', 'A'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '1' and section.section == 'A' %}active{% endif %}">1-A</a>
+            <a href="#" onclick="navigateToSection('1', 'B'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '1' and section.section == 'B' %}active{% endif %}">1-B</a>
+            <a href="#" onclick="navigateToSection('2', 'A'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '2' and section.section == 'A' %}active{% endif %}">2-A</a>
+            <a href="#" onclick="navigateToSection('2', 'B'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '2' and section.section == 'B' %}active{% endif %}">2-B</a>
+            <a href="#" onclick="navigateToSection('3', 'A'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '3' and section.section == 'A' %}active{% endif %}">3-A</a>
+            <a href="#" onclick="navigateToSection('3', 'B'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '3' and section.section == 'B' %}active{% endif %}">3-B</a>
+            <a href="#" onclick="navigateToSection('4', 'A'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '4' and section.section == 'A' %}active{% endif %}">4-A</a>
+            <a href="#" onclick="navigateToSection('4', 'B'); return false;" class="section-btn {% if section.year_level|stringformat:'s' == '4' and section.section == 'B' %}active{% endif %}">4-B</a>
+        </div>
+    </div>
+</div>
+
+<!-- OFFICIAL DOCUMENT -->
+<div class="print-container">
+    <div class="header-wrapper">
+        <div class="header-logos-container">
+            <div class="header-logos">
+                <div class="logo-box">Logo 1</div>
+                <div class="logo-box">Logo 2</div>
+            </div>
+        </div>
+        <div class="header-center-top">
+            <div>Republic of the Philippines</div>
+            <strong>Palompon Institute of Technology</strong>
+            <div>Palompon, Leyte</div>
+            <div class="college-name">COLLEGE OF TECHNOLOGY AND ENGINEERING</div>
+        </div>
+        <div class="header-center-bottom">
+            STUDENT'S CLASS <span class="highlight">PROGRAM</span> S.Y. 2026-2027
+        </div>
+        <div class="header-right-box">
+            <div class="right-codes-container">
+                <div>Ref. Code : PIT-COTE-FOR-3-2-06</div>
+                <div>Rev. No. : 00</div>
+            </div>
+            <div class="right-tuv-container">
+                <div class="tuv-logo">TUV NORD</div>
+                <div class="tuv-text">PIT is ISO 9001:2015 certified by<br>TUV NORD Philippines, Inc.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <div class="info-item" style="flex: 2;">
+                <label>COURSE:</label> <span>{{ course_code|default:"—" }}</span>
+            </div>
+            <div class="info-item" style="flex: 1;">
+                <label>YEAR &amp; SECTION:</label>
+                <span>{{ year_level|default:"—" }}-{{ section_name|default:"—" }}</span>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-item" style="flex: 2;">
+                <label>DEPARTMENT:</label> DEPARTMENT OF INFORMATION TECHNOLOGY
+            </div>
+            <div class="info-item" style="flex: 1;">
+                <label>MAJOR:</label> <span>{{ major|default:"None" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th class="time-col">TIME</th>
+                <th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th>
+                <th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in time_slots %}
+                {% if slot.is_lunch %}
+                    <tr>
+                        <td class="time-col">{{ slot.display }}</td>
+                        <td colspan="6"></td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td class="time-col">{{ slot.display }}</td>
+
+                        {% if slot.monday and slot.monday.is_start %}
+                            <td rowspan="{{ slot.monday.rowspan }}" class="{{ slot.monday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.monday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.monday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.monday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.monday and not slot.monday.is_start %}
+                        {% else %}<td></td>{% endif %}
+
+                        {% if slot.tuesday and slot.tuesday.is_start %}
+                            <td rowspan="{{ slot.tuesday.rowspan }}" class="{{ slot.tuesday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.tuesday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.tuesday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.tuesday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.tuesday and not slot.tuesday.is_start %}
+                        {% else %}<td></td>{% endif %}
+
+                        {% if slot.wednesday and slot.wednesday.is_start %}
+                            <td rowspan="{{ slot.wednesday.rowspan }}" class="{{ slot.wednesday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.wednesday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.wednesday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.wednesday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.wednesday and not slot.wednesday.is_start %}
+                        {% else %}<td></td>{% endif %}
+
+                        {% if slot.thursday and slot.thursday.is_start %}
+                            <td rowspan="{{ slot.thursday.rowspan }}" class="{{ slot.thursday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.thursday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.thursday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.thursday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.thursday and not slot.thursday.is_start %}
+                        {% else %}<td></td>{% endif %}
+
+                        {% if slot.friday and slot.friday.is_start %}
+                            <td rowspan="{{ slot.friday.rowspan }}" class="{{ slot.friday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.friday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.friday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.friday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.friday and not slot.friday.is_start %}
+                        {% else %}<td></td>{% endif %}
+
+                        {% if slot.saturday and slot.saturday.is_start %}
+                            <td rowspan="{{ slot.saturday.rowspan }}" class="{{ slot.saturday.info.color }}">
+                                <div class="class-block">
+                                    <div class="subject-code">{{ slot.saturday.info.subject_code }}</div>
+                                    <div class="faculty">{{ slot.saturday.info.faculty_name }}</div>
+                                    <div class="room">{{ slot.saturday.info.room }}</div>
+                                </div>
+                            </td>
+                        {% elif slot.saturday and not slot.saturday.is_start %}
+                        {% else %}<td></td>{% endif %}
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <td class="time-col">7:00 - 7:30</td>
+                    <td colspan="6" style="color:#999;font-style:italic;text-align:center;padding:20px;">
+                        No schedules found for this selection. Ensure subjects are assigned and schedules are created.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- EDITABLE FOOTER -->
+    {% with p=signatures.prepared_by r=signatures.reviewed_by a=signatures.approved_by %}
+    <div class="footer">
+        <div class="sig-block" data-sig-key="prepared_by">
+            <div class="sig-label">Prepared by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('prepared_by', 'Prepared by')" title="Click to edit"{% endif %}>
+                {{ p.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('prepared_by', 'Prepared by')" title="Click to edit"{% endif %}>
+                {{ p.position|default:'—' }}
+            </div>
+        </div>
+
+        <div class="sig-block" data-sig-key="reviewed_by">
+            <div class="sig-label">Reviewed by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('reviewed_by', 'Reviewed by')" title="Click to edit"{% endif %}>
+                {{ r.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('reviewed_by', 'Reviewed by')" title="Click to edit"{% endif %}>
+                {{ r.position|default:'—' }}
+            </div>
+        </div>
+
+        <div class="sig-block" data-sig-key="approved_by">
+            <div class="sig-label">Approved by:</div>
+            <div class="sig-name {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('approved_by', 'Approved by')" title="Click to edit"{% endif %}>
+                {{ a.name|default:'—' }}
+            </div>
+            <div class="sig-title {% if faculty.is_chairman %}sig-editable{% endif %}"
+                 {% if faculty.is_chairman %}onclick="openSigEditModal('approved_by', 'Approved by')" title="Click to edit"{% endif %}>
+                {{ a.position|default:'—' }}
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+</div>
+
+<!-- SIGNATURE EDIT MODAL -->
+{% if faculty.is_chairman %}
+<div class="sig-modal-overlay" id="sigEditModal" onclick="handleSigOverlay(event)">
+    <div class="sig-modal" role="dialog" aria-modal="true" aria-labelledby="sigEditTitle">
+        <div class="sig-modal-header">
+            <div>
+                <span class="sig-eyebrow">Student's Class Program</span>
+                <h2 id="sigEditTitle"><i class="fas fa-pen"></i> Edit Signature</h2>
+            </div>
+            <button type="button" class="sig-modal-close" onclick="closeSigEditModal()">✕</button>
+        </div>
+        <div class="sig-modal-body">
+            <div class="sig-msg" id="sigEditMsg"></div>
+            <div class="sig-form-group">
+                <label>Name <span style="color:#b91c1c;">*</span></label>
+                <input type="text" id="sigEditName" placeholder="e.g., HAIDE D. SELAPA, PhD">
+            </div>
+            <div class="sig-form-group">
+                <label>Position / Title</label>
+                <input type="text" id="sigEditPosition" placeholder="e.g., Chairman">
+            </div>
+        </div>
+        <div class="sig-modal-footer">
+            <button type="button" class="sig-btn secondary" onclick="closeSigEditModal()">Cancel</button>
+            <button type="button" class="sig-btn primary" id="sigEditSaveBtn" onclick="saveSigEdit()">
+                <i class="fas fa-check"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const courseDropdown   = document.getElementById('courseDropdown');
+        const majorDropdown    = document.getElementById('majorDropdown');
+        const semesterDropdown = document.getElementById('semesterDropdown');
+
+        const SECTIONS = [
+            {% for s in sections %}
+            {
+                id: {{ s.id }},
+                course: "{{ s.course_code|escapejs }}",
+                year: "{{ s.year_level|escapejs }}",
+                section: "{{ s.section|escapejs }}",
+                major: "{{ s.major|default:''|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        const COURSE_MAJORS = {
+            'BTLED': ['HOME ECONOMICS'],
+            'BTVTED': ['Food and Service Management', 'Garments Fashion and Design']
+        };
+
+        function filterMajors() {
+            const selectedCourse = courseDropdown.value;
+            const allowedMajors = COURSE_MAJORS[selectedCourse] || [];
+            const options = majorDropdown.options;
+            let validOptionSelected = false;
+
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.value === "") continue;
+                if (allowedMajors.includes(opt.value)) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    if (opt.selected) validOptionSelected = true;
+                } else {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            }
+
+            if (!validOptionSelected && allowedMajors.length > 0) {
+                majorDropdown.value = allowedMajors[0];
+            }
+        }
+
+        filterMajors();
+
+        function redirectWithFilters(sectionId = null, year = null, secName = null) {
+            const course = courseDropdown.value;
+            const major  = majorDropdown.value;
+            const semester = semesterDropdown.value;
+
+            let url = '?';
+            if (sectionId) url += `section=${sectionId}&`;
+            if (year)      url += `year=${year}&sec_name=${secName}&`;
+            url += `course=${course}&major=${major}&semester=${semester}`;
+
+            window.location.href = url;
+        }
+
+        courseDropdown.addEventListener('change', function () {
+            filterMajors();
+            const selectedMajor = majorDropdown.value;
+            let match = SECTIONS.find(s => s.course === this.value && s.major === selectedMajor);
+            if (!match) match = SECTIONS.find(s => s.course === this.value);
+            if (match) redirectWithFilters(match.id);
+        });
+
+        majorDropdown.addEventListener('change', function () {
+            if (!this.value) return;
+            const match = SECTIONS.find(s =>
+                s.course === courseDropdown.value && s.major === this.value
+            );
+            if (match) redirectWithFilters(match.id);
+        });
+
+        semesterDropdown.addEventListener('change', function () {
+            const currentSection = "{{ section_q }}";
+            const currentYear = "{{ year_q }}";
+            const currentSecName = "{{ sec_name_q }}";
+            
+            if (currentSection && !currentSection.startsWith('dummy')) {
+                redirectWithFilters(currentSection);
+            } else if (currentYear && currentSecName) {
+                redirectWithFilters(null, currentYear, currentSecName);
+            } else {
+                redirectWithFilters();
+            }
+        });
+
+        window.navigateToSection = function(yearLevel, sectionName) {
+            const course = document.getElementById('courseDropdown').value;
+            const major  = document.getElementById('majorDropdown').value;
+
+            const match = SECTIONS.find(s => 
+                s.year === yearLevel && 
+                s.section === sectionName &&
+                s.course === course &&
+                (s.major === major || (!s.major && !major))
+            );
+            
+            if (match) {
+                redirectWithFilters(match.id);
+            } else {
+                redirectWithFilters(null, yearLevel, sectionName);
+            }
+        };
+    });
+
+    /* ══════════════════════════════════════════════════════════
+       EDITABLE SIGNATURE BLOCKS (GLOBAL)
+       ══════════════════════════════════════════════════════════ */
+    let currentSigKey = null;
+
+    function openSigEditModal(actionKey, label) {
+        currentSigKey = actionKey;
+
+        const block = document.querySelector('.sig-block[data-sig-key="' + actionKey + '"]');
+        if (!block) return;
+
+        const nameEl  = block.querySelector('.sig-name');
+        const titleEl = block.querySelector('.sig-title');
+
+        document.getElementById('sigEditTitle').innerHTML =
+            '<i class="fas fa-pen"></i> Edit — ' + escapeHtml(label);
+        document.getElementById('sigEditName').value     = (nameEl?.textContent  || '').trim();
+        document.getElementById('sigEditPosition').value = (titleEl?.textContent || '').trim();
+
+        const msgEl = document.getElementById('sigEditMsg');
+        msgEl.className = 'sig-msg';
+        msgEl.textContent = '';
+
+        document.getElementById('sigEditModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('sigEditName').focus(), 150);
+    }
+
+    function closeSigEditModal() {
+        document.getElementById('sigEditModal').classList.remove('open');
+        document.body.style.overflow = '';
+        currentSigKey = null;
+    }
+
+    function handleSigOverlay(event) {
+        if (event.target.id === 'sigEditModal') closeSigEditModal();
+    }
+
+    function saveSigEdit() {
+        if (!currentSigKey) return;
+
+        const name     = document.getElementById('sigEditName').value.trim();
+        const position = document.getElementById('sigEditPosition').value.trim();
+        const msgEl    = document.getElementById('sigEditMsg');
+        const saveBtn  = document.getElementById('sigEditSaveBtn');
+
+        if (!name) {
+            msgEl.className = 'sig-msg error';
+            msgEl.textContent = 'Name is required.';
+            return;
+        }
+
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrf = csrfInput ? csrfInput.value : '';
+
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('action_key', currentSigKey);
+        fd.append('name', name);
+        fd.append('position', position);
+
+        saveBtn.disabled = true;
+
+        fetch('/class-list/update-signature/', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': csrf },
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                const block = document.querySelector('.sig-block[data-sig-key="' + currentSigKey + '"]');
+                if (block) {
+                    block.querySelector('.sig-name').textContent  = d.name     || '—';
+                    block.querySelector('.sig-title').textContent = d.position || '—';
+                }
+                msgEl.className = 'sig-msg success';
+                msgEl.textContent = 'Signature updated!';
+                setTimeout(closeSigEditModal, 600);
+            } else {
+                msgEl.className = 'sig-msg error';
+                msgEl.textContent = d.error || 'Failed to update signature.';
+            }
+        })
+        .catch(err => {
+            msgEl.className = 'sig-msg error';
+            msgEl.textContent = 'Network error: ' + err;
+        })
+        .finally(() => { saveBtn.disabled = false; });
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+{% endblock %}

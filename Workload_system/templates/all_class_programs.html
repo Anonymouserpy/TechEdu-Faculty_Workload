@@ -1,0 +1,1357 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}All Class Programs | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- PAGE LAYOUT (SCREEN) --- */
+    :root {
+        --glass-fill-strong: linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%);
+        --glass-fill-soft: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 100%);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(255, 255, 255, 0.35);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.20);
+        --glass-blur: blur(22px) saturate(180%);
+        --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    .main-content {
+        padding: 28px 32px 44px;
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+            radial-gradient(circle at 92% 4%, rgba(14, 165, 233, 0.22) 0%, transparent 40%),
+            radial-gradient(circle at 82% 94%, rgba(16, 185, 129, 0.20) 0%, transparent 46%),
+            radial-gradient(circle at 8% 88%, rgba(236, 72, 153, 0.14) 0%, transparent 42%),
+            linear-gradient(160deg, #eef2ff 0%, #f8fafc 48%, #ecfeff 100%);
+        background-attachment: fixed;
+    }
+
+    .page-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 1.3px; text-transform: uppercase;
+        color: #1d4ed8;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        padding: 5px 12px; border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        margin-bottom: 10px;
+    }
+
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .page-header h1 { font-size: 28px; color: #172033; margin-bottom: 4px; }
+    .page-header p { color: #667085; font-size: 15px; margin-top: 2px; }
+
+    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+        padding: 8px 20px; border-radius: 8px; border: none;
+        font-size: 14px; font-weight: 500; cursor: pointer;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 8px; transition: all 0.3s;
+    }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .btn-outline { background: transparent; color: #2563eb; border: 2px solid #2563eb; }
+    .btn-outline:hover { background: #eff6ff; transform: translateY(-2px); }
+
+    .card {
+        background: #fff; border-radius: 12px; padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table thead th {
+        text-align: left; padding: 12px 14px; font-weight: 600;
+        color: #667085; border-bottom: 2px solid #e2e8f0;
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;
+        background: #f8fafc; white-space: nowrap;
+    }
+    table tbody td {
+        padding: 12px 14px; border-bottom: 1px solid #eef2f6;
+        color: #172033; vertical-align: middle;
+    }
+    table tbody tr:hover td { background: #f8fafc; }
+    table tbody tr:last-child td { border-bottom: none; }
+
+    .faculty-cell { display: flex; align-items: center; gap: 12px; }
+    .faculty-avatar {
+        width: 40px; height: 40px; border-radius: 50%; background: #2563eb;
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 600; font-size: 16px; flex-shrink: 0;
+    }
+    .faculty-info .faculty-name { font-weight: 600; font-size: 15px; color: #172033; }
+    .faculty-info .faculty-id { font-size: 12px; color: #667085; }
+    .faculty-info .faculty-dept { font-size: 12px; color: #667085; display: block; }
+
+    .subject-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .subject-tag {
+        display: inline-block; padding: 2px 10px; border-radius: 12px;
+        font-size: 11px; font-weight: 500; background: #eff6ff;
+        color: #1e40af; border: 1px solid #dbeafe;
+    }
+    .subject-tag.lab { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .subject-tag.more { background: #f3f4f6; color: #6b7280; border-color: #e5e7eb; }
+
+    .schedule-count { font-weight: 600; color: #2563eb; font-size: 16px; }
+    .schedule-count small { font-weight: 400; color: #667085; font-size: 12px; }
+
+    .view-btn {
+        padding: 6px 16px; border-radius: 6px; border: none;
+        font-size: 12px; cursor: pointer; text-decoration: none;
+        transition: all 0.2s; background: #2563eb; color: white;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .view-btn:hover { background: #1d4ed8; transform: scale(1.05); }
+
+    /* SEARCH BOX */
+    .search-box { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .search-box form { display: flex; gap: 12px; align-items: center; flex: 1; flex-wrap: wrap; }
+    .search-box input { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; flex: 1; min-width: 200px; }
+    .search-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .search-box select { padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-width: 150px; background: white; cursor: pointer; }
+    .search-box select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #667085; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state h4 { color: #172033; margin-bottom: 4px; font-size: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    .count-badge { background: #e5e7eb; color: #374151; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+    .status-badge.active { background: #ecfdf5; color: #065f46; }
+    .status-badge.inactive { background: #fef2f2; color: #b42318; }
+
+    .messages { margin-bottom: 20px; }
+    .message { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
+    .message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .message.error { background: #fef2f2; color: #b42318; border: 1px solid #fecaca; }
+
+    /* PAGINATION */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 20px 0 0; border-top: 1px solid #eef2f6; margin-top: 16px; flex-wrap: wrap; }
+    .pagination a, .pagination span { padding: 7px 14px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; color: #667085; background: #fff; border: 1px solid #e5e7eb; transition: all 0.2s; min-width: 38px; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+    .pagination a:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; transform: translateY(-1px); }
+    .pagination .active { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700; }
+    .pagination .disabled { color: #cbd5e1; background: #f8fafc; cursor: not-allowed; pointer-events: none; }
+    .pagination .ellipsis { color: #94a3b8; background: transparent; border: none; pointer-events: none; padding: 7px 4px; min-width: unset; }
+    .pagination-info { text-align: center; font-size: 13px; color: #667085; margin-top: 10px; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); z-index: 9999; justify-content: center; align-items: center; padding: 20px; animation: fadeIn 0.3s ease; }
+    .modal-overlay.active { display: flex; }
+    .modal-container { background: #fff; border-radius: 16px; width: 100%; max-width: 1100px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); animation: slideUp 0.3s ease; padding: 0; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; border-bottom: 2px solid #2563eb; background: #f8fafc; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 10px; }
+    .modal-header .modal-title { font-size: 18px; font-weight: 700; color: #172033; }
+    .modal-header .modal-subtitle { font-size: 13px; color: #667085; margin-top: 2px; }
+    .modal-header .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #667085; padding: 0 8px; transition: color 0.2s; line-height: 1; }
+    .modal-header .modal-close:hover { color: #dc2626; }
+
+    .modal-print-btn { background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; line-height: 1; }
+    .modal-print-btn:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+
+    .modal-body { padding: 20px 22px 24px; overflow-x: auto; }
+    .modal-loading { text-align: center; padding: 40px; color: #667085; }
+    .modal-loading .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal-container::-webkit-scrollbar { width: 8px; }
+    .modal-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+    .modal-container::-webkit-scrollbar-thumb { background: #c1c7cd; border-radius: 8px; }
+    .modal-container::-webkit-scrollbar-thumb:hover { background: #a0a7ae; }
+
+    /* OFFICIAL FORM */
+    .official-form { background: #fff; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; font-size: 12px; }
+    .official-form .form-header { display: grid; grid-template-columns: 190px 1fr 210px; border: 1.5px solid #0f172a; }
+    .official-form .form-header .logo-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px; border-right: 1.5px solid #0f172a; background: #fdfdfd; }
+    .official-form .form-header .logo-box .logo-placeholder { width: 52px; height: 52px; border: 1px solid #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8.5px; color: #64748b; font-weight: 600; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); text-align: center; line-height: 1.1; }
+    .official-form .form-header .school-block { text-align: center; padding: 8px 12px; line-height: 1.3; display: flex; flex-direction: column; justify-content: center; }
+    .official-form .form-header .school-block .rep { font-size: 11px; color: #475569; font-weight: 500; }
+    .official-form .form-header .school-block .school-name { font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: 0.6px; margin-top: 1px; }
+    .official-form .form-header .school-block .school-sub { font-size: 11px; color: #64748b; font-style: italic; }
+    .official-form .form-header .school-block .college { font-size: 11.5px; font-weight: 700; color: #1e40af; letter-spacing: 0.4px; margin-top: 3px; }
+    .official-form .form-header .school-block .doc-title { font-size: 12px; font-weight: 800; color: #0f172a; letter-spacing: 0.8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid #cbd5e1; }
+    .official-form .form-header .ref-box { border-left: 1.5px solid #0f172a; padding: 8px 10px; font-size: 10px; line-height: 1.4; display: flex; flex-direction: column; justify-content: space-between; background: #fdfdfd; }
+    .official-form .form-header .ref-box .row-line { display: flex; justify-content: space-between; gap: 6px; font-weight: 500; }
+    .official-form .form-header .ref-box .ref-label { color: #475569; }
+    .official-form .form-header .ref-box .ref-value { color: #0f172a; font-weight: 700; }
+    .official-form .form-header .ref-box .tuv { text-align: center; padding: 6px 4px 2px; border-top: 1px dashed #cbd5e1; margin-top: 4px; }
+    .official-form .form-header .ref-box .tuv .tuv-label { font-weight: 800; color: #1e40af; font-size: 13px; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .official-form .form-header .ref-box .tuv .tuv-sub { font-size: 8.5px; line-height: 1.3; color: #64748b; }
+
+    .official-form .faculty-info-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 6px; margin-bottom: 6px; }
+    .official-form .faculty-info-table td { border: 1px solid #cbd5e1; padding: 5px 8px; vertical-align: middle; }
+    .official-form .faculty-info-table .label { font-weight: 600; color: #475569; width: 130px; background: #f8fafc; }
+    .official-form .faculty-info-table .value { font-weight: 600; color: #0f172a; }
+
+    /* Inline editable inputs */
+    .official-form .inline-edit { width: 100%; border: none; border-bottom: 1px dashed #94a3b8; background: transparent; font: inherit; font-weight: 600; color: #0f172a; padding: 1px 2px; outline: none; }
+    .official-form .inline-edit:focus { border-bottom-color: #2563eb; background: #eff6ff; }
+    .official-form .inline-edit[readonly] { border-bottom-color: transparent; cursor: default; }
+
+    .official-form .inline-select { width: 100%; border: none; border-bottom: 1px dashed #94a3b8; background: transparent; font: inherit; font-weight: 600; color: #0f172a; padding: 1px 2px; outline: none; cursor: pointer; }
+    .official-form .inline-select:focus { border-bottom-color: #2563eb; background: #eff6ff; }
+
+    .official-form .schedule-table-wrap { border: 1.5px solid #0f172a; overflow-x: auto; border-radius: 2px; }
+    .official-form .schedule-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10.5px; min-width: 800px; }
+    .official-form .schedule-table th, .official-form .schedule-table td { border: 1px solid #475569; padding: 2px 3px; text-align: center; vertical-align: middle; height: 26px; }
+    .official-form .schedule-table thead th { background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%); font-weight: 800; font-size: 10.5px; letter-spacing: 0.6px; padding: 6px 3px; color: #0f172a; text-transform: uppercase; }
+    .official-form .schedule-table th.time-head { width: 82px; background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af; }
+    .official-form .schedule-table td.time-col { font-size: 10px; background: #f8fafc; font-weight: 600; white-space: nowrap; width: 82px; color: #334155; }
+    .official-form .schedule-table tr.lunch-row td { background: #fef3c7; color: #78350f; font-weight: 800; font-size: 10.5px; letter-spacing: 2px; height: 22px; text-transform: uppercase; }
+    .official-form .schedule-table tr.lunch-row td.time-col { background: #fde68a; }
+    .official-form .schedule-table td.sched-cell { padding: 0; vertical-align: middle; }
+    .official-form .schedule-table td.sched-cell.lecture   { background: #fde047; }
+    .official-form .schedule-table td.sched-cell.lab       { background: #fb923c; }
+    .official-form .schedule-table td.sched-cell.office    { background: #ec4899; color: #fff; }
+    .official-form .cell-block { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 3px; height: 100%; line-height: 1.15; text-align: center; }
+    .official-form .cell-block .subj { font-weight: 800; font-size: 11px; }
+    .official-form .cell-block .section { font-size: 10px; font-weight: 600; }
+    /* Other Functions / Designations: entered title as the main label,
+       with the work type kept as a small sub-label. */
+    .official-form .cell-block .oa-subject-title { font-weight: 800; font-size: 9.5px; line-height: 1.05; overflow-wrap: anywhere; }
+    .official-form .cell-block .oa-type { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; opacity: 0.7; }
+    .official-form .cell-block .room-tag { font-size: 9px; font-weight: 700; background: rgba(0, 0, 0, 0.10); padding: 1px 6px; border-radius: 6px; margin-top: 2px; }
+
+    /* WORKLOAD TABLE */
+    .official-form .workload-container { display: flex; width: 100%; margin-top: 6px; align-items: stretch; font-family: 'Segoe UI', 'Arial', sans-serif; font-size: 11px; }
+    .official-form .workload-table-left { border-collapse: collapse; flex: 1; border: 1.5px solid #000; border-right: none; }
+    .official-form .workload-table-right { border-collapse: collapse; width: 38%; border: 1.5px solid #000; }
+    .official-form .workload-container th, .official-form .workload-container td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; height: 22px; }
+    .official-form .workload-container thead th { font-weight: 800; text-align: center; font-size: 11px; color: #000; text-transform: uppercase; background: #fff; vertical-align: middle; }
+    .official-form .workload-container td { text-align: center; font-weight: 600; }
+    .official-form .workload-container td.left { text-align: left; }
+    .official-form .workload-container .section-header td { background: #fff; font-weight: 800; text-align: left; color: #000; font-size: 11.5px; padding: 4px 8px; vertical-align: middle; }
+    .official-form .workload-container tr.subtotal td { font-weight: 700; background: #fff; font-style: italic; }
+    .official-form .workload-container tr.grand-total td { font-weight: 800; background: #fff; color: #000; font-size: 12px; border-top: 2px solid #000; vertical-align: middle; padding: 6px 8px; }
+    
+    .official-form .workload-table-right td { padding: 0 !important; }
+    .official-form .remarks-grid { display: flex; flex-direction: column; height: 100%; min-height: 100%; align-self: stretch; }
+    .official-form .remark-section { padding: 6px 8px; border-bottom: 1px solid #000; display: flex; flex-direction: column; text-align: left; }
+    .official-form .remark-section.grow { flex-grow: 1; }
+    .official-form .remark-label { font-weight: 800; font-size: 11px; margin-bottom: 2px; color: #000; display: flex; align-items: center; gap: 4px; text-align: left; }
+    .official-form .remark-textarea { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 11px; color: #0f172a; resize: vertical; outline: none; line-height: 1.4; padding: 0; white-space: pre-wrap; min-height: 40px; transition: height 0.15s ease; }
+    .official-form .remark-textarea:focus { background: #eff6ff; }
+    
+    /* HIDE PRINT DIVS ON SCREEN */
+    .official-form .print-remark-text { display: none !important; }
+
+    .official-form .remark-total-row { display: flex; border-top: 1px solid #000; background: #fff; min-height: 32px; }
+    .official-form .remark-total-label { flex: 1; padding: 6px 8px; font-weight: 800; font-size: 11px; border-right: 1px solid #000; display: flex; align-items: center; text-align: left; }
+    .official-form .remark-total-value { width: 80px; padding: 6px; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+
+    /* STUDENT COUNT TABLE */
+    .official-form .student-table-wrap { display: flex; flex-direction: column; width: 100%; border-top: 1px solid #000; }
+    .official-form .student-table-row { display: flex; width: 100%; border-bottom: 1px solid #000; font-size: 11px; }
+    .official-form .student-table-row.header-row { background: #f8fafc; font-weight: 800; }
+    .official-form .student-col-left { flex: 1; padding: 5px 8px; border-right: 1px solid #000; text-align: left; display: flex; align-items: center; line-height: 1.2; }
+    .official-form .student-col-right { width: 70px; padding: 5px 8px; text-align: center; font-weight: 700; color: #1e40af; display: flex; align-items: center; justify-content: center; }
+
+    /* ACTION TABLE */
+    .official-form .action-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+    .official-form .action-table th, .official-form .action-table td { border: 1px solid #475569; padding: 5px 8px; vertical-align: middle; }
+    .official-form .action-table thead th { background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%); font-weight: 800; text-align: center; font-size: 10.5px; color: #0f172a; text-transform: uppercase; }
+    .official-form .action-table thead tr.title-row th { background: #1e40af; color: #fff; text-align: left; font-size: 11px; letter-spacing: 0.8px; padding: 6px 10px; }
+    .official-form .action-table td.label-cell { text-align: left; font-weight: 700; color: #1e40af; background: #f8fafc; font-size: 11px; }
+    .official-form .action-table td.sig-space { height: 42px; background: linear-gradient(180deg, transparent 60%, #f1f5f9 100%); position: relative; }
+    .official-form .action-table td.sig-space::after { content: ''; position: absolute; left: 15%; right: 15%; bottom: 8px; border-bottom: 1px solid #94a3b8; }
+
+    /* Free-form action inputs */
+    .official-form .action-input { width: 100%; border: none; border-bottom: 1px dashed transparent; background: transparent; font: inherit; font-weight: 700; color: #0f172a; text-align: center; outline: none; padding: 2px; text-transform: uppercase; }
+    .official-form .action-input[data-col="position"] { font-weight: 400; color: #334155; text-transform: none; }
+    .official-form .action-input:focus { border-bottom-color: #2563eb; background: #eff6ff; }
+    .official-form .action-input[readonly] { cursor: default; }
+    .official-form .action-input[readonly]:focus { background: transparent; border-bottom-color: transparent; }
+
+    /* RESPONSIVE */
+    @media (max-width: 992px) {
+        .modal-container { max-width: 96%; }
+        .official-form .schedule-table { min-width: 700px; }
+        .official-form .form-header { grid-template-columns: 1fr; }
+        .official-form .form-header .logo-box, .official-form .form-header .ref-box { border: none; border-bottom: 1.5px solid #0f172a; }
+        .official-form .workload-container { flex-direction: column; }
+        .official-form .workload-table-left { border-right: 1.5px solid #000; }
+        .official-form .workload-table-right { width: 100%; border-top: none; }
+    }
+
+    @media (max-width: 768px) {
+        .main-content { padding: 16px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .search-box { flex-direction: column; }
+        .search-box form { flex-direction: column; width: 100%; }
+        .search-box input, .search-box select, .search-box button { width: 100%; min-width: unset; }
+        table { font-size: 12px; }
+        table thead th, table tbody td { padding: 8px 10px; }
+        .faculty-avatar { width: 32px; height: 32px; font-size: 13px; }
+        .faculty-info .faculty-dept { display: none; }
+        .subject-tag { font-size: 9px; padding: 1px 6px; }
+        .modal-header { padding: 14px; }
+        .modal-header .modal-title { font-size: 15px; }
+        .modal-body { padding: 14px; }
+        .official-form { padding: 8px; font-size: 10px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PRINT — Folio 8.5in × 13in, multiple pages supported
+       ══════════════════════════════════════════════════════════════ */
+    @page { size: 8.5in 13in; margin: 0.25in; }
+
+    @media print {
+        *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; width: 100% !important; overflow: visible !important; font-size: 8pt !important; }
+        body * { visibility: hidden; }
+        .official-form, .official-form * { visibility: visible; }
+
+        .modal-overlay { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; background: transparent !important; padding: 0 !important; margin: 0 !important; display: block !important; overflow: visible !important; }
+        .modal-container { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; max-height: none !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; overflow: visible !important; background: #fff !important; margin: 0 !important; padding: 0 !important; }
+        .modal-body { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; padding: 20px !important; margin: 0 auto !important; overflow: visible !important; box-sizing: border-box !important; }
+        .modal-header, .modal-close, .modal-print-btn { display: none !important; }
+
+        #classProgram, .form-container, .official-form { display: block !important; border: none !important; padding: 0 !important; width: 100% !important; margin: 0 auto !important; margin-left: 0.10in !important; max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+
+        /* ── 1. HEADER ── */
+        .official-form .form-header { grid-template-columns: 150px 1fr 170px !important; border: 1.5px solid #000 !important; margin-bottom: 4px !important; }
+        .official-form .form-header .logo-box { border-right: 1.5px solid #000 !important; padding: 4px !important; }
+        .official-form .form-header .logo-box .logo-placeholder { width: 35px !important; height: 35px !important; font-size: 6pt !important; }
+        .official-form .form-header .school-block { padding: 4px 8px !important; }
+        .official-form .form-header .school-block .rep         { font-size: 7.5pt !important; }
+        .official-form .form-header .school-block .school-name { font-size: 10pt  !important; }
+        .official-form .form-header .school-block .school-sub  { font-size: 7.5pt !important; }
+        .official-form .form-header .school-block .college     { font-size: 8pt   !important; }
+        .official-form .form-header .school-block .doc-title { font-size: 9pt !important; margin-top: 2px !important; padding-top: 2px !important; border-top: 1px solid #000 !important; }
+        .official-form .form-header .ref-box { border-left: 1.5px solid #000 !important; padding: 4px 6px !important; font-size: 6.5pt !important; }
+        .official-form .form-header .ref-box .tuv { padding: 2px 0 0 !important; margin-top: 2px !important; border-top: 1px dashed #000 !important; }
+        .official-form .form-header .ref-box .tuv .tuv-label { font-size: 7pt !important; }
+        .official-form .form-header .ref-box .tuv .tuv-sub   { font-size: 6pt !important; }
+
+        /* ── 2. FACULTY INFO ── */
+        .official-form .faculty-info-table { font-size: 8pt !important; margin: 3px 0 !important; }
+        .official-form .faculty-info-table td { padding: 2px 4px !important; border: 1px solid #000 !important; }
+        .official-form .faculty-info-table .label { width: 85px !important; font-size: 8pt !important; background: #f8fafc !important; }
+        .official-form .faculty-info-table .value { font-size: 8pt !important; }
+
+        /* ── 3. SCHEDULE TABLE ── */
+        .official-form .schedule-table-wrap { border: 1px solid #000 !important; margin: 3px 0 !important; }
+        .official-form .schedule-table { min-width: 0 !important; width: 100% !important; font-size: 7.5pt !important; table-layout: fixed !important; }
+        .official-form .schedule-table th, .official-form .schedule-table td { padding: 2px !important; height: 16px !important; font-size: 7.5pt !important; border: 1px solid #000 !important; line-height: 1.1 !important; }
+        .official-form .schedule-table thead th { padding: 2px !important; font-size: 8pt !important; height: 20px !important; background: #e2e8f0 !important; }
+        .official-form .schedule-table th.time-head, .official-form .schedule-table td.time-col { width: 50px !important; font-size: 7pt !important; }
+        .official-form .schedule-table tr.lunch-row td { height: 16px !important; font-size: 7.5pt !important; background: #fef3c7 !important; }
+        .official-form .cell-block { padding: 1px !important; gap: 1px !important; }
+        .official-form .cell-block .subj      { font-size: 7.5pt !important; }
+        .official-form .cell-block .section   { font-size: 7pt   !important; }
+        .official-form .cell-block .oa-subject-title { font-size: 7pt !important; line-height: 1.05 !important; }
+        .official-form .cell-block .oa-type  { font-size: 5.5pt !important; }
+        .official-form .cell-block .room-tag  { font-size: 6pt   !important; padding: 0 2px !important; }
+
+        .official-form .schedule-table td.sched-cell.lecture   { background: #fde047 !important; }
+        .official-form .schedule-table td.sched-cell.lab       { background: #fb923c !important; }
+        .official-form .schedule-table td.sched-cell.office    { background: #ec4899 !important; color: #fff !important; }
+
+        /* ── 4. WORKLOAD TABLE ── */
+        .official-form .workload-container { display: flex !important; flex-direction: row !important; width: 100% !important; margin-top: 4px !important; align-items: stretch !important; box-sizing: border-box !important; }
+        .official-form .workload-table-left { width: 62% !important; border: 1.5px solid #000 !important; border-right: none !important; border-collapse: collapse !important; box-sizing: border-box !important; }
+        .official-form .workload-table-right { width: 38% !important; border: 1.5px solid #000 !important; border-left: 1.5px solid #000 !important; border-collapse: collapse !important; box-sizing: border-box !important; }
+        .official-form .workload-table-right thead tr { height: 50px !important; }
+        .official-form .workload-table-right th { text-align: center; vertical-align: middle; letter-spacing: 0.5px; padding: 10px; }
+        .official-form .workload-container th, .official-form .workload-container td { padding: 3px 4px !important; font-size: 7.5pt !important; border: 1px solid #000 !important; height: 18px !important; vertical-align: middle !important; line-height: 1.1 !important; box-sizing: border-box !important; }
+        .official-form .workload-container thead th { font-size: 8pt !important; padding: 3px !important; background: #f1f5f9 !important; text-align: center !important; vertical-align: middle !important; }
+        .official-form .workload-container tr.grand-total td { font-size: 8.5pt !important; border-top: 1.5px solid #000 !important; padding: 3px !important; }
+        .official-form .workload-container .section-header td { background: #fff !important; text-align: left !important; }
+
+        .official-form .workload-container tr, .official-form .student-table-row { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+        .official-form .workload-table-right td { padding: 0 !important; }
+        .official-form .remarks-grid { display: block !important; height: auto !important; }
+        .official-form .remark-section { padding: 5px 6px !important; border-bottom: 1px solid #000 !important; display: block !important; }
+        .official-form .remark-section.grow { flex-grow: 0 !important; }
+        .official-form .remark-label, .official-form .remark-total-label { font-size: 7.5pt !important; font-weight: 800 !important; margin-bottom: 2px !important; }
+        .official-form .remark-total-row { display: flex !important; min-height: 20px !important; border-top: 1px solid #000 !important; }
+        .official-form .remark-total-value { font-size: 8pt !important; width: 60px !important; }
+
+        .official-form .remark-textarea { display: none !important; }
+        .official-form .print-remark-text { display: block !important; font-family: inherit !important; font-size: 7.5pt !important; line-height: 1.2 !important; color: #0f172a !important; white-space: pre-wrap !important; word-break: break-word !important; margin: 0 !important; padding: 0 !important; min-height: 15px; }
+
+        /* STUDENT TABLE */
+        .official-form .student-table-wrap { border-top: 1px solid #000 !important; }
+        .official-form .student-table-row { border-bottom: 1px solid #000 !important; }
+        .official-form .student-col-left { font-size: 7.5pt !important; padding: 2px 4px !important; border-right: 1px solid #000 !important; }
+        .official-form .student-col-right { font-size: 7.5pt !important; padding: 2px 4px !important; width: 50px !important; }
+
+        /* ── 5. ACTION TABLE ── */
+        .official-form .action-table { font-size: 7.5pt !important; margin-top: 4px !important; }
+        .official-form .action-table th, .official-form .action-table td { padding: 3px 5px !important; border: 1px solid #000 !important; }
+        .official-form .action-table thead th { font-size: 8pt !important; background: #f1f5f9 !important; }
+        .official-form .action-table thead tr.title-row th { font-size: 8.5pt !important; background: #1e40af !important; color: #fff !important; }
+        .official-form .action-table td.sig-name { font-size: 7.5pt !important; }
+        .official-form .action-table td.sig-role { font-size: 7.5pt !important; }
+        .official-form .action-table td.sig-space { height: 28px !important; }
+
+        .official-form .oa-add-btn, .official-form .oa-actions, .official-form .oa-edit-btn, .official-form .oa-del-btn { display: none !important; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FACULTY DESIGN SYSTEM — shared glassmorphism layer
+       ══════════════════════════════════════════════════════════ */
+    .page-header h1 {
+        font-weight: 750; letter-spacing: -0.5px; margin: 0 0 6px;
+    }
+    .page-header p {
+        color: #475569; font-size: 13.5px;
+        margin: 0; max-width: 620px; line-height: 1.55;
+    }
+
+    .card {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 22px 24px 24px;
+        box-shadow: var(--glass-shadow), var(--glass-inset);
+    }
+
+    .btn {
+        padding: 10px 18px; border-radius: 10px;
+        font-size: 13.5px; font-weight: 600;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 6px 18px rgba(37, 99, 235, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, rgba(29, 78, 216, 1), rgba(30, 58, 138, 1));
+        box-shadow:
+            0 10px 24px rgba(37, 99, 235, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+    .btn-outline {
+        background: var(--glass-fill-soft);
+        color: #334155;
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(37, 99, 235, 0.45);
+    }
+
+    .search-box {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .search-box input, .search-box select {
+        padding: 10px 15px;
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 10px;
+        font-size: 13.5px;
+        color: #0f172a;
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .search-box input:focus, .search-box select:focus {
+        outline: none;
+        border-color: #2563eb;
+        background: rgba(255, 255, 255, 0.90);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22), var(--glass-inset);
+    }
+
+    .count-badge {
+        background: var(--glass-fill-soft);
+        color: #334155;
+        padding: 7px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--glass-border-soft);
+        display: inline-flex; align-items: center; gap: 6px;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .status-badge, .subject-tag {
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    table thead th {
+        background: rgba(255, 255, 255, 0.42);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        color: #475569;
+        font-size: 10.5px;
+        letter-spacing: 0.7px;
+    }
+    table tbody td { border-bottom: 1px solid rgba(255, 255, 255, 0.35); }
+    table tbody tr:hover td { background: rgba(255, 255, 255, 0.60); }
+
+    .pagination a, .pagination span {
+        border-radius: 9px;
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .pagination a:hover {
+        background: rgba(239, 246, 255, 0.95);
+        color: #2563eb;
+        border-color: rgba(191, 219, 254, 0.9);
+    }
+    .pagination .active {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .modal-overlay {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+    .modal-container {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35), var(--glass-inset);
+    }
+    .modal-header {
+        background: rgba(255, 255, 255, 0.35);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 20px 20px 0 0;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Keep printed documents flat */
+    @media print {
+        .main-content { background: #fff !important; }
+        .card, .modal-container {
+            background: #fff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <span class="page-eyebrow">📅 Scheduling Overview</span>
+            <h1>All Class Programs</h1>
+            <p>Every faculty member's subjects and schedule coverage for the selected semester.</p>
+        </div>
+        <div class="header-actions">
+            <span class="count-badge">{{ page_obj.paginator.count }} Faculty Members</span>
+            <span class="count-badge">{{ total_classes }} Total Classes</span>
+            <a href="{% url 'room_list' %}" class="btn btn-primary">Rooms</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="search-box">
+            <form method="get" action="">
+                <input type="text" name="q" value="{{ search_q|default:'' }}"
+                       placeholder="🔍 Search by faculty name, department, or employee ID...">
+                <select name="dept">
+                    <option value="all">All Departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}" {% if dept_q == dept %}selected{% endif %}>
+                            {{ dept }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select name="semester" onchange="this.form.submit()" style="min-width: 180px;">
+                    {% for sem in clean_semesters %}
+                        <option value="{{ sem.id }}" {% if active_semester and active_semester.id == sem.id %}selected{% endif %}>
+                            {{ sem.short_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if search_q or dept_q %}
+                    <a href="{% url 'all_class_programs' %}" class="btn btn-outline">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="facultyTable">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Department</th>
+                        <th>Subjects</th>
+                        <th>Schedule Count</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in faculty_members %}
+                        <tr>
+                            <td>
+                                <div class="faculty-cell">
+                                    <div class="faculty-avatar">{{ member.full_name|slice:":1"|upper }}</div>
+                                    <div class="faculty-info">
+                                        <div class="faculty-name">{{ member.full_name }}</div>
+                                        <div class="faculty-id">{{ member.employee_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ member.department }}</td>
+                            <td>
+                                <div class="subject-tags">
+                                    {% for subject in member.subjects.all %}
+                                        <span class="subject-tag {% if subject.is_laboratory %}lab{% endif %}">
+                                            {{ subject.subject_code }}
+                                        </span>
+                                    {% empty %}
+                                        <span style="color: #9ca3af; font-size: 12px;">No subjects assigned</span>
+                                    {% endfor %}
+                                    {% if member.subjects.all|length > 5 %}
+                                        <span class="subject-tag more">+{{ member.subjects.all|length|add:"-5" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="schedule-count">
+                                    {{ member.schedule_count }}
+                                    <small>classes</small>
+                                </span>
+                                <span class="badge" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">👥 {{ member.student_total|default:0 }} students</span>
+                            </td>
+                            <td>
+                                <span class="status-badge {% if member.is_active %}active{% else %}inactive{% endif %}">
+                                    {% if member.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                                {% if member.is_chairman %}
+                                    <span class="status-badge" style="background: #fef3c7; color: #92400e;">Chairman</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="view-btn" onclick="openModal('{{ member.employee_id }}')">👁️ View Schedule</button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📭</span>
+                                    <h4>No faculty members found</h4>
+                                    <p>
+                                        {% if search_q or dept_q %}
+                                            Try adjusting your search filters.
+                                        {% else %}
+                                            No active faculty members are available.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}{% if active_semester %}&semester={{ active_semester.id }}{% endif %}">◀ Previous</a>
+            {% else %}
+                <span class="disabled">◀ Previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="active">{{ num }}</span>
+                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}{% if active_semester %}&semester={{ active_semester.id }}{% endif %}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}{% if active_semester %}&semester={{ active_semester.id }}{% endif %}">{{ num }}</a>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                    <span class="ellipsis">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}{% if active_semester %}&semester={{ active_semester.id }}{% endif %}">Next ▶</a>
+            {% else %}
+                <span class="disabled">Next ▶</span>
+            {% endif %}
+        </div>
+
+        <div class="pagination-info">
+            Showing page <strong>{{ page_obj.number }}</strong> of
+            <strong>{{ page_obj.paginator.num_pages }}</strong>
+            ({{ page_obj.paginator.count }} faculty total)
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="classProgramModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modalFacultyName">Faculty Name</div>
+                    <div class="modal-subtitle">
+                        Employee ID: <span id="modalEmployeeId">---</span>
+                        | Department: <span id="modalDepartment">---</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="modal-print-btn" onclick="printSchedule()" title="Print this class program">
+                        🖨️ Print
+                    </button>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="modal-loading">
+                    <div class="spinner"></div>
+                    <p>Loading class program...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ FIXED: Placed json_script cleanly here so it doesn't get wrapped in extra tags -->
+    {{ clean_semesters|json_script:"semester-data" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let modalOpen = false;
+
+    // ✅ Parse safely from the json_script tag
+    let semesterList = [];
+    try {
+        const rawSemesters = document.getElementById('semester-data').textContent;
+        semesterList = JSON.parse(rawSemesters);
+    } catch (e) {
+        console.error("Failed to parse semester list:", e);
+    }
+    
+    // ✅ Define activeSemesterId safely
+    const activeSemesterId = "{{ active_semester.id|default:'' }}";
+
+    function getCsrf() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
+    function esc(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight) + 'px';
+    }
+
+    function openModal(employeeId) {
+        const modal = document.getElementById('classProgramModal');
+        const body = document.getElementById('modalBody');
+
+        body.innerHTML = `
+            <div class="modal-loading">
+                <div class="spinner"></div>
+                <p>Loading class program for faculty member...</p>
+            </div>
+        `;
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        modalOpen = true;
+
+        // ✅ Append active semester to the fetch
+        const url = activeSemesterId
+            ? `/class-program-data/${employeeId}/?semester=${activeSemesterId}`
+            : `/class-program-data/${employeeId}/`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => renderModalContent(data))
+            .catch(error => {
+                console.error('Error fetching class program:', error);
+                body.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #dc2626;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">❌</div>
+                        <h4 style="color: #172033;">Failed to load class program</h4>
+                        <p style="color: #667085;">Please try again or refresh the page.</p>
+                        <button class="btn btn-primary" data-employee-id="${esc(employeeId)}"
+                                onclick="openModal(this.dataset.employeeId)"
+                                style="margin-top: 12px;">🔄 Retry</button>
+                    </div>
+                `;
+            });
+    }
+
+    function closeModal() {
+        document.getElementById('classProgramModal').classList.remove('active');
+        document.body.style.overflow = '';
+        modalOpen = false;
+    }
+
+    function printSchedule() {
+        const modal = document.getElementById('classProgramModal');
+        if (!modal.classList.contains('active')) return;
+
+        modal.querySelectorAll('.remark-input').forEach(function(textarea) {
+            const field = textarea.dataset.field;
+            const printDiv = modal.querySelector(`.print-remark-text[data-target="${field}"]`);
+            if (printDiv) {
+                printDiv.textContent = textarea.value || ' ';
+            }
+        });
+
+        const facultyName = document.getElementById('modalFacultyName').textContent
+            .trim().replace(/\s+/g, '_') || 'Faculty';
+        const originalTitle = document.title;
+        document.title = `Class_Program_${facultyName}`;
+        
+        window.print();
+        
+        setTimeout(() => { 
+            document.title = originalTitle; 
+            modal.querySelectorAll('.print-remark-text').forEach(div => div.textContent = '');
+        }, 1000);
+    }
+
+    function renderModalContent(data) {
+        const body = document.getElementById('modalBody');
+        document.getElementById('modalFacultyName').textContent = data.faculty_name || 'Faculty Member';
+        document.getElementById('modalEmployeeId').textContent = data.employee_id || '---';
+        document.getElementById('modalDepartment').textContent = data.department || '---';
+
+        const timeSlots = data.time_slots || [];
+        // ✅ FIXED: Included SATURDAY to match backend grid
+        const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+        let hasAnyClass = false;
+        for (const slot of timeSlots) {
+            if (slot.schedules && Object.keys(slot.schedules).length > 0) {
+                hasAnyClass = true;
+                break;
+            }
+        }
+
+        if (!hasAnyClass) {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
+                    <h4 style="color: #172033;">No Class Schedules</h4>
+                    <p style="color: #667085;">This faculty member has no class schedules assigned yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Schedule grid
+        let scheduleRows = '';
+        for (const slot of timeSlots) {
+            if (slot.is_noon_break) {
+                scheduleRows += `
+                    <tr class="lunch-row">
+                        <td class="time-col">${slot.display}</td>
+                        <td colspan="${days.length}">🍽️ LUNCH BREAK</td>
+                    </tr>`;
+                continue;
+            }
+
+            scheduleRows += `<tr><td class="time-col">${slot.display}</td>`;
+            days.forEach(day => {
+                const cell = slot.schedules && slot.schedules[day];
+                if (!cell) { scheduleRows += `<td></td>`; return; }
+                if (!cell.is_start) return;
+                const s = cell.info;
+                let cls = 'lecture';
+                if (s.schedule_type === 'OTHER') cls = 'office';
+                else if (s.is_lab) cls = 'lab';
+                // Other Functions/Designations show the entered title, with the
+                // work type as a sub-label; subjects show code + section.
+                const cellBlock = s.schedule_type === 'OTHER'
+                    ? `<span class="oa-subject-title">${esc(s.subject_title || s.subject_code || '')}</span>`
+                      + `<span class="oa-type">${esc(s.subject_code || '')}</span>`
+                    : `<span class="subj">${esc(s.subject_code || '')}</span>`
+                      + `<span class="section">${esc(s.section_short || s.section_display || '')}</span>`;
+                scheduleRows += `
+                    <td class="sched-cell ${cls}" rowspan="${cell.rowspan}">
+                        <div class="cell-block">
+                            ${cellBlock}
+                            <span class="room-tag">🏫 ${esc(s.room || '')}</span>
+                        </div>
+                    </td>`;
+            });
+            scheduleRows += `</tr>`;
+        }
+
+        // Workload rows
+        let workloadRowsHTML = '';
+        const wlRows = data.workload_rows || [];
+        if (wlRows.length === 0) {
+            workloadRowsHTML = `<tr><td colspan="4" style="text-align:center;color:#64748b;font-style:italic;padding:8px;">No scheduled subjects yet.</td></tr>`;
+        } else {
+            wlRows.forEach((r) => {
+                let labDisplay = '';
+                if (r.lab_hours > 0) {
+                    labDisplay = `${r.lab_hours}`;
+                    if (r.lab_hours_effective !== r.lab_hours) {
+                        labDisplay += ` (${r.lab_hours_effective})`;
+                    }
+                }
+                workloadRowsHTML += `
+                    <tr>
+                        <td class="left">${esc(r.section_display || '')}</td>
+                        <td>${r.lec_hours > 0 ? r.lec_hours : ''}</td>
+                        <td>${labDisplay}</td>
+                        <td>${r.weighted_hours !== undefined && r.weighted_hours > 0 ? r.weighted_hours : ''}</td>
+                    </tr>`;
+            });
+        }
+
+        let otherRowsHTML = '';
+        const otherList = data.other_assignments_other || [];
+        if (otherList.length === 0) {
+            otherRowsHTML = `<tr><td colspan="4" style="color: #6b7280; font-style: italic; padding: 4px 8px;">None</td></tr>`;
+        } else {
+            otherList.forEach(a => {
+                otherRowsHTML += `
+                    <tr>
+                        <td class="left">${esc(a.title || '')}</td>
+                        <td>${a.hours > 0 ? a.hours : ''}</td>
+                        <td></td><td></td>
+                    </tr>`;
+            });
+        }
+
+        let desigRowsHTML = '';
+        const desigList = data.other_assignments_desig || [];
+        if (desigList.length === 0) {
+            desigRowsHTML = `<tr><td colspan="4" style="color: #6b7280; font-style: italic; padding: 4px 8px;">None</td></tr>`;
+        } else {
+            desigList.forEach(a => {
+                desigRowsHTML += `
+                    <tr>
+                        <td class="left">${esc(a.title || '')}</td>
+                        <td>${a.hours > 0 ? a.hours : ''}</td>
+                        <td></td><td></td>
+                    </tr>`;
+            });
+        }
+
+        // Student Rows
+        let studentRowsHTML = '';
+        if (wlRows.length === 0) {
+            studentRowsHTML = `<div class="student-table-row" style="justify-content: center; color: #64748b; font-style: italic; padding: 5px;">No scheduled subjects.</div>`;
+        } else {
+            wlRows.forEach((r) => {
+                studentRowsHTML += `
+                    <div class="student-table-row">
+                        <div class="student-col-left">${esc(r.section_display || '')}</div>
+                        <div class="student-col-right">${r.students !== undefined && r.students > 0 ? r.students : '0'}</div>
+                    </div>`;
+            });
+        }
+
+        // Editable action rows (free-form name + position)
+        const canEdit = !!data.can_edit_actions;
+        const ro = canEdit ? '' : 'readonly';
+        const actions = data.actions || {};
+
+        function actionRow(key, label, defaultPos) {
+            const entry = actions[key] || {};
+            const nameVal = entry.name || '';
+            const posVal  = entry.position || defaultPos;
+            return `
+                <tr data-action-key="${key}">
+                    <td class="label-cell">${label}:</td>
+                    <td>
+                        <input type="text" class="action-input" data-col="name"
+                               value="${esc(nameVal)}" ${ro}
+                               placeholder="Type any name...">
+                    </td>
+                    <td>
+                        <input type="text" class="action-input" data-col="position"
+                               value="${esc(posVal)}" ${ro}
+                               placeholder="Position">
+                    </td>
+                    <td class="sig-space"></td>
+                </tr>`;
+        }
+
+        const actionTableHTML = `
+            <table class="action-table">
+                <thead>
+                    <tr class="title-row"><th colspan="4">✍️ ACTIONS TAKEN</th></tr>
+                    <tr>
+                        <th style="width:140px;">Action</th>
+                        <th>Name</th>
+                        <th style="width:140px;">Position</th>
+                        <th style="width:200px;">Signature</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${actionRow('prepared', 'Prepared by', 'Faculty')}
+                    ${actionRow('reviewed', 'Reviewed by', 'Dept. Chair')}
+                    ${actionRow('verified', 'Verified by', 'Dean')}
+                    ${actionRow('approved', 'Approved by', 'VPAA')}
+                </tbody>
+            </table>`;
+
+        // ✅ Build the modal Term dropdown
+        let termDropdownHtml = '';
+        if (canEdit) {
+            termDropdownHtml = `<select class="inline-select" id="modalTermSelect" onchange="handleModalTermChange(this.value)">`;
+            semesterList.forEach(sem => {
+                const selected = (String(sem.id) === String(activeSemesterId)) ? 'selected' : '';
+                termDropdownHtml += `<option value="${sem.id}" ${selected}>${esc(sem.short_name)}</option>`;
+            });
+            termDropdownHtml += `</select>`;
+        } else {
+            termDropdownHtml = `<span style="font-weight:600;">${esc(data.term || '')}</span>`;
+        }
+
+        const html = `
+            <div class="official-form">
+                <div class="form-header">
+                    <div class="logo-box">
+                        <div class="logo-placeholder">PIT<br>LOGO</div>
+                        <div class="logo-placeholder">CTE<br>LOGO</div>
+                    </div>
+                    <div class="school-block">
+                        <div class="rep">Republic of the Philippines</div>
+                        <div class="school-name">PALOMPON INSTITUTE OF TECHNOLOGY</div>
+                        <div class="school-sub">Palompon, Leyte</div>
+                        <div class="college">${esc(data.department || 'COLLEGE OF TEACHER EDUCATION')}</div>
+                        <div class="doc-title">INSTRUCTOR'S CLASS PROGRAM</div>
+                    </div>
+                    <div class="ref-box">
+                        <div>
+                            <div class="row-line">
+                                <span class="ref-label">Ref. Code:</span>
+                                <span class="ref-value">PIT-CTE-FOR-3-2-01B</span>
+                            </div>
+                            <div class="row-line">
+                                <span class="ref-label">Rev. No:</span>
+                                <span class="ref-value">02</span>
+                            </div>
+                        </div>
+                        <div class="tuv">
+                            <div class="tuv-label">TUV NORD</div>
+                            <div class="tuv-sub">PIT is ISO 9001:2015 certified by<br>TUV NORD Philippines, Inc.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="faculty-info-table">
+                    <tr>
+                        <td class="label">Faculty:</td>
+                        <td class="value">${esc(data.faculty_name || '')}</td>
+                        <td class="label">Term:</td>
+                        <td class="value">
+                            ${termDropdownHtml}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">Academic Rank:</td>
+                        <td class="value">${esc(data.academic_rank || '')}</td>
+                        <td class="label">Department:</td>
+                        <td class="value">${esc(data.department || '')}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Effective Date:</td>
+                        <td class="value">
+                            <input type="text" class="inline-edit" data-field="effective_date"
+                                   value="${esc(data.effective_date || '')}" ${ro}
+                                   placeholder="e.g. August 3, 2026">
+                        </td>
+                        <td class="label">College:</td>
+                        <td class="value">${esc(data.college || '')}</td>
+                    </tr>
+                </table>
+
+                <div class="schedule-table-wrap">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th class="time-head">TIME</th>
+                                ${days.map(d => `<th>${d}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${scheduleRows}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="workload-container">
+                    <table class="workload-table-left">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 160px;">WORKLOAD</th>
+                                <th colspan="2">HOURS PER WEEK</th>
+                                <th rowspan="2" style="width: 90px;">TOTAL HOURS</th>
+                            </tr>
+                            <tr>
+                                <th style="width: 70px; font-size: 10px;">LEC.<br>HRS/WK</th>
+                                <th style="width: 70px; font-size: 10px;">LAB.<br>HRS/WK</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="section-header">
+                                <td colspan="3">Teaching Load/s:</td>
+                                <td></td>
+                            </tr>
+                            ${workloadRowsHTML}
+                            <tr class="subtotal">
+                                <td class="left">Sub Total</td>
+                                <td>${data.total_lec || 0}</td>
+                                <td>${data.total_lab_raw || 0} (${data.total_lab || 0})</td>
+                                <td>${data.total_weighted || 0}</td>
+                            </tr>
+                            <tr class="section-header">
+                                <td colspan="3">Other Functions:</td>
+                                <td></td>
+                            </tr>
+                            ${otherRowsHTML}
+                            <tr class="subtotal">
+                                <td class="left">Sub Total</td>
+                                <td>${data.other_hours_total || 0}</td>
+                                <td></td>
+                                <td>${data.other_hours_total || 0}</td>
+                            </tr>
+                            <tr class="section-header">
+                                <td colspan="3">Designation:</td>
+                                <td></td>
+                            </tr>
+                            ${desigRowsHTML}
+                            <tr class="subtotal">
+                                <td class="left">Sub Total</td>
+                                <td>${data.desig_hours_total || 0}</td>
+                                <td></td>
+                                <td>${data.desig_hours_total || 0}</td>
+                            </tr>
+                            <tr class="grand-total">
+                                <td class="left" colspan="3" style="text-align: center;">Grand Total</td>
+                                <td>${data.grand_total_hours || 0}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="workload-table-right">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center; letter-spacing: 0.5px; height: 60px;">REMARKS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="vertical-align: top;">
+                                    <div class="remarks-grid">
+                                        <div class="remark-section">
+                                            <div class="remark-label">
+                                                No. of Preparations: 
+                                                <span>${data.no_preparations || 0}</span>
+                                            </div>
+                                        </div>
+                                        <div class="remark-section">
+                                            <div class="remark-label" style="margin-top: 4px;">
+                                                Overload: 
+                                                <span>${esc(data.overload_hours || '')}</span>
+                                            </div>
+                                        </div>
+                                        <div class="remark-section">
+                                            <textarea class="remark-textarea remark-input"
+                                                      data-field="overload_subjects"
+                                                      style="min-height: 50px;"
+                                                      placeholder="Enter overload subjects..."
+                                                      ${ro}>${esc(data.overload_subjects || '')}</textarea>
+                                            <pre class="print-remark-text" data-target="overload_subjects"></pre>                            
+                                        </div>
+                                        <div class="remark-section">
+                                            <div class="remark-label">
+                                                Service Credits: 
+                                                <span>${esc(data.service_credits || '')}</span>
+                                            </div>
+                                        </div>
+                                        <div class="remark-section grow">
+                                            <textarea class="remark-textarea remark-input"
+                                                      data-field="adviser_notes"
+                                                      style="min-height: 80px;"
+                                                      placeholder="Enter adviser notes..."
+                                                      ${ro}>${esc(data.adviser_notes || '')}</textarea>
+                                            <pre class="print-remark-text" data-target="adviser_notes"></pre>
+                                        </div>
+
+                                        <!-- Student Table -->
+                                        <div class="student-table-wrap">
+                                            <div class="student-table-row header-row">
+                                                <div class="student-col-left">Total Number of Students:</div>
+                                                <div class="student-col-right">${data.total_students || 0}</div>
+                                            </div>
+                                            ${studentRowsHTML}
+                                        </div>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                ${actionTableHTML}
+            </div>
+        `;
+
+        body.innerHTML = html;
+
+        // Hook auto-save on blur
+        wireInlineEditors(data.employee_id);
+
+        // Auto-resize all remark textareas to fit initial content
+        body.querySelectorAll('.remark-input').forEach(function (el) {
+            autoResize(el);
+            el.addEventListener('input', function () { autoResize(el); });
+        });
+    }
+
+    // ✅ Handles the global page reload when Term changes in the modal
+    function handleModalTermChange(newSemesterId) {
+        if (!newSemesterId || newSemesterId === activeSemesterId) return;
+        
+        const confirmMsg = "Switch the view to this semester?\n\nThis will reload the page and show this faculty member's class program for the selected term.";
+        if (confirm(confirmMsg)) {
+            // Build new URL preserving search filters
+            const url = new URL(window.location.href);
+            url.searchParams.set('semester', newSemesterId);
+            window.location.href = url.toString();
+        } else {
+            // Revert dropdown visually if cancelled
+            const select = document.getElementById('modalTermSelect');
+            if (select) select.value = activeSemesterId;
+        }
+    }
+
+    function wireInlineEditors(employeeId) {
+        const body = document.getElementById('modalBody');
+
+        // Effective Date (Term is now handled by the dropdown)
+        body.querySelectorAll('.inline-edit').forEach(function (inp) {
+            if (inp.readOnly) return;
+            inp.addEventListener('blur', function () {
+                const field = inp.dataset.field;
+                const value = inp.value.trim();
+                const url = `/update-effective-date/${employeeId}/`; 
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrf() },
+                    body: new URLSearchParams({ [field]: value }),
+                })
+                .then(r => r.json())
+                .then(j => { if (!j.success) console.warn(j.error); })
+                .catch(err => console.error(err));
+            });
+        });
+
+        // Actions Taken
+        body.querySelectorAll('tr[data-action-key]').forEach(function (row) {
+            const key = row.dataset.actionKey;
+            const nameEl = row.querySelector('[data-col="name"]');
+            const posEl  = row.querySelector('[data-col="position"]');
+
+            function save() {
+                fetch(`/update-action-taken/${employeeId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrf() },
+                    body: new URLSearchParams({
+                        action_key: key,
+                        name:       nameEl.value.trim(),
+                        position:   posEl.value.trim(),
+                    }),
+                })
+                .then(r => r.json())
+                .then(j => { if (!j.success) console.warn(j.error); })
+                .catch(err => console.error(err));
+            }
+
+            if (!nameEl.readOnly) nameEl.addEventListener('blur', save);
+            if (!posEl.readOnly)  posEl.addEventListener('blur', save);
+        });
+
+        // Remarks — auto-save on blur
+        body.querySelectorAll('.remark-input').forEach(function (el) {
+            if (el.readOnly) return;
+            el.addEventListener('blur', function () {
+                const field = el.dataset.field;
+                const value = el.value.trim();
+
+                fetch(`/update-remarks/${employeeId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrf() },
+                    body: new URLSearchParams({ [field]: value }),
+                })
+                .then(r => r.json())
+                .then(j => { if (!j.success) console.warn('Save failed:', j.error); })
+                .catch(err => console.error('Network error saving remarks:', err));
+            });
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalOpen) closeModal();
+    });
+
+    document.getElementById('classProgramModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}

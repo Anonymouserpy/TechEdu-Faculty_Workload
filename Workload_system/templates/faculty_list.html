@@ -1,0 +1,1873 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Faculty Members | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════════════════════════════════════════════════════
+       GLASSMORPHISM DESIGN TOKENS
+       ══════════════════════════════════════════════════════════ */
+    :root {
+        --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 100%);
+        --glass-fill-strong: linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%);
+        --glass-fill-soft: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 100%);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(255, 255, 255, 0.35);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.20);
+        --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.35);
+        --glass-blur: blur(22px) saturate(180%);
+        --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        --glass-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.90);
+        --accent: #2563eb;
+        --accent-deep: #1d4ed8;
+        --text-primary: #0f172a;
+        --text-muted: #475569;
+    }
+
+    .main-content {
+        padding: 28px 32px 44px;
+        min-height: 100vh;
+        position: relative;
+        /* NOTE: no `isolation`/`z-index` here — it would trap the fixed modal
+           overlays in this stacking context, painting them behind the sidebar. */
+        background:
+            radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+            radial-gradient(circle at 92% 4%, rgba(14, 165, 233, 0.22) 0%, transparent 40%),
+            radial-gradient(circle at 82% 94%, rgba(16, 185, 129, 0.20) 0%, transparent 46%),
+            radial-gradient(circle at 8% 88%, rgba(236, 72, 153, 0.14) 0%, transparent 42%),
+            linear-gradient(160deg, #eef2ff 0%, #f8fafc 48%, #ecfeff 100%);
+        background-attachment: fixed;
+    }
+
+    /* ─── PAGE HEADER ─────────────────────────────── */
+    .page-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 22px; flex-wrap: wrap; gap: 18px;
+    }
+    .page-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 1.3px; text-transform: uppercase;
+        color: var(--accent-deep);
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        padding: 5px 12px; border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        margin-bottom: 10px;
+    }
+    .page-header h1 {
+        font-size: 28px; color: var(--text-primary);
+        margin: 0 0 6px; font-weight: 750; letter-spacing: -0.5px;
+    }
+    .page-header p {
+        color: var(--text-muted); font-size: 13.5px;
+        margin: 0; max-width: 620px; line-height: 1.55;
+    }
+
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    /* ─── BUTTONS ────────────────────────────────── */
+    .btn {
+        padding: 9px 18px; border-radius: 10px; border: 1px solid transparent;
+        font-size: 13.5px; font-weight: 600; cursor: pointer;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 8px; transition: all 0.2s ease;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 6px 18px rgba(37, 99, 235, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(8px);
+    }
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 10px 24px rgba(37, 99, 235, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        background: linear-gradient(135deg, rgba(29, 78, 216, 1), rgba(30, 58, 138, 1));
+    }
+    .btn-outline {
+        background: var(--glass-fill-soft);
+        color: #334155;
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(37, 99, 235, 0.45);
+    }
+    .btn-danger {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.98), rgba(185, 28, 28, 0.98));
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 6px 18px rgba(220, 38, 38, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    .btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 10px 24px rgba(220, 38, 38, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .btn-secondary {
+        background: var(--glass-fill-soft);
+        color: #334155;
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--text-primary);
+    }
+
+    .count-badge {
+        background: var(--glass-fill-soft);
+        color: #374151;
+        padding: 7px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid var(--glass-border-soft);
+        display: inline-flex; align-items: center; gap: 6px;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .count-badge strong { color: var(--accent); }
+
+    /* ─── CARD (THE GLASS) ───────────────────────── */
+    .card {
+        position: relative;
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border-radius: 20px;
+        padding: 22px 24px 24px;
+        box-shadow:
+            var(--glass-shadow),
+            var(--glass-inset-strong);
+        border: 1px solid var(--glass-border);
+    }
+
+    /* ─── CARD HEADER (DIRECTORY TOOLBAR) ────────── */
+    .card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; flex-wrap: wrap;
+        padding-bottom: 14px; margin-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .card-header .card-title {
+        font-size: 15px; font-weight: 700; color: var(--text-primary);
+        margin: 0; display: flex; align-items: center; gap: 9px;
+    }
+    .card-header .card-title .title-icon {
+        width: 30px; height: 30px; border-radius: 9px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        background: rgba(239, 246, 255, 0.9);
+        border: 1px solid rgba(191, 219, 254, 0.9);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+    .card-header .card-hint {
+        font-size: 12px; color: var(--text-muted); margin: 2px 0 0;
+    }
+    .card-header .card-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ─── SEARCH / FILTER ────────────────────────── */
+    .search-box {
+        display: flex; gap: 10px; align-items: center;
+        flex-wrap: wrap; margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .search-box input {
+        padding: 10px 15px;
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 10px;
+        font-size: 13.5px; flex: 1; min-width: 220px;
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        color: var(--text-primary);
+    }
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.90);
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.22),
+            var(--glass-inset-strong);
+    }
+    .search-box input::placeholder { color: #64748b; }
+    .search-box select {
+        padding: 10px 15px;
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 10px;
+        font-size: 13.5px; min-width: 150px; cursor: pointer;
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+        color: var(--text-primary);
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .search-box select:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.90);
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.22),
+            var(--glass-inset-strong);
+    }
+    .search-box button {
+        padding: 10px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff; font-size: 13.5px;
+        font-weight: 600; cursor: pointer;
+        box-shadow:
+            0 4px 14px rgba(37, 99, 235, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        transition: all 0.2s ease;
+    }
+    .search-box button:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 8px 20px rgba(37, 99, 235, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .search-box .clear-link {
+        padding: 10px 16px;
+        color: var(--accent);
+        font-size: 13.5px;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 10px;
+        transition: background 0.15s;
+    }
+    .search-box .clear-link:hover { background: rgba(239, 246, 255, 0.85); }
+
+    /* ─── TABLE ──────────────────────────────────── */
+    .table-wrapper {
+        overflow-x: auto; border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.12);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    table thead th {
+        text-align: left; padding: 12px 16px; font-weight: 700;
+        color: var(--text-muted);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px;
+        background: rgba(255, 255, 255, 0.42);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        white-space: nowrap;
+    }
+    table tbody td {
+        padding: 13px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        color: var(--text-primary); vertical-align: middle;
+    }
+    table tbody tr {
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    table tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.6);
+    }
+    table tbody tr:last-child td { border-bottom: none; }
+
+    .cell-main { font-weight: 600; color: var(--text-primary); }
+    .cell-sub  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .cell-mono {
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12.5px; letter-spacing: 0.2px;
+    }
+
+    .faculty-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #6366f1);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 14px; flex-shrink: 0;
+        box-shadow:
+            0 4px 12px rgba(37, 99, 235, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        border: 1.5px solid rgba(255, 255, 255, 0.75);
+    }
+    .faculty-cell { display: flex; align-items: center; gap: 11px; }
+    .faculty-cell .faculty-name { font-weight: 600; color: var(--text-primary); }
+    .faculty-cell .faculty-id   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    /* ─── STATUS BADGES ──────────────────────────── */
+    .status-badge {
+        padding: 4px 12px; border-radius: 12px;
+        font-size: 11.5px; font-weight: 600; display: inline-block;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        backdrop-filter: blur(6px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .status-badge.active     { background: rgba(236, 253, 245, 0.85); color: #065f46; border-color: rgba(167, 243, 208, 0.9); }
+    .status-badge.inactive   { background: rgba(254, 242, 242, 0.85); color: #b42318; border-color: rgba(254, 202, 202, 0.9); }
+    .status-badge.chairman   { background: rgba(254, 243, 199, 0.85); color: #92400e; border-color: rgba(253, 230, 138, 0.9); }
+    .status-badge.full-time  { background: rgba(239, 246, 255, 0.85); color: #1e40af; border-color: rgba(191, 219, 254, 0.9); }
+    .status-badge.part-time  { background: rgba(254, 243, 199, 0.85); color: #92400e; border-color: rgba(253, 230, 138, 0.9); }
+    .status-badge.contractual{ background: rgba(252, 228, 236, 0.85); color: #b42318; border-color: rgba(251, 207, 232, 0.9); }
+
+    /* ─── ACTION BUTTONS ────────────────────────── */
+    .row-actions {
+        display: inline-flex; gap: 6px; align-items: center;
+    }
+    .action-btn {
+        padding: 6px 11px; border-radius: 8px; border: 1px solid transparent;
+        font-size: 11.5px; font-weight: 600; cursor: pointer;
+        text-decoration: none; transition: all 0.15s;
+        display: inline-flex; align-items: center; gap: 4px;
+        white-space: nowrap;
+        backdrop-filter: blur(6px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .action-btn.edit {
+        background: rgba(239, 246, 255, 0.9);
+        color: #1e40af;
+        border-color: rgba(191, 219, 254, 0.9);
+    }
+    .action-btn.edit:hover { background: rgba(219, 234, 254, 1); }
+    .action-btn.toggle {
+        background: rgba(255, 251, 235, 0.9);
+        color: #b45309;
+        border-color: rgba(253, 230, 138, 0.9);
+    }
+    .action-btn.toggle:hover { background: rgba(253, 230, 138, 1); }
+    .action-btn.toggle.activate {
+        background: rgba(236, 253, 245, 0.9);
+        color: #065f46;
+        border-color: rgba(167, 243, 208, 0.9);
+    }
+    .action-btn.toggle.activate:hover { background: rgba(167, 243, 208, 1); }
+    .action-btn.delete {
+        background: rgba(254, 242, 242, 0.9);
+        color: #b91c1c;
+        border-color: rgba(254, 202, 202, 0.9);
+    }
+    .action-btn.delete:hover { background: rgba(254, 202, 202, 1); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ─── EMPTY STATE ───────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.5; }
+    .empty-state h4 { color: var(--text-primary); margin-bottom: 4px; font-size: 16px; }
+    .empty-state p  { font-size: 14px; margin: 0; }
+
+    /* ─── PAGINATION ────────────────────────────── */
+    .pagination {
+        display: flex; justify-content: center; align-items: center;
+        gap: 6px; padding: 20px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.45);
+        margin-top: 16px; flex-wrap: wrap;
+    }
+    .pagination a, .pagination span {
+        padding: 7px 14px; border-radius: 9px;
+        text-decoration: none; font-size: 13.5px; font-weight: 500;
+        color: var(--text-muted);
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        transition: all 0.2s;
+        min-width: 38px; text-align: center;
+        display: inline-flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .pagination a:hover {
+        background: rgba(239, 246, 255, 0.95);
+        color: var(--accent);
+        border-color: rgba(191, 219, 254, 0.9);
+        transform: translateY(-1px);
+    }
+    .pagination .active {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+        font-weight: 700;
+        box-shadow:
+            0 4px 14px rgba(37, 99, 235, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    .pagination .disabled {
+        color: #cbd5e1;
+        background: rgba(248, 250, 252, 0.5);
+        cursor: not-allowed; pointer-events: none;
+    }
+    .pagination .ellipsis {
+        color: #94a3b8; background: transparent; border: none;
+        pointer-events: none; padding: 7px 4px; min-width: unset;
+        backdrop-filter: none; box-shadow: none;
+    }
+    .pagination-info {
+        text-align: center; font-size: 12.5px; color: var(--text-muted); margin-top: 8px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       GLASS MODAL SYSTEM (shared)
+       ══════════════════════════════════════════════════════════ */
+    .fac-modal-overlay,
+    .edit-modal-overlay,
+    .confirm-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .fac-modal-overlay { z-index: 1200; }
+    .edit-modal-overlay { z-index: 1400; }
+    .confirm-modal-overlay { z-index: 1500; }
+    .fac-modal-overlay.open,
+    .edit-modal-overlay.open,
+    .confirm-modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .fac-modal,
+    .edit-modal {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        width: 100%;
+        display: flex; flex-direction: column;
+        box-shadow:
+            var(--glass-shadow-lg),
+            var(--glass-inset-strong);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    .fac-modal { max-width: 900px; max-height: 90vh; }
+    .edit-modal { max-width: 560px; max-height: 90vh; }
+    .fac-modal-overlay.open .fac-modal,
+    .edit-modal-overlay.open .edit-modal { transform: translateY(0) scale(1); }
+
+    .fac-modal-header,
+    .edit-modal-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 20px 26px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.10) 100%);
+        flex-shrink: 0;
+    }
+    .fac-modal-header .f-eyebrow,
+    .edit-modal-header .e-eyebrow {
+        font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+        color: var(--accent); text-transform: uppercase;
+    }
+    .fac-modal-header h2 {
+        margin: 3px 0 2px; font-size: 18px; font-weight: 700;
+        color: var(--text-primary); display: flex; align-items: center; gap: 10px;
+    }
+    .fac-modal-header .f-emp-id {
+        font-size: 12.5px; color: var(--text-muted);
+    }
+    .edit-modal-header h2 {
+        margin: 3px 0 0; font-size: 17px; font-weight: 700;
+        color: var(--text-primary); display: flex; align-items: center; gap: 8px;
+    }
+    .fac-close {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        width: 32px; height: 32px; border-radius: 10px;
+        cursor: pointer; font-size: 14px; color: var(--text-muted);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s ease; flex-shrink: 0;
+        backdrop-filter: blur(6px);
+        box-shadow: var(--glass-inset);
+    }
+    .fac-close:hover { background: rgba(255, 255, 255, 0.9); color: var(--text-primary); }
+
+    .fac-modal-body,
+    .edit-modal-body {
+        flex: 1 1 auto; overflow-y: auto;
+        padding: 22px 26px;
+        min-height: 0;
+    }
+    .fac-modal-body::-webkit-scrollbar,
+    .edit-modal-body::-webkit-scrollbar { width: 10px; }
+    .fac-modal-body::-webkit-scrollbar-thumb,
+    .edit-modal-body::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.6);
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .edit-modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 14px 26px;
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.20);
+        backdrop-filter: blur(8px);
+        flex-shrink: 0;
+    }
+
+    .fac-loading {
+        text-align: center; padding: 60px 20px;
+        color: var(--text-muted); font-size: 14px;
+    }
+
+    /* ─── SECTIONS ─── */
+    .fac-section { margin-bottom: 22px; }
+    .fac-section:last-child { margin-bottom: 0; }
+    .fac-section-title {
+        font-size: 11.5px; font-weight: 700;
+        color: #1e40af; text-transform: uppercase; letter-spacing: 0.8px;
+        margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    }
+    .fac-section-title .badge-count {
+        background: rgba(239, 246, 255, 0.9);
+        color: #1e40af; font-weight: 700;
+        font-size: 11px; padding: 1px 8px; border-radius: 10px;
+        letter-spacing: 0;
+        border: 1px solid rgba(191, 219, 254, 0.9);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    /* ─── PROFILE GRID ─── */
+    .fac-profile-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    .fac-info-card {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 12px;
+        padding: 12px 14px;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .fac-info-card .label {
+        font-size: 10.5px; color: var(--text-muted); font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .fac-info-card .value {
+        font-size: 13.5px; color: var(--text-primary); font-weight: 600;
+        word-break: break-word;
+    }
+
+    /* ─── STAT CARDS ─── */
+    .fac-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+    }
+    .fac-stat-card {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 14px;
+        padding: 14px 16px;
+        text-align: center; position: relative;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .fac-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 8px 20px rgba(15, 23, 42, 0.15),
+            var(--glass-inset-strong);
+    }
+    .fac-stat-card .s-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+    .fac-stat-card .s-value {
+        font-size: 22px; font-weight: 800; color: #1e40af;
+        line-height: 1; letter-spacing: -0.5px;
+    }
+    .fac-stat-card .s-label {
+        font-size: 11px; color: var(--text-muted); margin-top: 4px;
+        font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .fac-stat-card.warn .s-value { color: #b45309; }
+    .fac-stat-card.good .s-value { color: #047857; }
+    .fac-stat-card.danger .s-value { color: #b91c1c; }
+
+    /* ─── SUBJECT TABLE ─── */
+    .fac-subject-table {
+        width: 100%; border-collapse: separate; border-spacing: 0;
+        font-size: 12.5px;
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 12px; overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    .fac-subject-table thead th {
+        background: rgba(255, 255, 255, 0.35);
+        padding: 9px 12px;
+        text-align: left; font-size: 10.5px;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        color: var(--text-muted); font-weight: 700;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        white-space: nowrap;
+    }
+    .fac-subject-table tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        vertical-align: middle;
+    }
+    .fac-subject-table tbody tr:last-child td { border-bottom: none; }
+    .fac-subject-table tbody tr:hover td { background: rgba(255, 255, 255, 0.35); }
+
+    .fac-subject-table .s-code {
+        font-weight: 700; color: #1e40af; font-size: 12.5px;
+    }
+    .fac-subject-table .s-desc {
+        color: var(--text-primary); font-weight: 500;
+    }
+    .fac-subject-table .s-section {
+        font-size: 11px; color: var(--text-muted);
+    }
+
+    .hours-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px; border-radius: 10px;
+        font-size: 11px; font-weight: 700;
+        border: 1px solid transparent;
+        backdrop-filter: blur(6px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .hours-pill.full      { background: rgba(236, 253, 245, 0.9); color: #047857; border-color: rgba(167, 243, 208, 0.9); }
+    .hours-pill.partial   { background: rgba(255, 251, 235, 0.9); color: #b45309; border-color: rgba(253, 230, 138, 0.9); }
+    .hours-pill.none      { background: rgba(254, 242, 242, 0.9); color: #b91c1c; border-color: rgba(254, 202, 202, 0.9); }
+    .hours-pill.info      { background: rgba(239, 246, 255, 0.9); color: #1e40af; border-color: rgba(191, 219, 254, 0.9); }
+
+    .subj-status-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 12px;
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.3px;
+        border: 1px solid transparent;
+        backdrop-filter: blur(6px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .subj-status-badge.complete   { background: rgba(236, 253, 245, 0.9); color: #065f46; border-color: rgba(167, 243, 208, 0.9); }
+    .subj-status-badge.partial    { background: rgba(255, 251, 235, 0.9); color: #92400e; border-color: rgba(253, 230, 138, 0.9); }
+    .subj-status-badge.not-started{ background: rgba(254, 242, 242, 0.9); color: #b91c1c; border-color: rgba(254, 202, 202, 0.9); }
+
+    .empty-mini {
+        text-align: center; padding: 30px 20px;
+        color: #94a3b8; font-size: 13px;
+        background: var(--glass-fill-soft);
+        border-radius: 12px;
+        border: 1px dashed rgba(148, 163, 184, 0.6);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--glass-inset);
+    }
+
+    /* ─── FORM ELEMENTS ─── */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; }
+    .form-label {
+        font-size: 12px; font-weight: 600;
+        color: #334155; margin-bottom: 6px;
+    }
+    .form-label .req { color: #dc2626; margin-left: 2px; }
+
+    .form-control {
+        width: 100%; padding: 10px 14px;
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 10px;
+        font-size: 13.5px; color: var(--text-primary);
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+        font-family: inherit;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.22),
+            var(--glass-inset-strong);
+    }
+
+    select.form-control {
+        cursor: pointer; appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* ─── TOGGLE SWITCH ─── */
+    .toggle-wrap {
+        display: flex; align-items: center; gap: 14px;
+        padding: 12px 14px;
+        border: 1px solid var(--glass-border-soft);
+        border-radius: 12px;
+        background: var(--glass-fill-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+        transition: all 0.15s ease;
+    }
+    .toggle-wrap.active   { background: rgba(236, 253, 245, 0.75); border-color: rgba(167, 243, 208, 0.9); }
+    .toggle-wrap.inactive { background: rgba(254, 242, 242, 0.75); border-color: rgba(254, 202, 202, 0.9); }
+
+    .toggle-switch {
+        position: relative; width: 44px; height: 24px;
+        flex-shrink: 0; cursor: pointer;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+        position: absolute; inset: 0;
+        background: #cbd5e1; border-radius: 20px;
+        transition: background 0.2s ease;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .toggle-slider::before {
+        content: ''; position: absolute;
+        width: 18px; height: 18px;
+        left: 3px; top: 3px;
+        background: #fff; border-radius: 50%;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #10b981; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .toggle-info .t-title {
+        font-size: 13.5px; font-weight: 700; color: var(--text-primary); line-height: 1.2;
+    }
+    .toggle-info .t-sub {
+        font-size: 11.5px; color: #64748b; margin-top: 2px;
+    }
+
+    /* ─── CONFIRM DELETE MODAL ─── */
+    .confirm-modal {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        width: 100%; max-width: 440px;
+        display: flex; flex-direction: column;
+        box-shadow:
+            var(--glass-shadow-lg),
+            var(--glass-inset-strong);
+        transform: translateY(20px) scale(0.98);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        padding: 26px;
+        text-align: center;
+    }
+    .confirm-modal-overlay.open .confirm-modal { transform: translateY(0) scale(1); }
+
+    .confirm-icon {
+        width: 64px; height: 64px; border-radius: 50%;
+        background: rgba(254, 242, 242, 0.9);
+        color: #dc2626;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 30px; margin: 0 auto 14px;
+        border: 1px solid rgba(254, 202, 202, 0.9);
+        backdrop-filter: blur(8px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .confirm-modal h3 {
+        margin: 0 0 8px; font-size: 17px; font-weight: 700;
+        color: var(--text-primary);
+    }
+    .confirm-modal p {
+        margin: 0 0 20px; font-size: 13.5px;
+        color: var(--text-muted); line-height: 1.5;
+    }
+    .confirm-modal .name-highlight {
+        color: #b91c1c; font-weight: 700;
+    }
+
+    .confirm-modal .confirm-actions {
+        display: flex; gap: 10px; justify-content: center;
+    }
+    .confirm-modal .confirm-actions .btn { min-width: 110px; justify-content: center; }
+
+    /* ─── TOAST ─── */
+    .toast-wrap {
+        position: fixed; top: 24px; right: 24px;
+        z-index: 2000;
+        display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+        padding: 12px 18px; border-radius: 12px;
+        background: var(--glass-fill-strong);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        box-shadow:
+            0 8px 24px rgba(15,23,42,0.25),
+            var(--glass-inset-strong);
+        border: 1px solid var(--glass-border);
+        border-left: 4px solid var(--accent);
+        font-size: 13.5px; font-weight: 500; color: var(--text-primary);
+        display: flex; align-items: center; gap: 10px;
+        animation: toastIn 0.24s ease;
+        min-width: 260px;
+    }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error   { border-left-color: #dc2626; }
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateX(40px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ─── MESSAGES ─── */
+    .django-msg {
+        padding: 12px 16px; border-radius: 10px; font-size: 13.5px;
+        backdrop-filter: blur(10px);
+        border: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .django-msg.success { background: rgba(236, 253, 245, 0.85); color: #065f46; border-color: rgba(167, 243, 208, 0.9); }
+    .django-msg.error   { background: rgba(254, 242, 242, 0.85); color: #b42318; border-color: rgba(254, 202, 202, 0.9); }
+    .django-msg.info    { background: rgba(239, 246, 255, 0.85); color: #1e40af; border-color: rgba(191, 219, 254, 0.9); }
+
+    /* ─── ENTRANCE ANIMATION ─── */
+    @keyframes riseIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .page-header, .card { animation: riseIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .card { animation-delay: 0.05s; }
+    @media (prefers-reduced-motion: reduce) {
+        .page-header, .card { animation: none; }
+    }
+
+    @media (max-width: 640px) {
+        .main-content { padding: 16px; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .page-header h1 { font-size: 23px; }
+        .card { padding: 16px; }
+        .card-header { flex-direction: column; align-items: flex-start; }
+        .search-box input, .search-box select { width: 100%; min-width: unset; }
+        .fac-modal { max-height: 95vh; }
+        .fac-modal-header, .fac-modal-body { padding-left: 16px; padding-right: 16px; }
+        .fac-stat-card .s-value { font-size: 18px; }
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Toast container -->
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    {% if messages %}
+        <div style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+            {% for message in messages %}
+                <div class="django-msg {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <span class="page-eyebrow">👥 Faculty Directory</span>
+            <h1>Faculty Members</h1>
+            <p>Manage faculty accounts, employment classifications, and teaching workload assignments across the department.</p>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="btn btn-primary" onclick="openAddFacultyModal()">➕ Add Faculty</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <!-- ═══════════ CARD HEADER ═══════════ -->
+        <div class="card-header">
+            <div>
+                <h2 class="card-title"><span class="title-icon">📋</span> Faculty Records</h2>
+                <p class="card-hint">Select a row to open the full profile and workload breakdown.</p>
+            </div>
+            <div class="card-tools">
+                <span class="count-badge">
+                    👥 <strong>{{ total_faculty|default:0 }}</strong>
+                    record{{ total_faculty|default:0|pluralize }}
+                </span>
+            </div>
+        </div>
+
+        <!-- ═══════════ SEARCH / FILTER ═══════════ -->
+        <div class="search-box">
+            <form method="get" action="" style="display: contents;">
+                <input type="text" name="q" value="{{ search_q|default:'' }}"
+                       placeholder="🔍 Search by name, ID, or department...">
+                <select name="type">
+                    <option value="all" {% if type_q == 'all' or not type_q %}selected{% endif %}>All Faculty</option>
+                    <option value="chairman" {% if type_q == 'chairman' %}selected{% endif %}>Chairman</option>
+                    <option value="active" {% if type_q == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if type_q == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="full" {% if type_q == 'full' %}selected{% endif %}>Full Time</option>
+                    <option value="part" {% if type_q == 'part' %}selected{% endif %}>Part Time</option>
+                    <option value="contract" {% if type_q == 'contract' %}selected{% endif %}>Contractual</option>
+                </select>
+                <button type="submit">Search</button>
+                {% if search_q or type_q and type_q != 'all' %}
+                    <a href="{% url 'faculty_list' %}" class="clear-link">✕ Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="facultyTable">
+                <thead>
+                    <tr>
+                        <th>Faculty</th>
+                        <th>Employee ID</th>
+                        <th>Department</th>
+                        <th>Specialization</th>
+                        <th>Employment</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in faculty_members %}
+                        <tr id="fac-row-{{ member.employee_id }}"
+                            data-employee-id="{{ member.employee_id }}"
+                            data-full-name="{{ member.full_name|escapejs }}"
+                            data-department="{{ member.department|default:''|escapejs }}"
+                            data-specialization="{{ member.specialization|default:''|escapejs }}"
+                            data-attained-degree="{{ member.attained_degree|default:''|escapejs }}"
+                            data-academic-rank="{{ member.academic_rank|default:''|escapejs }}"
+                            data-employment-type="{{ member.employment_type|default:'' }}"
+                            data-is-active="{% if member.is_active %}1{% else %}0{% endif %}"
+                            data-is-chairman="{% if member.is_chairman %}1{% else %}0{% endif %}"
+                            onclick="openFacultyModal('{{ member.employee_id }}')">
+                            <td>
+                                <div class="faculty-cell">
+                                    <div class="faculty-avatar">{{ member.full_name|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="faculty-name">{{ member.full_name }}</div>
+                                        <div class="faculty-id">{{ member.employee_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="cell-mono">{{ member.employee_id }}</span></td>
+                            <td><div class="cell-main">{{ member.department|default:"—"|truncatechars:24 }}</div></td>
+                            <td><div class="cell-sub" style="margin-top:0;">{{ member.specialization|truncatechars:28|default:"—" }}</div></td>
+                            <td>
+                                <span class="status-badge {% if member.employment_type == 'FULL' %}full-time{% elif member.employment_type == 'PART' %}part-time{% else %}contractual{% endif %}">
+                                    {{ member.get_employment_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if member.is_chairman %}
+                                    <span class="status-badge chairman">👑 Chairman</span>
+                                {% elif member.is_active %}
+                                    <span class="status-badge active">Active</span>
+                                {% else %}
+                                    <span class="status-badge inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td onclick="event.stopPropagation();" style="text-align:right;">
+                                <div class="row-actions">
+                                    <button type="button" class="action-btn edit"
+                                            title="Edit faculty"
+                                            onclick="openEditFacultyModal('{{ member.employee_id }}')">
+                                        ✏️ Edit
+                                    </button>
+
+                                    {% if not member.is_chairman %}
+                                        {% if member.is_active %}
+                                            <button type="button" class="action-btn toggle"
+                                                    title="Deactivate faculty"
+                                                    onclick="toggleFacultyStatus('{{ member.employee_id }}', '{{ member.full_name|escapejs }}', false)">
+                                                🔒 Deactivate
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="action-btn toggle activate"
+                                                    title="Activate faculty"
+                                                    onclick="toggleFacultyStatus('{{ member.employee_id }}', '{{ member.full_name|escapejs }}', true)">
+                                                🔓 Activate
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% if not member.is_chairman %}
+                                        <button type="button" class="action-btn delete"
+                                                title="Delete faculty"
+                                                onclick="openDeleteConfirm('{{ member.employee_id }}', '{{ member.full_name|escapejs }}')">
+                                            🗑️
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr style="cursor: default;">
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <span class="empty-icon">👥</span>
+                                    <h4>No faculty members found</h4>
+                                    <p>
+                                        {% if search_q or type_q and type_q != 'all' %}
+                                            Try adjusting your search filters.
+                                        {% else %}
+                                            Add faculty members to get started.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════ PAGINATION ═══════════ -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    ◀ Previous
+                </a>
+            {% else %}
+                <span class="disabled">◀ Previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="active">{{ num }}</span>
+                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}">{{ num }}</a>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                    <span class="ellipsis">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    Next ▶
+                </a>
+            {% else %}
+                <span class="disabled">Next ▶</span>
+            {% endif %}
+        </div>
+        <div class="pagination-info">
+            Showing page <strong>{{ page_obj.number }}</strong> of
+            <strong>{{ page_obj.paginator.num_pages }}</strong>
+            ({{ page_obj.paginator.count }} faculty total)
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ═══════════ FACULTY DETAIL MODAL ═══════════ -->
+    <div class="fac-modal-overlay" id="facultyDetailModal" onclick="handleFacModalOverlay(event)">
+        <div class="fac-modal" role="dialog" aria-modal="true" aria-labelledby="facModalTitle">
+            <div class="fac-modal-header">
+                <div>
+                    <span class="f-eyebrow">Faculty Profile</span>
+                    <h2 id="facModalTitle">Faculty Name</h2>
+                    <div class="f-emp-id">Employee ID: <span id="facModalEmpId">—</span></div>
+                </div>
+                <button type="button" class="fac-close" onclick="closeFacultyModal()" title="Close">✕</button>
+            </div>
+            <div class="fac-modal-body" id="facModalBody">
+                <div class="fac-loading">
+                    <div style="font-size: 40px; margin-bottom: 8px;">⏳</div>
+                    <p>Loading faculty information...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ EDIT FACULTY MODAL ═══════════ -->
+    <div class="edit-modal-overlay" id="editFacultyModal" onclick="handleEditModalOverlay(event)">
+        <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <div class="edit-modal-header">
+                <div>
+                    <span class="e-eyebrow">Edit Faculty</span>
+                    <h2 id="editModalTitle">✏️ Update Details</h2>
+                </div>
+                <button type="button" class="fac-close" onclick="closeEditFacultyModal()" title="Close">✕</button>
+            </div>
+
+            <div class="edit-modal-body">
+                <input type="hidden" id="edit_employee_id" value="">
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_full_name">Full Name<span class="req">*</span></label>
+                        <input type="text" id="edit_full_name" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit_department">Department<span class="req">*</span></label>
+                        <input type="text" id="edit_department" class="form-control" placeholder="e.g. Technology education">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit_specialization">Specialization<span class="req">*</span></label>
+                        <input type="text" id="edit_specialization" class="form-control" placeholder="e.g. Mathematics">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_attained_degree">Attained Degree</label>
+                        <input type="text" id="edit_attained_degree" class="form-control" placeholder="e.g. Master of Arts in Education">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_academic_rank">Academic Rank</label>
+                        <input type="text" id="edit_academic_rank" class="form-control" placeholder="e.g. Instructor I (leave blank if not set)">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="edit_employment_type">Employment Type<span class="req">*</span></label>
+                        <select id="edit_employment_type" class="form-control">
+                            <option value="FULL">Full Time</option>
+                            <option value="PART">Part Time</option>
+                            <option value="CONTRACT">Contractual</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Account Status</label>
+                        <div class="toggle-wrap active" id="editStatusWrap">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="edit_is_active" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-info">
+                                <div class="t-title" id="editStatusTitle">Active</div>
+                                <div class="t-sub" id="editStatusSub">Faculty can log in and be assigned schedules.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editErrorBox" style="display:none; margin-top:14px; padding:10px 14px;
+                     background:rgba(254,242,242,0.9); color:#b42318; border:1px solid rgba(254,202,202,0.9); border-radius:10px;
+                     font-size:13px; line-height:1.5;"></div>
+            </div>
+
+            <div class="edit-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditFacultyModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="editSaveBtn" onclick="saveFacultyEdit()">
+                    💾 Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ ADD FACULTY MODAL ═══════════ -->
+    <div class="edit-modal-overlay" id="addFacultyModal" onclick="handleAddModalOverlay(event)">
+        <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+            <div class="edit-modal-header">
+                <div>
+                    <span class="e-eyebrow">Add Faculty</span>
+                    <h2 id="addModalTitle">➕ New Faculty Member</h2>
+                </div>
+                <button type="button" class="fac-close" onclick="closeAddFacultyModal()" title="Close">✕</button>
+            </div>
+
+            <div class="edit-modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label" for="add_employee_id">Employee ID<span class="req">*</span></label>
+                        <input type="text" id="add_employee_id" class="form-control" placeholder="e.g. F-005 or 12345" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_full_name">Full Name<span class="req">*</span></label>
+                        <input type="text" id="add_full_name" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_department">Department<span class="req">*</span></label>
+                        <input type="text" id="add_department" class="form-control" placeholder="e.g. Technoly Education">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_specialization">Specialization<span class="req">*</span></label>
+                        <input type="text" id="add_specialization" class="form-control" placeholder="e.g. Mathematics">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_attained_degree">Attained Degree</label>
+                        <input type="text" id="add_attained_degree" class="form-control" placeholder="e.g. Master of Arts in Education">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_academic_rank">Academic Rank</label>
+                        <input type="text" id="add_academic_rank" class="form-control" placeholder="e.g. Instructor I (leave blank if not set)">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="add_employment_type">Employment Type<span class="req">*</span></label>
+                        <select id="add_employment_type" class="form-control">
+                            <option value="FULL">Full Time</option>
+                            <option value="PART" selected>Part Time</option>
+                            <option value="CONTRACT">Contractual</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_password">Password<span class="req">*</span></label>
+                        <input type="password" id="add_password" class="form-control" placeholder="Min. 8 characters" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="add_confirm_password">Confirm Password<span class="req">*</span></label>
+                        <input type="password" id="add_confirm_password" class="form-control" placeholder="Re-enter password" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Account Status</label>
+                        <div class="toggle-wrap active" id="addStatusWrap">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="add_is_active" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-info">
+                                <div class="t-title" id="addStatusTitle">Active</div>
+                                <div class="t-sub" id="addStatusSub">Faculty can log in and be assigned schedules.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="addErrorBox" style="display:none; margin-top:14px; padding:10px 14px;
+                     background:rgba(254,242,242,0.9); color:#b42318; border:1px solid rgba(254,202,202,0.9); border-radius:10px;
+                     font-size:13px; line-height:1.5;"></div>
+            </div>
+
+            <div class="edit-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAddFacultyModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addSaveBtn" onclick="saveAddFaculty()">
+                    💾 Create Faculty
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ CONFIRM DELETE MODAL ═══════════ -->
+    <div class="confirm-modal-overlay" id="deleteConfirmModal" onclick="handleDeleteConfirmOverlay(event)">
+        <div class="confirm-modal" role="dialog" aria-modal="true">
+            <div class="confirm-icon">🗑️</div>
+            <h3>Delete Faculty Member?</h3>
+            <p>
+                You are about to permanently delete
+                <span class="name-highlight" id="deleteName">this faculty member</span>.
+                This action cannot be undone.
+            </p>
+            <div class="confirm-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDeleteFaculty()">
+                    🗑️ Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function getCSRFToken() {
+        const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (input) return input.value;
+
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.content;
+
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+        }
+        return '';
+    }
+
+    function showToast(message, type = 'info') {
+        const wrap = document.getElementById('toastWrap');
+        if (!wrap) return;
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = message;
+        wrap.appendChild(t);
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => t.remove(), 300);
+        }, 3200);
+    }
+
+    /* ============================================================
+       FACULTY DETAIL MODAL
+       ============================================================ */
+    const facCache = {};
+
+    function openFacultyModal(employeeId) {
+        const modal = document.getElementById('facultyDetailModal');
+        const body  = document.getElementById('facModalBody');
+        const title = document.getElementById('facModalTitle');
+        const empId = document.getElementById('facModalEmpId');
+
+        title.textContent = 'Loading...';
+        empId.textContent = employeeId;
+
+        body.innerHTML = `
+            <div class="fac-loading">
+                <div style="font-size: 40px; margin-bottom: 8px;">⏳</div>
+                <p>Fetching faculty information...</p>
+            </div>
+        `;
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        if (facCache[employeeId]) {
+            renderFacultyDetail(facCache[employeeId]);
+            return;
+        }
+
+        fetch(`/faculty-info-data/${encodeURIComponent(employeeId)}/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    title.textContent = 'Error';
+                    body.innerHTML = `<div class="fac-loading" style="color:#b91c1c;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">❌</div>
+                        <p>${escapeHtml(data.error)}</p>
+                    </div>`;
+                    return;
+                }
+                facCache[employeeId] = data;
+                renderFacultyDetail(data);
+            })
+            .catch(err => {
+                title.textContent = 'Error';
+                body.innerHTML = `<div class="fac-loading" style="color:#b91c1c;">
+                    <div style="font-size: 40px; margin-bottom: 8px;">❌</div>
+                    <p>Network error: ${escapeHtml(String(err))}</p>
+                </div>`;
+            });
+    }
+
+    function closeFacultyModal() {
+        document.getElementById('facultyDetailModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleFacModalOverlay(e) {
+        if (e.target.id === 'facultyDetailModal') closeFacultyModal();
+    }
+
+    function renderFacultyDetail(d) {
+        const title = document.getElementById('facModalTitle');
+        const empId = document.getElementById('facModalEmpId');
+        const body  = document.getElementById('facModalBody');
+
+        title.textContent = d.full_name || 'Faculty Member';
+        empId.textContent = d.employee_id || '—';
+
+        const profileHtml = `
+            <div class="fac-section">
+                <div class="fac-section-title">👤 Faculty Information</div>
+                <div class="fac-profile-grid">
+                    <div class="fac-info-card"><div class="label">Full Name</div><div class="value">${escapeHtml(d.full_name || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Employee ID</div><div class="value">${escapeHtml(d.employee_id || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Department</div><div class="value">${escapeHtml(d.department || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Specialization</div><div class="value">${escapeHtml(d.specialization || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Attained Degree</div><div class="value">${escapeHtml(d.attained_degree || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Academic Rank</div><div class="value">${escapeHtml(d.academic_rank || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Employment Type</div><div class="value">${escapeHtml(d.employment_type || '—')}</div></div>
+                    <div class="fac-info-card"><div class="label">Status</div><div class="value">
+                        ${d.is_chairman ? '<span class="status-badge chairman">👑 Chairman</span>'
+                                        : d.is_active ? '<span class="status-badge active">Active</span>'
+                                                      : '<span class="status-badge inactive">Inactive</span>'}
+                    </div></div>
+                    <div class="fac-info-card"><div class="label">Last Login</div><div class="value">${escapeHtml(d.last_login || 'Never')}</div></div>
+                </div>
+            </div>
+        `;
+
+        const statsHtml = `
+            <div class="fac-section">
+                <div class="fac-section-title">📊 Teaching Statistics</div>
+                <div class="fac-stats-row">
+                    <div class="fac-stat-card"><span class="s-icon">📚</span><div class="s-value">${d.total_subjects || 0}</div><div class="s-label">Subjects</div></div>
+                    <div class="fac-stat-card"><span class="s-icon">📅</span><div class="s-value">${d.total_schedules || 0}</div><div class="s-label">Schedules</div></div>
+                    <div class="fac-stat-card"><span class="s-icon">⏱️</span><div class="s-value">${d.total_hours || 0}</div><div class="s-label">Hrs / Week</div></div>
+                    <div class="fac-stat-card good"><span class="s-icon">✅</span><div class="s-value">${d.fully_scheduled_count || 0}</div><div class="s-label">Complete</div></div>
+                    <div class="fac-stat-card warn"><span class="s-icon">⏳</span><div class="s-value">${d.partial_count || 0}</div><div class="s-label">Partial</div></div>
+                    <div class="fac-stat-card danger"><span class="s-icon">⚠️</span><div class="s-value">${d.not_started_count || 0}</div><div class="s-label">Not Started</div></div>
+                </div>
+            </div>
+        `;
+
+        const subjects = d.subjects || [];
+        let subjectsHtml = '';
+        if (subjects.length === 0) {
+            subjectsHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">📖 Assigned Subjects <span class="badge-count">0</span></div>
+                    <div class="empty-mini">No subjects assigned to this faculty member.</div>
+                </div>`;
+        } else {
+            const rows = subjects.map(s => {
+                const lecPill = s.has_lecture
+                    ? `<span class="hours-pill ${s.lec_remaining <= 0 ? 'full' : s.lec_used > 0 ? 'partial' : 'none'}">${s.lec_used}h / ${s.lec_max}h LEC</span>`
+                    : `<span class="hours-pill info">— LEC</span>`;
+                const labPill = s.is_laboratory
+                    ? `<span class="hours-pill ${s.lab_remaining <= 0 ? 'full' : s.lab_used > 0 ? 'partial' : 'none'}">${s.lab_used}h / ${s.lab_max}h LAB</span>`
+                    : `<span class="hours-pill info">— LAB</span>`;
+                let statusBadge;
+                if (s.is_fully_scheduled) statusBadge = '<span class="subj-status-badge complete">✓ Complete</span>';
+                else if (s.lec_used > 0 || s.lab_used > 0) statusBadge = '<span class="subj-status-badge partial">◐ Partial</span>';
+                else statusBadge = '<span class="subj-status-badge not-started">○ Not Started</span>';
+                return `<tr>
+                    <td><div class="s-code">${escapeHtml(s.subject_code)}</div><div class="s-desc">${escapeHtml(s.subject_description)}</div></td>
+                    <td><div class="s-section">${escapeHtml(s.section_display)}</div></td>
+                    <td>${lecPill}</td><td>${labPill}</td><td>${statusBadge}</td>
+                </tr>`;
+            }).join('');
+            subjectsHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">📖 Assigned Subjects <span class="badge-count">${subjects.length}</span></div>
+                    <div style="overflow-x:auto;">
+                        <table class="fac-subject-table">
+                            <thead><tr><th>Subject</th><th>Section</th><th>Lecture</th><th>Laboratory</th><th>Status</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        const fullyDone = subjects.filter(s => s.is_fully_scheduled);
+        let doneHtml = '';
+        if (fullyDone.length > 0) {
+            doneHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">✅ Fully Scheduled Subjects <span class="badge-count">${fullyDone.length}</span></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${fullyDone.map(s => `<span class="hours-pill full">${escapeHtml(s.subject_code)} — ${escapeHtml(s.section_display)}</span>`).join('')}
+                    </div>
+                </div>`;
+        }
+
+        const pending = subjects.filter(s => !s.is_fully_scheduled);
+        let pendingHtml = '';
+        if (pending.length > 0) {
+            pendingHtml = `
+                <div class="fac-section">
+                    <div class="fac-section-title">⏳ Still Needs Scheduling <span class="badge-count">${pending.length}</span></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${pending.map(s => {
+                            const missing = [];
+                            if (s.has_lecture && s.lec_remaining > 0) missing.push(`${s.lec_remaining}h LEC`);
+                            if (s.is_laboratory && s.lab_remaining > 0) missing.push(`${s.lab_remaining}h LAB`);
+                            const label = missing.length ? ` (${missing.join(' + ')} left)` : '';
+                            return `<span class="hours-pill partial">${escapeHtml(s.subject_code)} — ${escapeHtml(s.section_display)}${label}</span>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+        }
+
+        body.innerHTML = profileHtml + statsHtml + subjectsHtml + doneHtml + pendingHtml;
+    }
+
+    /* ============================================================
+       EDIT FACULTY MODAL
+       ============================================================ */
+    function openEditFacultyModal(employeeId) {
+        const row = document.getElementById('fac-row-' + employeeId);
+        if (!row) return;
+
+        document.getElementById('edit_employee_id').value      = employeeId;
+        document.getElementById('edit_full_name').value        = row.dataset.fullName || '';
+        document.getElementById('edit_department').value       = row.dataset.department || '';
+        document.getElementById('edit_specialization').value   = row.dataset.specialization || '';
+        document.getElementById('edit_attained_degree').value  = row.dataset.attainedDegree || '';
+        document.getElementById('edit_academic_rank').value    = row.dataset.academicRank || '';
+        document.getElementById('edit_employment_type').value  = row.dataset.employmentType || 'FULL';
+
+        const isActive = row.dataset.isActive === '1';
+        document.getElementById('edit_is_active').checked = isActive;
+        updateStatusToggleUI(isActive);
+
+        const err = document.getElementById('editErrorBox');
+        err.style.display = 'none';
+        err.textContent = '';
+
+        document.getElementById('editFacultyModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => document.getElementById('edit_full_name').focus(), 200);
+    }
+
+    function closeEditFacultyModal() {
+        document.getElementById('editFacultyModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleEditModalOverlay(e) {
+        if (e.target.id === 'editFacultyModal') closeEditFacultyModal();
+    }
+
+    function updateStatusToggleUI(isActive) {
+        const wrap  = document.getElementById('editStatusWrap');
+        const title = document.getElementById('editStatusTitle');
+        const sub   = document.getElementById('editStatusSub');
+        if (isActive) {
+            wrap.className = 'toggle-wrap active';
+            title.textContent = 'Active';
+            sub.textContent = 'Faculty can log in and be assigned schedules.';
+        } else {
+            wrap.className = 'toggle-wrap inactive';
+            title.textContent = 'Inactive';
+            sub.textContent = 'Faculty cannot log in and will be hidden from assignments.';
+        }
+    }
+
+    function saveFacultyEdit() {
+        const employeeId   = document.getElementById('edit_employee_id').value;
+        const fullName     = document.getElementById('edit_full_name').value.trim();
+        const department   = document.getElementById('edit_department').value.trim();
+        const specialization = document.getElementById('edit_specialization').value.trim();
+        const attainedDegree = document.getElementById('edit_attained_degree').value.trim();
+        const academicRank   = document.getElementById('edit_academic_rank').value.trim();
+        const employmentType = document.getElementById('edit_employment_type').value;
+        const isActive     = document.getElementById('edit_is_active').checked;
+
+        const errBox = document.getElementById('editErrorBox');
+        const saveBtn = document.getElementById('editSaveBtn');
+
+        const errors = [];
+        if (!fullName) errors.push('Full name is required.');
+        if (!department) errors.push('Department is required.');
+        if (!specialization) errors.push('Specialization is required.');
+        if (!employmentType) errors.push('Employment type is required.');
+
+        if (errors.length) {
+            errBox.style.display = 'block';
+            errBox.innerHTML = errors.map(e => '• ' + escapeHtml(e)).join('<br>');
+            return;
+        }
+
+        errBox.style.display = 'none';
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Saving...';
+
+        const fd = new FormData();
+        fd.append('full_name', fullName);
+        fd.append('department', department);
+        fd.append('specialization', specialization);
+        fd.append('attained_degree', attainedDegree);
+        fd.append('academic_rank', academicRank);
+        fd.append('employment_type', employmentType);
+        fd.append('is_active', isActive ? '1' : '0');
+
+        fetch(`/faculty/${encodeURIComponent(employeeId)}/update/`, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty updated successfully.', 'success');
+                closeEditFacultyModal();
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                errBox.style.display = 'block';
+                errBox.textContent = d.error || 'Failed to update faculty.';
+            }
+        })
+        .catch(err => {
+            errBox.style.display = 'block';
+            errBox.textContent = 'Network error: ' + err;
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save Changes';
+        });
+    }
+
+    /* ============================================================
+       ADD FACULTY MODAL
+       ============================================================ */
+    function openAddFacultyModal() {
+        document.getElementById('add_employee_id').value        = '';
+        document.getElementById('add_full_name').value          = '';
+        document.getElementById('add_department').value         = '';
+        document.getElementById('add_specialization').value     = '';
+        document.getElementById('add_attained_degree').value    = '';
+        document.getElementById('add_academic_rank').value      = '';
+        document.getElementById('add_employment_type').value    = 'PART';
+        document.getElementById('add_password').value           = '';
+        document.getElementById('add_confirm_password').value   = '';
+        document.getElementById('add_is_active').checked        = true;
+
+        updateAddStatusToggleUI(true);
+
+        const err = document.getElementById('addErrorBox');
+        err.style.display = 'none';
+        err.textContent = '';
+
+        const btn = document.getElementById('addSaveBtn');
+        btn.disabled = false;
+        btn.textContent = '💾 Create Faculty';
+
+        document.getElementById('addFacultyModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => document.getElementById('add_employee_id').focus(), 200);
+    }
+
+    function closeAddFacultyModal() {
+        document.getElementById('addFacultyModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleAddModalOverlay(e) {
+        if (e.target.id === 'addFacultyModal') closeAddFacultyModal();
+    }
+
+    function updateAddStatusToggleUI(isActive) {
+        const wrap  = document.getElementById('addStatusWrap');
+        const title = document.getElementById('addStatusTitle');
+        const sub   = document.getElementById('addStatusSub');
+        if (isActive) {
+            wrap.className = 'toggle-wrap active';
+            title.textContent = 'Active';
+            sub.textContent = 'Faculty can log in and be assigned schedules.';
+        } else {
+            wrap.className = 'toggle-wrap inactive';
+            title.textContent = 'Inactive';
+            sub.textContent = 'Faculty cannot log in and will be hidden from assignments.';
+        }
+    }
+
+    function saveAddFaculty() {
+        const employeeId     = document.getElementById('add_employee_id').value.trim();
+        const fullName       = document.getElementById('add_full_name').value.trim();
+        const department     = document.getElementById('add_department').value.trim();
+        const specialization = document.getElementById('add_specialization').value.trim();
+        const attainedDegree = document.getElementById('add_attained_degree').value.trim();
+        const academicRank   = document.getElementById('add_academic_rank').value.trim();
+        const employmentType = document.getElementById('add_employment_type').value;
+        const password       = document.getElementById('add_password').value;
+        const confirmPassword= document.getElementById('add_confirm_password').value;
+        const isActive       = document.getElementById('add_is_active').checked;
+
+        const errBox = document.getElementById('addErrorBox');
+        const saveBtn = document.getElementById('addSaveBtn');
+
+        const errors = [];
+        if (!employeeId)           errors.push('Employee ID is required.');
+        if (!fullName)             errors.push('Full name is required.');
+        if (!department)           errors.push('Department is required.');
+        if (!specialization)       errors.push('Specialization is required.');
+        if (!employmentType)       errors.push('Employment type is required.');
+        if (!password)             errors.push('Password is required.');
+        else if (password.length < 8) errors.push('Password must be at least 8 characters.');
+        if (!confirmPassword)      errors.push('Please confirm the password.');
+        else if (password && confirmPassword && password !== confirmPassword) {
+            errors.push('Passwords do not match.');
+        }
+
+        if (errors.length) {
+            errBox.style.display = 'block';
+            errBox.innerHTML = errors.map(e => '• ' + escapeHtml(e)).join('<br>');
+            return;
+        }
+
+        errBox.style.display = 'none';
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Creating...';
+
+        const fd = new FormData();
+        fd.append('employee_id', employeeId);
+        fd.append('full_name', fullName);
+        fd.append('department', department);
+        fd.append('specialization', specialization);
+        fd.append('attained_degree', attainedDegree);
+        fd.append('academic_rank', academicRank);
+        fd.append('employment_type', employmentType);
+        fd.append('password', password);
+        fd.append('confirm_password', confirmPassword);
+        fd.append('is_active', isActive ? '1' : '0');
+
+        fetch('/faculty/create/', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty created successfully.', 'success');
+                closeAddFacultyModal();
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                errBox.style.display = 'block';
+                errBox.textContent = d.error || 'Failed to create faculty.';
+            }
+        })
+        .catch(err => {
+            errBox.style.display = 'block';
+            errBox.textContent = 'Network error: ' + err;
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Create Faculty';
+        });
+    }
+
+    /* ============================================================
+       TOGGLE ACTIVE / INACTIVE
+       ============================================================ */
+    function toggleFacultyStatus(employeeId, fullName, makeActive) {
+        const verb = makeActive ? 'activate' : 'deactivate';
+        if (!confirm(`Are you sure you want to ${verb} "${fullName}"?`)) return;
+
+        fetch(`/faculty/${encodeURIComponent(employeeId)}/toggle-status/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast(`Faculty ${makeActive ? 'activated' : 'deactivated'}.`, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(d.error || 'Failed to update status.', 'error');
+            }
+        })
+        .catch(err => showToast('Network error: ' + err, 'error'));
+    }
+
+    /* ============================================================
+       DELETE FACULTY
+       ============================================================ */
+    let pendingDeleteId = null;
+
+    function openDeleteConfirm(employeeId, fullName) {
+        pendingDeleteId = employeeId;
+        document.getElementById('deleteName').textContent = `"${fullName}"`;
+        document.getElementById('deleteConfirmModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteConfirm() {
+        pendingDeleteId = null;
+        document.getElementById('deleteConfirmModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleDeleteConfirmOverlay(e) {
+        if (e.target.id === 'deleteConfirmModal') closeDeleteConfirm();
+    }
+
+    function confirmDeleteFaculty() {
+        if (!pendingDeleteId) return;
+        const btn = document.getElementById('deleteConfirmBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Deleting...';
+
+        fetch(`/faculty/${encodeURIComponent(pendingDeleteId)}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+            if (d.success) {
+                showToast('Faculty deleted successfully.', 'success');
+                closeDeleteConfirm();
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(d.error || 'Failed to delete faculty.', 'error');
+                btn.disabled = false;
+                btn.textContent = '🗑️ Delete';
+            }
+        })
+        .catch(err => {
+            showToast('Network error: ' + err, 'error');
+            btn.disabled = false;
+            btn.textContent = '🗑️ Delete';
+        });
+    }
+
+    /* ============================================================
+       LIVE TOGGLE SWITCHES
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', function() {
+        const editCb = document.getElementById('edit_is_active');
+        if (editCb) {
+            editCb.addEventListener('change', function() {
+                updateStatusToggleUI(this.checked);
+            });
+        }
+
+        const addCb = document.getElementById('add_is_active');
+        if (addCb) {
+            addCb.addEventListener('change', function() {
+                updateAddStatusToggleUI(this.checked);
+            });
+        }
+    });
+
+    /* ============================================================
+       ESCAPE KEY
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const del = document.getElementById('deleteConfirmModal');
+            if (del && del.classList.contains('open')) { closeDeleteConfirm(); return; }
+
+            const add = document.getElementById('addFacultyModal');
+            if (add && add.classList.contains('open')) { closeAddFacultyModal(); return; }
+
+            const ed = document.getElementById('editFacultyModal');
+            if (ed && ed.classList.contains('open')) { closeEditFacultyModal(); return; }
+
+            const fm = document.getElementById('facultyDetailModal');
+            if (fm && fm.classList.contains('open')) closeFacultyModal();
+        }
+    });
+</script>
+{% endblock %}

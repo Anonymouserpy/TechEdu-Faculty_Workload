@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Faculty Workload System{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Inter Font for a clean, modern academic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Smooth scrolling for the whole page */
+        html { scroll-behavior: smooth; }
+
+        /* ==============================================
+           GLASSMORPHISM SIDEBAR STYLES
+           ============================================== */
+
+        /* Sidebar container: light frosted glass, matching the page cards */
+        .sidebar-glass {
+            background:
+                radial-gradient(circle at 18% 0%,  rgba(99, 102, 241, 0.20), transparent 46%),
+                radial-gradient(circle at 100% 16%, rgba(14, 165, 233, 0.16), transparent 42%),
+                radial-gradient(circle at 0% 92%, rgba(16, 185, 129, 0.12), transparent 46%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 255, 255, 0.74) 100%);
+            backdrop-filter: blur(24px) saturate(170%);
+            -webkit-backdrop-filter: blur(24px) saturate(170%);
+            border-right: 1px solid rgba(255, 255, 255, 0.80);
+            box-shadow:
+                10px 0 40px -14px rgba(15, 23, 42, 0.20),
+                inset -1px 0 0 rgba(255, 255, 255, 0.65);
+        }
+
+        /* User card & interactive surfaces */
+        .sidebar-glass .glass-surface {
+            background: rgba(255, 255, 255, 0.66);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 16px;
+            box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.90);
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sidebar-glass .glass-surface:hover {
+            background: rgba(255, 255, 255, 0.84);
+            border-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 24px -10px rgba(15, 23, 42, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        }
+
+        /* Nav items (the anchor classes are generated inline, so override them here) */
+        .sidebar-glass nav a {
+            color: #475569;
+            border-left-color: transparent;
+            border-radius: 12px;
+        }
+        .sidebar-glass nav a svg { color: #64748b; transition: color 0.2s ease; }
+        .sidebar-glass nav a:hover {
+            background: rgba(255, 255, 255, 0.72);
+            color: #0f172a;
+            border-left-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.90);
+        }
+        .sidebar-glass nav a:hover svg { color: #2563eb; }
+
+        /* Active nav item: indigo glass highlight with left accent */
+        .sidebar-glass nav a[class*="border-blue-500"] {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.16), rgba(99, 102, 241, 0.08));
+            color: #1d4ed8;
+            border-left-color: #2563eb;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 4px 14px -6px rgba(37, 99, 235, 0.45);
+        }
+        .sidebar-glass nav a[class*="border-blue-500"] svg,
+        .sidebar-glass nav a[class*="border-blue-500"]:hover svg { color: #2563eb; }
+
+        /* Section labels */
+        .sidebar-glass nav > div > p {
+            color: #64748b;
+            letter-spacing: 1.1px;
+        }
+
+        /* Pill badges inside nav */
+        .sidebar-glass nav a span.rounded-full {
+            background: rgba(255, 255, 255, 0.85);
+            color: #475569;
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 1px 0 #fff;
+        }
+        .sidebar-glass nav a[class*="border-blue-500"] span.rounded-full {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #fff;
+            border-color: rgba(37, 99, 235, 0.40);
+            box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.60);
+        }
+
+        /* Brand logo tile */
+        .sidebar-glass .brand-tile {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 8px 24px -8px rgba(37, 99, 235, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        /* Avatar */
+        .sidebar-glass .avatar-tile {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 4px 12px -4px rgba(29, 78, 216, 0.55);
+        }
+
+        /* Section dividers */
+        .sidebar-glass .glass-divider {
+            border-color: rgba(255, 255, 255, 0.70);
+        }
+
+        /* Logout */
+        .sidebar-glass form button {
+            color: #be123c;
+            border-radius: 12px;
+        }
+        .sidebar-glass form button:hover {
+            background: rgba(244, 63, 94, 0.10);
+            color: #9f1239;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.70);
+        }
+
+        /* Custom scrollbar for the glass sidebar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(15, 23, 42, 0.16);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(15, 23, 42, 0.30);
+        }
+
+        /* ==============================================
+           SHARED GLASS MODAL SKIN
+           Matches the faculty detail modal: blurred
+           scrim, frosted panel, gradient header, frosted
+           close button. Applies to every modal in the app.
+           ============================================== */
+        body .modal-overlay,
+        body .sig-modal-overlay,
+        body .sched-modal-overlay,
+        body .oa-modal-overlay,
+        body .edit-modal-overlay,
+        body .fac-modal-overlay,
+        body .confirm-modal-overlay {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+        }
+
+        body .modal-container,
+        body .modal,
+        body .sig-modal,
+        body .sched-modal,
+        body .oa-modal,
+        body .edit-modal,
+        body .fac-modal,
+        body .confirm-modal {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.52) 100%);
+            backdrop-filter: blur(22px) saturate(180%);
+            -webkit-backdrop-filter: blur(22px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 20px;
+            box-shadow:
+                0 24px 70px rgba(15, 23, 42, 0.30),
+                inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        body .modal-header,
+        body .sig-modal-header,
+        body .sched-modal-header,
+        body .oa-modal-header,
+        body .edit-modal-header,
+        body .fac-modal-header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.10) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.40);
+            padding: 20px 26px;
+            border-radius: 19px 19px 0 0;
+        }
+
+        body .modal-header h2,
+        body .modal-header h3,
+        body .sig-modal-header h2,
+        body .sched-modal-header h3,
+        body .oa-modal-header h3,
+        body .edit-modal-header h2,
+        body .fac-modal-header h2 {
+            color: #0f172a;
+            font-size: 17.5px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        body .modal-eyebrow,
+        body .sig-eyebrow,
+        body .e-eyebrow,
+        body .f-eyebrow {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #2563eb;
+        }
+
+        body .modal-subtitle,
+        body .modal-header .modal-subtitle {
+            color: #64748b;
+            font-size: 12.5px;
+        }
+
+        body .modal-close,
+        body .close-modal,
+        body .sig-modal-close,
+        body .sched-modal-close,
+        body .fac-close {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.25) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.50);
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.80);
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        body .modal-close:hover,
+        body .close-modal:hover,
+        body .sig-modal-close:hover,
+        body .sched-modal-close:hover,
+        body .fac-close:hover {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(37, 99, 235, 0.35);
+            color: #0f172a;
+        }
+
+        body .modal-body,
+        body .sig-modal-body,
+        body .sched-modal-body,
+        body .oa-modal-body,
+        body .edit-modal-body,
+        body .fac-modal-body {
+            padding: 22px 26px;
+        }
+
+        body .modal-body::-webkit-scrollbar,
+        body .sig-modal-body::-webkit-scrollbar,
+        body .sched-modal-body::-webkit-scrollbar,
+        body .oa-modal-body::-webkit-scrollbar,
+        body .edit-modal-body::-webkit-scrollbar,
+        body .fac-modal-body::-webkit-scrollbar {
+            width: 10px;
+        }
+        body .modal-body::-webkit-scrollbar-thumb,
+        body .sig-modal-body::-webkit-scrollbar-thumb,
+        body .sched-modal-body::-webkit-scrollbar-thumb,
+        body .oa-modal-body::-webkit-scrollbar-thumb,
+        body .edit-modal-body::-webkit-scrollbar-thumb,
+        body .fac-modal-body::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.60);
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.50);
+        }
+
+        body .modal-footer,
+        body .sig-modal-footer,
+        body .sched-modal-footer,
+        body .oa-modal-footer,
+        body .edit-modal-footer {
+            background: rgba(255, 255, 255, 0.20);
+            border-top: 1px solid rgba(255, 255, 255, 0.40);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 14px 26px;
+        }
+
+        /* Secondary buttons inside modals pick up the frosted treatment */
+        body .modal-footer .btn-secondary,
+        body .modal-footer .btn-ghost {
+            background: rgba(255, 255, 255, 0.55);
+            border-color: rgba(255, 255, 255, 0.55);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.80);
+        }
+
+        @media (max-width: 640px) {
+            body .modal-container,
+            body .modal,
+            body .sig-modal,
+            body .sched-modal,
+            body .oa-modal,
+            body .edit-modal,
+            body .fac-modal,
+            body .confirm-modal { border-radius: 16px; }
+
+            body .modal-header,
+            body .sig-modal-header,
+            body .sched-modal-header,
+            body .oa-modal-header,
+            body .edit-modal-header,
+            body .fac-modal-header { padding: 14px 16px; border-radius: 15px 15px 0 0; }
+
+            body .modal-body,
+            body .sig-modal-body,
+            body .sched-modal-body,
+            body .oa-modal-body,
+            body .edit-modal-body,
+            body .fac-modal-body { padding: 16px; }
+
+            body .modal-footer,
+            body .sig-modal-footer,
+            body .sched-modal-footer,
+            body .oa-modal-footer,
+            body .edit-modal-footer { padding: 12px 16px; }
+        }
+
+        /* Mobile toggle button — glass style */
+        .sidebar-toggle-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-toggle-glass:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+    
+    <!-- Allows child templates to inject things like custom animations or meta tags -->
+    {% block extra_head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+    <!-- 
+      MAIN CONTENT 
+      The `md:ml-72` is the magic fix: it pushes the main content to the right 
+      of the 72-unit (18rem) wide sidebar on desktop, preventing any overlap.
+      On mobile, the margin disappears, and the sidebar slides over the content.
+    -->
+    <main class="min-h-screen md:ml-72 transition-all duration-300 ease-in-out">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- 
+      SIDEBAR — now with glassmorphism styling
+    -->
+    {% include 'sidebar.html' %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

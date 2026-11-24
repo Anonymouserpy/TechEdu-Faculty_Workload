@@ -1,0 +1,1421 @@
+{% extends 'base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}My Subjects | Faculty Workload System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       DESIGN TOKENS
+       ============================================================ */
+    :root {
+        --brand-50:  #eef4ff;
+        --brand-100: #dce7ff;
+        --brand-200: #c0d4ff;
+        --brand-500: #3b6cf6;
+        --brand-600: #2f5ae0;
+        --brand-700: #2547b8;
+
+        --ink-900: #0f172a;
+        --ink-800: #1e293b;
+        --ink-700: #334155;
+        --ink-600: #475569;
+        --ink-500: #64748b;
+        --ink-400: #94a3b8;
+        --ink-300: #cbd5e1;
+        --ink-200: #e2e8f0;
+        --ink-100: #f1f5f9;
+        --ink-50:  #f8fafc;
+
+        --emerald-50:  #ecfdf5;
+        --emerald-100: #d1fae5;
+        --emerald-200: #a7f3d0;
+        --emerald-500: #10b981;
+        --emerald-700: #047857;
+
+        --amber-50:  #fffbeb;
+        --amber-100: #fef3c7;
+        --amber-200: #fde68a;
+        --amber-500: #f59e0b;
+        --amber-700: #b45309;
+
+        --violet-50:  #f5f3ff;
+        --violet-100: #ede9fe;
+        --violet-200: #ddd6fe;
+        --violet-500: #8b5cf6;
+        --violet-700: #6d28d9;
+
+        --rose-50:  #fff1f2;
+        --rose-100: #ffe4e6;
+        --rose-500: #f43f5e;
+        --rose-700: #be123c;
+
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+
+        --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07), 0 2px 4px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.18), 0 8px 24px rgba(15, 23, 42, 0.08);
+
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* ============================================================
+       GLASSMORPHISM BACKGROUND
+       ============================================================ */
+    :root {
+        --glass-fill-strong: linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%);
+        --glass-fill-soft: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 100%);
+        --glass-border: rgba(255, 255, 255, 0.55);
+        --glass-border-soft: rgba(255, 255, 255, 0.35);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.20);
+        --glass-blur: blur(22px) saturate(180%);
+        --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    .main-content {
+        padding: 28px 32px 44px;
+        font-family: var(--font-sans);
+        color: var(--ink-800);
+        max-width: 1480px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+            radial-gradient(circle at 92% 4%, rgba(14, 165, 233, 0.22) 0%, transparent 40%),
+            radial-gradient(circle at 82% 94%, rgba(16, 185, 129, 0.20) 0%, transparent 46%),
+            radial-gradient(circle at 8% 88%, rgba(236, 72, 153, 0.14) 0%, transparent 42%),
+            linear-gradient(160deg, #eef2ff 0%, #f8fafc 48%, #ecfeff 100%);
+        background-attachment: fixed;
+    }
+
+    .page-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 1.3px; text-transform: uppercase;
+        color: var(--brand-700);
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        padding: 5px 12px; border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        margin-bottom: 12px;
+    }
+
+    /* ============================================================
+       GLASS UTILITIES
+       ============================================================ */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.62);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        transition: all 0.25s var(--ease-out);
+    }
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+        transform: translateY(-2px);
+    }
+    .glass-header {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    .glass-input {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255, 255, 255, 0.5);
+        border-radius: var(--radius-sm);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
+    }
+
+    /* ============================================================
+       PAGE HEADER
+       ============================================================ */
+    /* Header sits directly on the page backdrop, above the content card
+       (same pattern as faculty_list / all_subjects / room_list) */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .page-header .header-text { min-width: 0; }
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink-900);
+        letter-spacing: -0.6px;
+        margin: 0 0 6px;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 .title-icon {
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 18px;
+        box-shadow: 0 4px 12px rgba(59, 108, 246, 0.3);
+        flex-shrink: 0;
+    }
+    .page-header p {
+        color: var(--ink-500);
+        font-size: 14px;
+        margin: 0;
+        font-weight: 400;
+        padding-left: 2px;
+    }
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn {
+        padding: 9px 18px;
+        border-radius: var(--radius-sm);
+        border: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.18s var(--ease-out);
+        font-family: var(--font-sans);
+        letter-spacing: -0.1px;
+    }
+    .btn-outline {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--ink-700);
+        border: 1.5px solid rgba(255, 255, 255, 0.5);
+        box-shadow: var(--shadow-xs);
+    }
+    .btn-outline:hover {
+        border-color: var(--ink-300);
+        background: rgba(255, 255, 255, 0.85);
+        transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       MESSAGES
+       ============================================================ */
+    .messages { margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
+    .message {
+        padding: 14px 18px;
+        border-radius: var(--radius-sm);
+        font-size: 13.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        box-shadow: var(--shadow-xs);
+        border: 1px solid transparent;
+        border-left-width: 3px;
+        border-left-style: solid;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .message.success { background: rgba(236, 253, 245, 0.8); color: var(--emerald-700); border-color: rgba(167, 243, 208, 0.5); border-left-color: var(--emerald-500); }
+    .message.error   { background: rgba(255, 241, 242, 0.8); color: var(--rose-700); border-color: rgba(255, 228, 230, 0.5); border-left-color: var(--rose-500); }
+    .message.warning { background: rgba(255, 251, 235, 0.8); color: var(--amber-700); border-color: rgba(253, 230, 138, 0.5); border-left-color: var(--amber-500); }
+    .message i { font-size: 15px; flex-shrink: 0; }
+
+    /* ============================================================
+       STATS CARDS
+       ============================================================ */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 22px 24px;
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s var(--ease-out);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.6);
+        transition: background 0.25s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.68);
+    }
+    .stat-card .stat-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    .stat-card .stat-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .stat-card .stat-trend {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        letter-spacing: 0.1px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .stat-card .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--ink-900);
+        letter-spacing: -1px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+    .stat-card .stat-value .suffix {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--ink-400);
+        letter-spacing: 0;
+        margin-left: 2px;
+    }
+    .stat-card .stat-label {
+        font-size: 12.5px;
+        color: var(--ink-500);
+        margin-top: 8px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+    }
+    .stat-card.primary::before { background: linear-gradient(90deg, var(--brand-500), var(--brand-700)); }
+    .stat-card.primary .stat-icon { color: var(--brand-600); }
+    .stat-card.primary .stat-value { color: var(--brand-700); }
+    .stat-card.primary .stat-trend { background: rgba(238, 244, 255, 0.7); color: var(--brand-700); }
+
+    .stat-card.success::before { background: linear-gradient(90deg, var(--emerald-500), var(--emerald-700)); }
+    .stat-card.success .stat-icon { color: var(--emerald-700); }
+    .stat-card.success .stat-value { color: var(--emerald-700); }
+    .stat-card.success .stat-trend { background: rgba(236, 253, 245, 0.7); color: var(--emerald-700); }
+
+    .stat-card.warning::before { background: linear-gradient(90deg, var(--amber-500), var(--amber-700)); }
+    .stat-card.warning .stat-icon { color: var(--amber-700); }
+    .stat-card.warning .stat-value { color: var(--amber-700); }
+    .stat-card.warning .stat-trend { background: rgba(255, 251, 235, 0.7); color: var(--amber-700); }
+
+    .stat-card.purple::before { background: linear-gradient(90deg, var(--violet-500), var(--violet-700)); }
+    .stat-card.purple .stat-icon { color: var(--violet-700); }
+    .stat-card.purple .stat-value { color: var(--violet-700); }
+    .stat-card.purple .stat-trend { background: rgba(245, 243, 255, 0.7); color: var(--violet-700); }
+
+    /* ============================================================
+       CARD (MAIN CONTAINER)
+       ============================================================ */
+    .card {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        overflow: hidden;
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        flex-wrap: wrap;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .card-header .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .card-header .card-icon {
+        width: 36px; height: 36px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        color: var(--brand-600);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+    .card-header h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink-900);
+        margin: 0;
+        letter-spacing: -0.2px;
+    }
+    .card-header .card-subtitle {
+        font-size: 12px;
+        color: var(--ink-500);
+        margin: 2px 0 0;
+        font-weight: 400;
+    }
+    .count-badge {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: var(--ink-600);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* ============================================================
+       TABLE
+       ============================================================ */
+    .table-wrapper { overflow-x: auto; }
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13.5px;
+    }
+    table thead th {
+        text-align: left;
+        padding: 13px 18px;
+        font-weight: 600;
+        color: var(--ink-500);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+    }
+    table tbody td {
+        padding: 15px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        color: var(--ink-800);
+        vertical-align: middle;
+    }
+    table tbody tr.subject-row {
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    table tbody tr.subject-row:hover td {
+        background: rgba(238, 244, 255, 0.55);
+    }
+    table tbody tr.subject-row.active td {
+        background: rgba(220, 231, 255, 0.65);
+        border-bottom-color: rgba(192, 212, 255, 0.6);
+    }
+    table tbody tr:last-child td { border-bottom: none; }
+
+    .subject-code {
+        font-weight: 700;
+        color: var(--brand-600);
+        font-size: 13px;
+        letter-spacing: -0.2px;
+        font-variant-numeric: tabular-nums;
+    }
+    .subject-desc {
+        color: var(--ink-800);
+        font-weight: 500;
+    }
+    .row-chevron {
+        color: var(--ink-300);
+        font-size: 11px;
+        transition: transform 0.2s, color 0.2s;
+        display: inline-block;
+    }
+    .subject-row:hover .row-chevron { color: var(--brand-500); transform: translateX(2px); }
+
+    /* ============================================================
+       BADGES
+       ============================================================ */
+    .subject-badge, .year-badge, .section-badge, .major-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.1px;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        line-height: 1.5;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    .subject-badge.lecture { background: rgba(238, 244, 255, 0.7); color: var(--brand-700); border-color: rgba(192, 212, 255, 0.5); }
+    .subject-badge.lab     { background: rgba(255, 251, 235, 0.7); color: var(--amber-700); border-color: rgba(253, 230, 138, 0.5); }
+    .subject-badge.both    { background: rgba(236, 253, 245, 0.7); color: var(--emerald-700); border-color: rgba(167, 243, 208, 0.5); }
+
+    .year-badge    { background: rgba(238, 244, 255, 0.7); color: var(--brand-700); border-color: rgba(192, 212, 255, 0.5); font-variant-numeric: tabular-nums; }
+    .section-badge { background: rgba(236, 253, 245, 0.7); color: var(--emerald-700); border-color: rgba(167, 243, 208, 0.5); font-variant-numeric: tabular-nums; }
+    .major-badge   { background: rgba(245, 243, 255, 0.7); color: var(--violet-700); border-color: rgba(221, 214, 254, 0.5); }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state { text-align: center; padding: 80px 24px; color: var(--ink-500); }
+    .empty-state .empty-icon {
+        font-size: 40px;
+        margin-bottom: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .empty-state h4 { color: var(--ink-800); margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+    .empty-state p { font-size: 13.5px; margin: 0; }
+
+    /* ============================================================
+       MODAL (GLASS)
+       ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+
+    .modal {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: var(--radius-xl);
+        width: 100%;
+        max-width: 960px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.3);
+        transform: translateY(24px) scale(0.97);
+        transition: transform 0.3s var(--ease-out);
+        overflow: hidden;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 26px 30px 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .modal-title { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .modal-title .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .modal-title .modal-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+        display: flex; align-items: center; justify-content: center;
+        color: #fff;
+        font-size: 19px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(59, 108, 246, 0.3);
+    }
+    .modal-title h3 {
+        font-size: 20px;
+        color: var(--ink-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+    .modal-title .sub {
+        font-size: 13.5px;
+        color: var(--ink-500);
+        font-weight: 400;
+        line-height: 1.5;
+    }
+    .modal-close {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--ink-500);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        font-family: var(--font-sans);
+    }
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--ink-900);
+        border-color: var(--ink-300);
+        transform: rotate(90deg);
+    }
+
+    .modal-body {
+        padding: 26px 30px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .modal-body::-webkit-scrollbar { width: 10px; }
+    .modal-body::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; border: 3px solid rgba(255,255,255,0.5); }
+    .modal-body::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+
+    /* Info grid (Glass) */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .info-item {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border-radius: 10px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        transition: all 0.15s;
+    }
+    .info-item:hover { background: rgba(255, 255, 255, 0.65); border-color: rgba(255, 255, 255, 0.6); box-shadow: var(--shadow-xs); }
+    .info-item .info-label {
+        font-size: 10.5px;
+        color: var(--ink-500);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .info-item .info-label i { font-size: 10px; color: var(--ink-400); }
+    .info-item .info-value {
+        font-size: 14px;
+        color: var(--ink-900);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+    }
+
+    /* Hours summary (Glass) */
+    .hours-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 26px;
+    }
+    .hours-card {
+        background: rgba(238, 244, 255, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(192, 212, 255, 0.5);
+        border-radius: var(--radius-md);
+        padding: 18px 16px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s var(--ease-out);
+    }
+    .hours-card:hover { transform: translateY(-2px); }
+    .hours-card.green { background: rgba(236, 253, 245, 0.6); border-color: rgba(167, 243, 208, 0.5); }
+    .hours-card.amber { background: rgba(255, 251, 235, 0.6); border-color: rgba(253, 230, 138, 0.5); }
+    .hours-card.purple { background: rgba(245, 243, 255, 0.6); border-color: rgba(221, 214, 254, 0.5); }
+    .hours-card .num {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--brand-700);
+        letter-spacing: -0.8px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+    .hours-card.green  .num { color: var(--emerald-700); }
+    .hours-card.amber  .num { color: var(--amber-700); }
+    .hours-card.purple .num { color: var(--violet-700); }
+    .hours-card .lbl {
+        font-size: 10.5px;
+        color: var(--ink-600);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 7px;
+    }
+    .hours-card .progress-bar {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.4);
+    }
+    .hours-card .progress-bar .fill {
+        height: 100%;
+        background: currentColor;
+        border-radius: 0 3px 3px 0;
+        transition: width 0.6s var(--ease-out);
+    }
+
+    /* Schedule table (Glass) */
+    .modal-section-title {
+        font-size: 13px;
+        color: var(--ink-900);
+        margin: 0 0 12px;
+        font-weight: 700;
+        letter-spacing: 0.1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .modal-section-title i { color: var(--brand-500); font-size: 12px; }
+    .sched-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    .sched-table thead th {
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        padding: 11px 14px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 10.5px;
+        color: var(--ink-500);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    .sched-table tbody td {
+        padding: 13px 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+        color: var(--ink-800);
+        background: rgba(255, 255, 255, 0.25);
+    }
+    .sched-table tbody tr:first-child td { border-top: none; }
+    .sched-table tbody tr:hover td { background: rgba(255, 255, 255, 0.5); }
+    .sched-table .day { font-weight: 700; color: var(--ink-900); }
+    .sched-table .time { font-variant-numeric: tabular-nums; color: var(--ink-700); font-weight: 500; }
+
+    .type-pill {
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        display: inline-block;
+        border: 1px solid transparent;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    .type-pill.lec { background: rgba(238, 244, 255, 0.7); color: var(--brand-700); border-color: rgba(192, 212, 255, 0.5); }
+    .type-pill.lab { background: rgba(255, 251, 235, 0.7); color: var(--amber-700); border-color: rgba(253, 230, 138, 0.5); }
+
+    .room-pill {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--ink-700);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+    .sched-table .duration {
+        font-weight: 700;
+        color: var(--emerald-700);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .not-scheduled {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--ink-500);
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: var(--radius-md);
+        border: 1px dashed rgba(255, 255, 255, 0.5);
+    }
+    .not-scheduled .icon { font-size: 32px; margin-bottom: 10px; display: block; }
+    .not-scheduled strong { color: var(--ink-800); font-size: 14px; display: block; margin-bottom: 4px; }
+    .not-scheduled .hint { font-size: 12.5px; }
+
+    .modal-footer {
+        padding: 18px 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       ENTRANCE ANIMATION
+       ============================================================ */
+    .fade-in-up {
+        animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+        .main-content { padding: 24px 20px 40px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .stat-card { padding: 18px 20px; }
+        .stat-card .stat-value { font-size: 26px; }
+        table { font-size: 12.5px; }
+        table thead th, table tbody td { padding: 12px 14px; }
+        .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .page-header h1 { font-size: 23px; }
+        .page-header p { padding-left: 0; }
+        .hours-summary { grid-template-columns: repeat(2, 1fr); }
+        .sched-table { font-size: 12px; }
+        .modal-overlay { padding: 12px; }
+        .modal { max-height: 94vh; border-radius: var(--radius-lg); }
+        .modal-header, .modal-body, .modal-footer { padding-left: 22px; padding-right: 22px; }
+        .card-header { padding: 16px 20px; }
+    }
+    @media (max-width: 560px) {
+        .stats-grid { grid-template-columns: 1fr; }
+        .info-grid { grid-template-columns: 1fr 1fr; }
+        .hours-summary { grid-template-columns: 1fr 1fr; }
+        table thead th:nth-child(3),
+        table tbody td:nth-child(3),
+        table thead th:nth-child(6),
+        table tbody td:nth-child(6) { display: none; }
+        .modal-title h3 { font-size: 17px; }
+        .modal-title .modal-icon { width: 38px; height: 38px; font-size: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+        }
+    }
+
+    /* ============================================================
+       FACULTY DESIGN SYSTEM — shared frosted surfaces
+       (matches faculty_list.html: stronger glass fill, 22px blur,
+       inner top highlight and the deep indigo shadow)
+       ============================================================ */
+    .stat-card,
+    .card,
+    .glass-panel {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-inset);
+    }
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.82);
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), var(--glass-inset);
+    }
+    .glass-input {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-outline {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        box-shadow: var(--glass-inset);
+    }
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(37, 99, 235, 0.45);
+    }
+    .count-badge {
+        background: var(--glass-fill-soft);
+        border: 1px solid var(--glass-border-soft);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-inset);
+    }
+    table thead th {
+        background: rgba(255, 255, 255, 0.42);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    table tbody tr:hover td { background: rgba(255, 255, 255, 0.55); }
+    .modal {
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35), var(--glass-inset);
+    }
+    .modal-overlay {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+    <!-- Page Header (Glass) -->
+    <div class="page-header fade-in-up" style="animation-delay: 50ms;">
+        <div class="header-text">
+            <span class="page-eyebrow">📚 Teaching Load</span>
+            <h1>
+                My Subjects
+            </h1>
+            <p>Overview of your assigned subjects, schedules, and weekly workload</p>
+        </div>
+        <div class="header-actions">
+            <span class="count-badge">{{ subject_count }} subject{{ subject_count|pluralize }}</span>
+            {% if faculty.is_chairman %}
+                <a href="{% url 'all_subjects' %}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> All Subjects
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Messages (Glass) -->
+    {% if messages %}
+    <div class="messages fade-in-up" style="animation-delay: 80ms;">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Stats (Glass Cards) -->
+    <div class="stats-grid fade-in-up" style="animation-delay: 120ms;">
+        <div class="stat-card primary">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fas fa-book"></i></div>
+                <span class="stat-trend"><i class="fas fa-layer-group" style="font-size:9px;"></i> Assigned</span>
+            </div>
+            <div class="stat-value">{{ subject_count }}</div>
+            <div class="stat-label">Total Subjects</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
+                <span class="stat-trend"><i class="fas fa-check" style="font-size:9px;"></i> Active</span>
+            </div>
+            <div class="stat-value">{{ subjects|length }}</div>
+            <div class="stat-label">Active Subjects</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                <span class="stat-trend"><i class="fas fa-clock" style="font-size:9px;"></i> Weekly</span>
+            </div>
+            <div class="stat-value">{{ scheduled_count|default:0 }}</div>
+            <div class="stat-label">Scheduled</div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <span class="stat-trend"><i class="fas fa-chart-simple" style="font-size:9px;"></i> Load</span>
+            </div>
+            <div class="stat-value">{{ total_hours|default:0|floatformat:1 }}<span class="suffix">h</span></div>
+            <div class="stat-label">Total Hours / Week</div>
+        </div>
+    </div>
+
+    <!-- Subjects Table (Glass) -->
+    <div class="card fade-in-up" style="animation-delay: 160ms;">
+        <div class="card-header">
+            <div class="card-title-group">
+                <div class="card-icon"><i class="fas fa-list-check"></i></div>
+                <div>
+                    <h3>Subject List &amp; Schedules</h3>
+                    <div class="card-subtitle">Click any row to view detailed schedule information</div>
+                </div>
+            </div>
+            <span class="count-badge">{{ subjects|length }} subject{{ subjects|length|pluralize }}</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Section</th>
+                        <th>Major</th>
+                        <th style="text-align:center;">Hours</th>
+                        <th>Type</th>
+                        <th style="width:40px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subjects %}
+                        <tr class="subject-row"
+                            data-subject-id="{{ subject.id }}"
+                            onclick="showSubjectDetail(this)">
+                            <td><span class="subject-code">{{ subject.subject_code }}</span></td>
+                            <td><span class="subject-desc">{{ subject.subject_description|truncatechars:35 }}</span></td>
+                            <td>{{ subject.course_code }}</td>
+                            <td>
+                                <span class="year-badge">{{ subject.year_section.get_year_level_display }}</span>
+                            </td>
+                            <td>
+                                <span class="section-badge">{{ subject.section }}</span>
+                            </td>
+                            <td>
+                                {% if subject.major %}
+                                    <span class="major-badge">{{ subject.major }}</span>
+                                {% else %}
+                                    <span style="color:var(--ink-300);">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;">{{ subject.total_hours_per_week|floatformat:1 }}</td>
+                            <td>
+                                {% if subject.has_lecture and subject.is_laboratory %}
+                                    <span class="subject-badge both">📚 Lecture + Lab</span>
+                                {% elif subject.has_lecture %}
+                                    <span class="subject-badge lecture">📖 Lecture</span>
+                                {% elif subject.is_laboratory %}
+                                    <span class="subject-badge lab">🔬 Lab</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="row-chevron"><i class="fas fa-chevron-right"></i></span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📚</span>
+                                    <h4>No subjects assigned yet</h4>
+                                    <p>Your subjects will appear here once assigned by the chairman.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL — Subject Detail (Glassmorphism)
+         ============================================================ -->
+    <div class="modal-overlay" id="subjectDetailModal" onclick="handleModalOverlay(event)">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSubjectTitle">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="title-row">
+                        <div class="modal-icon"><i class="fas fa-book"></i></div>
+                        <h3 id="modalSubjectTitle">
+                            <span id="d-subject-code">—</span>
+                            <span class="subject-badge" id="d-type-badge">—</span>
+                        </h3>
+                    </div>
+                    <div class="sub" id="d-subject-description">—</div>
+                </div>
+                <button class="modal-close" type="button" onclick="closeSubjectDetail()" title="Close (Esc)" aria-label="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Basic info grid -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-graduation-cap"></i> Course</div>
+                        <div class="info-value" id="d-course">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-calendar"></i> Year</div>
+                        <div class="info-value" id="d-year">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-users"></i> Section</div>
+                        <div class="info-value" id="d-section">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-bookmark"></i> Major</div>
+                        <div class="info-value" id="d-major">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-user"></i> Faculty</div>
+                        <div class="info-value" id="d-faculty">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-clock"></i> Declared Hours / Week</div>
+                        <div class="info-value" id="d-declared-hours">—</div>
+                    </div>
+                </div>
+
+                <!-- Hours summary -->
+                <div class="hours-summary">
+                    <div class="hours-card">
+                        <div class="num" id="d-total-scheduled">0.0h</div>
+                        <div class="lbl">Total Scheduled</div>
+                        <div class="progress-bar"><div class="fill" id="d-total-bar" style="width:0%"></div></div>
+                    </div>
+                    <div class="hours-card green">
+                        <div class="num" id="d-lecture-scheduled">0.0h</div>
+                        <div class="lbl">Lecture Scheduled</div>
+                        <div class="progress-bar"><div class="fill" id="d-lecture-bar" style="width:0%"></div></div>
+                    </div>
+                    <div class="hours-card amber">
+                        <div class="num" id="d-lab-scheduled">0.0h</div>
+                        <div class="lbl">Lab Scheduled</div>
+                        <div class="progress-bar"><div class="fill" id="d-lab-bar" style="width:0%"></div></div>
+                    </div>
+                    <div class="hours-card purple">
+                        <div class="num" id="d-schedule-count">0</div>
+                        <div class="lbl">Schedules</div>
+                    </div>
+                </div>
+
+                <!-- Schedule detail table -->
+                <h4 class="modal-section-title"><i class="fas fa-list"></i> All Schedules</h4>
+                <div id="d-schedules-container">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeSubjectDetail()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ────────────────────────────────────────────────────────────
+    // Schedules hang off SubjectOffering (offering.schedules),
+    // NOT off Subject directly.
+    // ────────────────────────────────────────────────────────────
+    const SUBJECT_DATA = {
+        {% for subject in subjects %}
+        "{{ subject.id }}": {
+            id: "{{ subject.id }}",
+            subject_code: "{{ subject.subject_code|escapejs }}",
+            subject_description: "{{ subject.subject_description|escapejs }}",
+            course_code: "{{ subject.course_code|escapejs }}",
+            year_level: "{{ subject.year_section.get_year_level_display|escapejs }}",
+            section: "{{ subject.section|escapejs }}",
+            major: "{{ subject.major|default:''|escapejs }}",
+            faculty_name: "{{ subject.faculty.full_name|escapejs }}",
+            has_lecture: {{ subject.has_lecture|yesno:"true,false" }},
+            is_laboratory: {{ subject.is_laboratory|yesno:"true,false" }},
+            declared_hours: {{ subject.total_hours_per_week|default:0 }},
+            schedules: [
+                {% for offering in subject.offerings.all %}
+                    {% for s in offering.schedules.all %}
+                    {
+                        day: "{{ s.day|escapejs }}",
+                        start_time: "{{ s.start_time|time:'g:i A' }}",
+                        end_time: "{{ s.end_time|time:'g:i A' }}",
+                        start_time_raw: "{{ s.start_time|time:'H:i' }}",
+                        end_time_raw: "{{ s.end_time|time:'H:i' }}",
+                        room_code: "{{ s.room.room_code|escapejs }}",
+                        room_name: "{{ s.room.room_name|escapejs }}",
+                        building: "{{ s.room.building_name|escapejs }}",
+                        schedule_type: "{{ s.schedule_type }}",
+                        faculty_name: "{{ subject.faculty.full_name|escapejs }}",
+                        semester_id: "{{ offering.semester_id|default:'' }}",
+                        semester_label: "{{ offering.semester|default:''|escapejs }}",
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    const ACTIVE_SEMESTER_ID = "{{ active_semester.id|default:'' }}";
+
+    function filterSchedulesByActiveSemester(schedules) {
+        if (!ACTIVE_SEMESTER_ID) return schedules;
+        return schedules.filter(s => {
+            if (!s.semester_id) return true;
+            return String(s.semester_id) === String(ACTIVE_SEMESTER_ID);
+        });
+    }
+
+    let activeSubjectRow = null;
+
+    function computeDurationHours(startRaw, endRaw) {
+        const [sh, sm] = startRaw.split(':').map(Number);
+        const [eh, em] = endRaw.split(':').map(Number);
+        const mins = (eh * 60 + em) - (sh * 60 + sm);
+        return Math.max(0, mins / 60);
+    }
+
+    function showSubjectDetail(row) {
+        const id = row.dataset.subjectId;
+        const data = SUBJECT_DATA[id];
+        if (!data) return;
+
+        if (activeSubjectRow) activeSubjectRow.classList.remove('active');
+        activeSubjectRow = row;
+        row.classList.add('active');
+
+        // ── Basic info ──
+        document.getElementById('d-subject-code').textContent = data.subject_code;
+        document.getElementById('d-subject-description').textContent = data.subject_description;
+        document.getElementById('d-course').textContent = data.course_code;
+        document.getElementById('d-year').textContent = data.year_level;
+        document.getElementById('d-section').textContent = data.section;
+        document.getElementById('d-major').textContent = data.major || '—';
+        document.getElementById('d-faculty').textContent = data.faculty_name;
+        document.getElementById('d-declared-hours').textContent = `${data.declared_hours} h / week`;
+
+        // ── Type badge ──
+        const badge = document.getElementById('d-type-badge');
+        if (data.has_lecture && data.is_laboratory) {
+            badge.className = 'subject-badge both';
+            badge.textContent = '📚 Lecture + Lab';
+        } else if (data.has_lecture) {
+            badge.className = 'subject-badge lecture';
+            badge.textContent = '📖 Lecture';
+        } else if (data.is_laboratory) {
+            badge.className = 'subject-badge lab';
+            badge.textContent = '🔬 Lab';
+        } else {
+            badge.className = 'subject-badge';
+            badge.textContent = '—';
+        }
+
+        // ── Semester-filtered schedules ──
+        const visibleSchedules = filterSchedulesByActiveSemester(data.schedules);
+
+        let totalHours = 0, lectureHours = 0, labHours = 0;
+        visibleSchedules.forEach(s => {
+            const h = computeDurationHours(s.start_time_raw, s.end_time_raw);
+            totalHours += h;
+            if (s.schedule_type === 'LAB') labHours += h;
+            else lectureHours += h;
+        });
+
+        document.getElementById('d-total-scheduled').textContent   = totalHours.toFixed(1) + 'h';
+        document.getElementById('d-lecture-scheduled').textContent = lectureHours.toFixed(1) + 'h';
+        document.getElementById('d-lab-scheduled').textContent     = labHours.toFixed(1) + 'h';
+        document.getElementById('d-schedule-count').textContent    = visibleSchedules.length;
+
+        // ── Animated progress bars ──
+        const maxH = Math.max(data.declared_hours, totalHours, 1);
+        setTimeout(() => {
+            document.getElementById('d-total-bar').style.width   = Math.min(100, (totalHours / maxH) * 100) + '%';
+            document.getElementById('d-lecture-bar').style.width = Math.min(100, (lectureHours / maxH) * 100) + '%';
+            document.getElementById('d-lab-bar').style.width     = Math.min(100, (labHours / maxH) * 100) + '%';
+        }, 50);
+
+        // ── Build schedules table ──
+        const container = document.getElementById('d-schedules-container');
+
+        if (visibleSchedules.length === 0) {
+            container.innerHTML = `
+                <div class="not-scheduled">
+                    <span class="icon">⏳</span>
+                    <strong>Not scheduled yet</strong>
+                    <div class="hint">Assign this subject to a room to add schedules.</div>
+                </div>
+            `;
+        } else {
+            let tableHtml = `
+                <table class="sched-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Duration</th>
+                            <th>Type</th>
+                            <th>Room</th>
+                            <th>Building</th>
+                            <th>Faculty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            const DAY_ORDER = {
+                'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
+                'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6, 'SUNDAY': 7,
+            };
+
+            visibleSchedules
+                .slice()
+                .sort((a, b) => {
+                    const da = DAY_ORDER[(a.day || '').toUpperCase()] || 99;
+                    const db = DAY_ORDER[(b.day || '').toUpperCase()] || 99;
+                    if (da !== db) return da - db;
+                    return (a.start_time_raw || '').localeCompare(b.start_time_raw || '');
+                })
+                .forEach(s => {
+                    const dur = computeDurationHours(s.start_time_raw, s.end_time_raw);
+                    const isLab = s.schedule_type === 'LAB';
+                    tableHtml += `
+                        <tr>
+                            <td><span class="day">${s.day}</span></td>
+                            <td><span class="time">${s.start_time} – ${s.end_time}</span></td>
+                            <td><span class="duration">${dur.toFixed(1)} h</span></td>
+                            <td><span class="type-pill ${isLab ? 'lab' : 'lec'}">${isLab ? 'LAB' : 'LEC'}</span></td>
+                            <td><span class="room-pill">🏫 ${s.room_code}</span></td>
+                            <td>${s.building}</td>
+                            <td><em style="color:var(--ink-500);">${s.faculty_name}</em></td>
+                        </tr>
+                    `;
+                });
+
+            tableHtml += `</tbody></table>`;
+            container.innerHTML = tableHtml;
+        }
+
+        const modal = document.getElementById('subjectDetailModal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSubjectDetail() {
+        const modal = document.getElementById('subjectDetailModal');
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+
+        if (activeSubjectRow) {
+            activeSubjectRow.classList.remove('active');
+            activeSubjectRow = null;
+        }
+    }
+
+    function handleModalOverlay(e) {
+        if (e.target.id === 'subjectDetailModal') closeSubjectDetail();
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSubjectDetail();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.message').forEach(function (msg) {
+            setTimeout(function () {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-4px)';
+                setTimeout(function () { msg.style.display = 'none'; }, 400);
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}
